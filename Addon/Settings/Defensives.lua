@@ -6,6 +6,8 @@ _p.Defensives = {   --priority is the number to the right (higher is a higher pr
 
     --###### Externals #######
     [33206] = 1000,     --Pain Suppression
+    
+    [102342] = 1000,     --Iron Bark
 
     --###### Personals #######
     [104773] = 100,     --Unending Resolve
