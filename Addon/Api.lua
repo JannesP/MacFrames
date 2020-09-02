@@ -1,13 +1,13 @@
 local ADDON_NAME, _p = ...;
 
 --declaration of global API object
-JFrames = {
+MacFrames = {
     tprint = _p.tprint,
     UnitFrames = _p.UnitFrames,
     Settings = _p.Settings,
 };
 
 if (_p.isDebugMode) then
-    JFrames._p = _p;
-    jf = JFrames;
+    MacFrames._p = _p;
+    jf = MacFrames;
 end

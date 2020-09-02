@@ -1,8 +1,8 @@
 local ADDON_NAME, _p = ...;
 
 _p.Constants = {
-    PartyFrameGlobalName = "JFramesParty",
-    RaidFrameGlobalName = "JFramesRaid",
+    PartyFrameGlobalName = "MacFramesParty",
+    RaidFrameGlobalName = "MacFramesRaid",
     GroupSize = 5,
     RaidGroupCount = 8,
 };

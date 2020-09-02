@@ -27,7 +27,7 @@ UnitFrame.new = function(unit, parent, namePrefix)
     local frameName = namePrefix .. "_" .. unit;
     local frame = _unitFrames[frameName];
     if (frame == nil) then
-        frame = CreateFrame("Button", frameName, parent, "JFramesUnitFrameTemplate");
+        frame = CreateFrame("Button", frameName, parent, "MacFramesUnitFrameTemplate");
         frame.statusIconsFrame = CreateFrame("Frame", nil, frame);
         _unitFrames[frameName] = frame;
     end

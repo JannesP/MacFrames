@@ -1,6 +1,6 @@
 ## Interface: 90001
-## Title: JFrames: Raid and Group Frames
-## Notes: My first AddOn
+## Title: MacFrames: Raid and Party Frames
+## Notes: Simple Raid and Party frame addon.
 ## Version: 0.0.1
 ## Author: DeppImAll#2982
 ## DefaultState: enabled
@@ -31,5 +31,5 @@ Frames\UnitFrame.lua
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua
 
-JFrames.lua
+MacFrames.lua
 Api.lua

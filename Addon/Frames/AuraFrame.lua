@@ -16,7 +16,7 @@ local _framePool = _p.FramePool.new();
 function AuraFrame.new(parent, width, height, zoom)
     local frame = _framePool:Take();
     if (frame == nil) then
-        frame = CreateFrame("Frame", nil, parent, "JFramesUnitFrameAuraTemplate");
+        frame = CreateFrame("Frame", nil, parent, "MacFramesUnitFrameAuraTemplate");
     else
         frame:SetParent(parent);
     end
