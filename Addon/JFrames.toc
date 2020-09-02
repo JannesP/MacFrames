@@ -1,0 +1,35 @@
+## Interface: 90001
+## Title: JFrames: Raid and Group Frames
+## Notes: My first AddOn
+## Version: 0.0.1
+## Author: DeppImAll#2982
+## DefaultState: enabled
+
+Embeds.xml
+Resources.lua
+
+Constants.lua
+Init.lua
+
+Settings\Settings.lua
+Settings\DebuffBlacklist.lua
+Settings\CastBindings.lua
+Settings\Defensives.lua
+
+Util\FramePool.lua
+Util\PixelUtil.lua
+Util\SettingsUtil.lua
+Util\MyAuraUtil.lua
+
+Util\AuraManager.lua
+
+Frames\AuraFrame.xml
+Frames\AuraFrame.lua
+Frames\AuraGroup.lua
+Frames\UnitFrame.xml
+Frames\UnitFrame.lua
+Frames\PartyFrame.lua
+Frames\RaidFrame.lua
+
+JFrames.lua
+Api.lua

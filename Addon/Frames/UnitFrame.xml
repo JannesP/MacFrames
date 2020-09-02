@@ -1,0 +1,55 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+    <!-- the addon's functionality is defined in here -->
+    <Button name="JFramesUnitFrameTemplate" frameStrata="LOW" inherits="SecureUnitButtonTemplate" virtual="true">
+        <Layers>
+            <Layer level="BACKGROUND">
+				<Texture name="$parent_Background" parentKey="background" setAllPoints="true" ignoreParentAlpha="false"/>
+			</Layer>
+			<Layer level="BORDER" textureSubLevel="6">
+				<Texture name="$parentHealAbsorb" parentKey="healAbsorb"/>
+				<Texture name="$parentHealPrediction" parentKey="healPrediction"/>
+				<Texture name="$parentTotalAbsorb" parentKey="totalAbsorb"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString name="$parentName" inherits="GameFontHighlightSmall" parentKey="name" wordwrap="false"/>
+				<Texture name="$parentRoleIcon" hidden="true" parentKey="roleIcon"/>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture name="$parentTargetHighlight" parentKey="targetHighlight" ignoreParentAlpha="true"/>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture name="$parentAggroHighlight" parentKey="aggroHighlight" ignoreParentAlpha="true"/>
+			</Layer>
+        </Layers>
+        <Frames>
+			<StatusBar name="$parentHealthBar" parentKey="healthBar" useParentLevel="true">
+				<Layers>
+					<Layer level="BACKGROUND" textureSubLevel="2">
+						<Texture name="$parentBackground" parentKey="background" setAllPoints="true"/>
+					</Layer>
+					<Layer level="BORDER" textureSubLevel="5">
+						<Texture name="$parentOverlay" parentKey="overlay"/>
+					</Layer>
+				</Layers>
+			</StatusBar>
+			<Frame name="$parentStatusIconContainer" parentKey="statusIconContainer" useParentLevel="true">
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="$parentStatusText" inherits="GameFontDisable" parentKey="statusText"/>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture name="$parentReadyCheckIcon" parentKey="readyCheckIcon" ignoreParentAlpha="true"/>
+						<Texture name="$parentSummonIcon" parentKey="summonIcon" ignoreParentAlpha="true"/>
+						<Texture name="$parentResurrectIcon" parentKey="resurrectIcon" ignoreParentAlpha="true"/>
+						<Texture name="$parentPhasingIcon" parentKey="phasingIcon" ignoreParentAlpha="true"/>
+						<Texture name="$parentLfgIcon" parentKey="lfgIcon" ignoreParentAlpha="true"/>
+					</Layer>
+				</Layers>
+			</Frame>
+        </Frames>
+		<Scripts>
+			<OnEnter function="UnitFrame_OnEnter"/>
+			<OnLeave function="UnitFrame_OnLeave"/>
+		</Scripts>
+    </Button>
+</Ui>

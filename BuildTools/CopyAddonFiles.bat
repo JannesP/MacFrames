@@ -1,0 +1,2 @@
+robocopy "..\Addon" "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\JFrames" /mir
+robocopy "..\Addon" "C:\Program Files (x86)\World of Warcraft\_beta_\Interface\AddOns\JFrames" /mir
