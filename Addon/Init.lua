@@ -3,11 +3,14 @@ local ADDON_NAME, _p = ...;
 _p.isDebugMode = true;
 _p.isLoggingEnabled = _p.isDebugMode;
 _p.versionNumber = 0;
+_p.isRunningShadowlands = select(4, GetBuildInfo()) > 90000;
 
 _p.PlayerInfo = {
     class = nil,
     specId = nil,
 };
+
+_p.L = setmetatable({}, {__index = function(L, key) return key; end});
 
 _p.tprint = function(tbl, indent)
     if not indent then indent = 0 end

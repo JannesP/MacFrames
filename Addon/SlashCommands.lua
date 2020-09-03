@@ -17,7 +17,7 @@ local AvailableOptions = {
 SlashCmdList["MACFRAMES"] = function(msg, chatEditBox)
     msg = string.lower(msg);
     if (msg == AvailableOptions.Config.key) then
-        
+        _p.ConfigurationWindow.Toggle();
     elseif (msg == AvailableOptions.TestOff.key or msg == AvailableOptions.TestOff2.key) then
         Addon.ToggleTestMode(Addon.TestMode.Disabled);
     elseif (msg == AvailableOptions.TestOff.key or msg == AvailableOptions.TestParty2.key) then

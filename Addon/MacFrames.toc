@@ -30,6 +30,8 @@ Frames\UnitFrame.xml
 Frames\UnitFrame.lua
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua
+Frames\ConfigurationFrame.lua
+Frames\ConfigurationWindow.lua
 
 MacFrames.lua
 Api.lua

@@ -326,7 +326,7 @@ function UnitFrame.RegisterUnitEvents(self)
     end
     self:RegisterUnitEvent("UNIT_HEALTH", unit, displayUnit);
     --TODO: remove when prepatch hits
-    if (90000 > select(4, GetBuildInfo())) then --if it's not shadowlands yet
+    if (not _p.isRunningShadowlands) then --if it's not shadowlands yet
         self:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", unit, displayUnit);
     end
     self:RegisterUnitEvent("UNIT_FLAGS", unit, displayUnit);

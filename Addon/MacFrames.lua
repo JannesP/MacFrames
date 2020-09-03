@@ -22,6 +22,7 @@ Addon.testMode = Addon.TestMode.Disabled;
 function Addon.Loaded()
     _partyFrame = PartyFrame.create();
     _raidFrame = RaidFrame.create();
+    _p.ConfigurationWindow.Open();
 end
 
 function Addon.EnteringCombat()
@@ -83,7 +84,9 @@ function _events:ADDON_LOADED(addonName)
     end
 end
 function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
-    Addon.UpdatePlayerInfo();
+    if (isInitialLogin or isReloadingUi) then
+        Addon.UpdatePlayerInfo();
+    end
 end
 function _events:PLAYER_REGEN_DISABLED()
     Addon.EnteringCombat();
