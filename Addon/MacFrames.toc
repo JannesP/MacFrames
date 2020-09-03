@@ -33,3 +33,4 @@ Frames\RaidFrame.lua
 
 MacFrames.lua
 Api.lua
+SlashCommands.lua

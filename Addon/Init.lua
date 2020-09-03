@@ -36,6 +36,10 @@ _p.tprint = function(tbl, indent)
     return toprint;
 end
 
+_p.UserChatMessage = function(msg)
+    DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0, GetChatTypeIndex("SYSTEM"));
+end
+
 _p.Log = function(msg)
     if (not _p.isLoggingEnabled) then return; end
     local msgType = type(msg);

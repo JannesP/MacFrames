@@ -11,6 +11,10 @@ local AuraGroup = _p.AuraGroup;
 local AuraManager = _p.AuraManager;
 
 local _padding = Settings.Frames.Padding;
+local _classColorsByIndex = {};
+for key, value in pairs(RAID_CLASS_COLORS) do
+    tinsert(_classColorsByIndex, value);
+end
 
 local _unitFrames = {};
 _p.UnitFrames = _unitFrames;
@@ -125,6 +129,52 @@ function UnitFrame.Setup(self)
     UnitFrame.CreateAuraDisplays(self);
 
     UnitFrame.RegisterEvents(self);
+end
+
+function UnitFrame.SetTestMode(self, enabled)
+    if (enabled == true) then
+        UnregisterUnitWatch(self);
+        self:SetScript("OnEvent", nil);
+        self:SetScript("OnUpdate", nil);
+
+        local health = math.random(1, 1000);
+        local incomingHeal = math.random(0, 200);
+        local absorb = math.random(0, 300);
+        local healAbsorb = math.random(0, 100);
+
+        self:Show();
+        self.healthBar:SetMinMaxValues(0, 1000);
+        self.healthBar:SetValue(health);
+        UnitFrame.SetHealthBarExtraInfo(self, health, 1000, incomingHeal, absorb, healAbsorb);
+        UnitFrame.SetHealth(self, health);
+        local color =_classColorsByIndex[math.random(1, #_classColorsByIndex)];
+        UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
+        local name = GetUnitName("player", Settings.Frames.DisplayServerNames);
+        if (math.random(0, 1) == 0) then
+            name = name .. "(*)";
+        end
+        self.name:SetText(name);
+        UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
+        for _, auraGroup in ipairs(self.auraGroups) do
+            AuraGroup.SetTestMode(auraGroup, enabled);
+        end
+        local testAura = { 
+            [2] = 458720,
+            [3] = 3,
+            [4] = "Magic",
+            [5] = 10000,
+            [6] = GetTime() - 3500,
+        };
+        for _, frame in ipairs(self.specialClassDisplays) do
+            AuraFrame.SetTestAura(frame, testAura);
+        end
+    else
+        RegisterUnitWatch(self);
+        self:SetScript("OnEvent", UnitFrame.OnEvent);
+        self:SetScript("OnUpdate", UnitFrame.OnUpdate);
+
+        UnitFrame.UpdateAll(self);
+    end
 end
 
 function UnitFrame.LayoutStatusIcons(self)
@@ -366,6 +416,7 @@ function UnitFrame.UpdateAll(self)
         UnitFrame.UpdateRoleIcon(self);
         UnitFrame.UpdateTargetHighlight(self);
         UnitFrame.UpdateAggroHighlight(self);
+        UnitFrame.UpdateAuras(self);
 
         self.statusIconContainer.disableLayouting = true;
         UnitFrame.UpdateSummonStatus(self);
@@ -532,31 +583,30 @@ function UnitFrame.UpdateTargetHighlight(self)
 end
 
 function UnitFrame.UpdateRoleIcon(self)
-    local roleIconSize = Settings.Frames.RoleIconSize;
+    
     local raidID = UnitInRaid(self.unit);
     if (UnitInVehicle(self.unit) and UnitHasVehicleUI(self.unit)) then
-		self.roleIcon:SetTexture("Interface\\Vehicles\\UI-Vehicles-Raid-Icon");
-		self.roleIcon:SetTexCoord(0, 1, 0, 1);
-		self.roleIcon:Show();
-		PixelUtil.SetSize(self.roleIcon, roleIconSize, roleIconSize);
+        UnitFrame.SetRoleIcon(self, "Interface\\Vehicles\\UI-Vehicles-Raid-Icon", 0, 1, 0, 1);
 	elseif (raidID and select(10, GetRaidRosterInfo(raidID))) then
 		local role = select(10, GetRaidRosterInfo(raidID));
-		self.roleIcon:SetTexture("Interface\\GroupFrame\\UI-Group-"..role.."Icon");
-		self.roleIcon:SetTexCoord(0, 1, 0, 1);
-		self.roleIcon:Show();
-		PixelUtil.SetSize(self.roleIcon, roleIconSize, roleIconSize);
+        UnitFrame.SetRoleIcon(self, "Interface\\GroupFrame\\UI-Group-"..role.."Icon", 0, 1, 0, 1);
 	else
 		local role = UnitGroupRolesAssigned(self.unit);
 		if (role == "TANK" or role == "HEALER" or role == "DAMAGER") then
-			self.roleIcon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES");
-			self.roleIcon:SetTexCoord(GetTexCoordsForRoleSmallCircle(role));
-			self.roleIcon:Show();
-			PixelUtil.SetSize(self.roleIcon, roleIconSize, roleIconSize);
+            UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
 		else
 			self.roleIcon:Hide();
-			PixelUtil.SetSize(self.roleIcon, 1, roleIconSize);
+			PixelUtil.SetSize(self.roleIcon, 1, Settings.Frames.RoleIconSize);
 		end
 	end
+end
+
+function UnitFrame.SetRoleIcon(self, texture, ...)
+    local roleIconSize = Settings.Frames.RoleIconSize;
+    self.roleIcon:SetTexture(texture);
+    self.roleIcon:SetTexCoord(...);
+    self.roleIcon:Show();
+    PixelUtil.SetSize(self.roleIcon, roleIconSize, roleIconSize);
 end
 
 function UnitFrame.UpdateStatusText(self)
@@ -583,43 +633,47 @@ local function ProjectNumberRange(value, oldMin, oldMax, newMin, newMax)
 end
 
 function UnitFrame.UpdateHealth(self)
-    local hb = self.healthBar;
     if (UnitIsDeadOrGhost(self.displayUnit)) then 
         --otherwise looks weird when somebody is a ghost
-        hb:SetValue(0);
+        self.healthBar:SetValue(0);
     else
-        hb:SetValue(UnitHealth(self.displayUnit));
-        if (Settings.Frames.BlendToDangerColors) then
-            local blendRatio = Settings.Frames.BlendToDangerColorsRatio;
-            local blendMinimum = Settings.Frames.BlendToDangerColorsMinimum;
-            local blendMaximum = Settings.Frames.BlendToDangerColorsMaximum;
-            local _, maxValue = hb:GetMinMaxValues();
-            if (maxValue == 0) then
-                hb.texture:SetAlpha(1);
-                hb.overlay:SetAlpha(0);
-                return;
-            end
-            local ratio = hb:GetValue() / maxValue;
-            if (ratio >= blendMaximum) then
-                hb.texture:SetAlpha(1);
-                hb.overlay:SetAlpha(0);
-            elseif (ratio >= blendRatio) then
-                local lratio = ProjectNumberRange(ratio, blendRatio, blendMaximum, 0, 1);
-                hb.texture:SetAlpha(lratio);
-                hb.overlay:SetVertexColor(1, 1, 0, 1 - lratio);
-            elseif (ratio <= blendMinimum) then
-                hb.texture:SetAlpha(0);
-                hb.overlay:SetVertexColor(1, 0, 0, 1);
-            elseif (ratio < blendRatio) then
-                local lratio = ProjectNumberRange(ratio, blendMinimum, blendRatio, 0, 1);
-                hb.overlay:SetVertexColor(1, lratio, 0, 1);
-                hb.texture:SetAlpha(0);
-            end
-            
-            hb.overlay:Show();
-        else
-            hb.overlay:Hide();
+        UnitFrame.SetHealth(self, UnitHealth(self.displayUnit));
+    end
+end
+
+function UnitFrame.SetHealth(self, health)
+    local hb = self.healthBar;
+    hb:SetValue(health);
+    if (Settings.Frames.BlendToDangerColors) then
+        local blendRatio = Settings.Frames.BlendToDangerColorsRatio;
+        local blendMinimum = Settings.Frames.BlendToDangerColorsMinimum;
+        local blendMaximum = Settings.Frames.BlendToDangerColorsMaximum;
+        local _, maxValue = hb:GetMinMaxValues();
+        if (maxValue == 0) then
+            hb.texture:SetAlpha(1);
+            hb.overlay:SetAlpha(0);
+            return;
         end
+        local ratio = hb:GetValue() / maxValue;
+        if (ratio >= blendMaximum) then
+            hb.texture:SetAlpha(1);
+            hb.overlay:SetAlpha(0);
+        elseif (ratio >= blendRatio) then
+            local lratio = ProjectNumberRange(ratio, blendRatio, blendMaximum, 0, 1);
+            hb.texture:SetAlpha(lratio);
+            hb.overlay:SetVertexColor(1, 1, 0, 1 - lratio);
+        elseif (ratio <= blendMinimum) then
+            hb.texture:SetAlpha(0);
+            hb.overlay:SetVertexColor(1, 0, 0, 1);
+        elseif (ratio < blendRatio) then
+            local lratio = ProjectNumberRange(ratio, blendMinimum, blendRatio, 0, 1);
+            hb.overlay:SetVertexColor(1, lratio, 0, 1);
+            hb.texture:SetAlpha(0);
+        end
+        
+        hb.overlay:Show();
+    else
+        hb.overlay:Hide();
     end
 end
 
@@ -638,16 +692,21 @@ function UnitFrame.UpdateHealthBarExtraInfo(self)
         self.healPrediction:Hide();
         self.totalAbsorb:Hide();
         self.healAbsorb:Hide();
+    else
+        local incomingHeal = UnitGetIncomingHeals(self.displayUnit) or 0;
+        if (incomingHeal == nil) then incomingHeal = 0; end --can happen during a duel, unit is in party but not friendly
+        local absorb = UnitGetTotalAbsorbs(self.displayUnit) or 0;
+        local healAbsorb = UnitGetTotalHealAbsorbs(self.displayUnit) or 0;
+        UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomingHeal, absorb, healAbsorb);
     end
+end
+
+function UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomingHeal, absorb, healAbsorb)
     local totalWidth = self.healthBar:GetWidth();
     if (currentHealth == maxHealth) then
         self.totalAbsorb:Hide();
         self.healPrediction:Hide();
     else
-        local incomingHeal = UnitGetIncomingHeals(self.displayUnit) or 0;
-        if (incomingHeal == nil) then incomingHeal = 0; end --can happen during a duel, unit is in party but not friendly
-        local absorb = UnitGetTotalAbsorbs(self.displayUnit) or 0;
-        
         local remainingEmptyHealth = maxHealth - currentHealth;
         remainingEmptyHealth, nextAnchorFrame, overAmount = UnitFrame.ProcessHealthBarExtraInfoBar(self.healPrediction, incomingHeal, self.healthBar:GetStatusBarTexture(), remainingEmptyHealth, maxHealth, totalWidth);
         if (overAmount > 0) then
@@ -658,14 +717,13 @@ function UnitFrame.UpdateHealthBarExtraInfo(self)
             --overcapped absorbs
         end
     end
-    local healAbsorbAmount = UnitGetTotalHealAbsorbs(self.displayUnit) or 0;
-    if (healAbsorbAmount == 0) then
+    if (healAbsorb == 0) then
         self.healAbsorb:Hide();
     else
-        if (healAbsorbAmount > currentHealth) then
-            healAbsorbAmount = currentHealth;
+        if (healAbsorb > currentHealth) then
+            healAbsorb = currentHealth;
         end
-        local healAbsorbWidth = (healAbsorbAmount / maxHealth) * totalWidth;
+        local healAbsorbWidth = (healAbsorb / maxHealth) * totalWidth;
         PixelUtil.SetWidth(self.healAbsorb, healAbsorbWidth);
         self.healAbsorb:Show();
     end
@@ -721,8 +779,12 @@ function UnitFrame.UpdateHealthColor(self)
         else
             r, g, b = 1.0, 0.0, 0.0;
         end
-	end
-	if ( r ~= self.healthBar.r or g ~= self.healthBar.g or b ~= self.healthBar.b ) then
+    end
+    UnitFrame.SetHealthColor(self, r, g, b);
+end
+
+function UnitFrame.SetHealthColor(self, r, g, b)
+    if (r ~= self.healthBar.r or g ~= self.healthBar.g or b ~= self.healthBar.b) then
 		self.healthBar:SetStatusBarColor(r, g, b);
 		self.healthBar.r, self.healthBar.g, self.healthBar.b = r, g, b;
 	end

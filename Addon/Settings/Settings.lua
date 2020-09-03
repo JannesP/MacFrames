@@ -22,8 +22,8 @@ local Settings = {
             AnchorPoint = "CENTER",
         },
         HideUnnecessaryGroupsInCombat = true,
-        FrameWidth = 85,
-        FrameHeight = 45,
+        FrameWidth = 90,
+        FrameHeight = 50,
         FrameSpacing = 1,
         Margin = 0,
     },
@@ -48,10 +48,10 @@ local Settings = {
         iconZoom = 0.1,  
     },
     DispellableDebuffs = {
-        iconWidth = 18,
-        iconHeight = 18,
+        iconWidth = 14,
+        iconHeight = 14,
         iconZoom = 0.1,  
-        iconCount = 3,
+        iconCount = 2,
         iconSpacing = 1,
     },
     OtherDebuffs = {
@@ -63,10 +63,10 @@ local Settings = {
         UseBlizzardAuraFilter = false,
     },
     BossAuras = {
-        iconWidth = 16,
-        iconHeight = 16,
+        iconWidth = 20,
+        iconHeight = 20,
         iconZoom = 0.1,  
-        iconCount = 2,
+        iconCount = 1,
         iconSpacing = 2,
     },
     DefensiveBuff = {

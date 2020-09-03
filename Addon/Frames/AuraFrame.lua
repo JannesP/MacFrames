@@ -44,6 +44,16 @@ function AuraFrame.new(parent, width, height, zoom)
     return frame;
 end
 
+function AuraFrame.SetTestAura(self, aura)
+    if (aura ~= nil) then
+        AuraFrame.DisplayAura(self, aura);
+        self.cooldown:Pause();
+    else
+        self.cooldown:Resume();
+        AuraFrame.DisplayAura(self, nil);
+    end
+end
+
 function AuraFrame.SetColoringMode(self, coloringMode, ...)
     self.coloringMode = coloringMode;
     if (coloringMode == ColoringMode.Custom) then

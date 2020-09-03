@@ -69,7 +69,7 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
 end
 
 function AuraGroup.Recycle(self)
-    for _, frame in self.auraFrames do
+    for _, frame in ipairs(self.auraFrames) do
         AuraFrame.Recycle(frame);
     end
     wipe(self.auraFrames);
@@ -82,6 +82,53 @@ end
 
 function AuraGroup.SetReverseOrder(self, reverse)
     self.reverse = reverse;
+end
+
+function AuraGroup.SetTestMode(self, enabled)
+    if (enabled == true) then
+        local types = AuraGroup.Type;
+        local aura;
+        if self.auraGroupType == types.DispellableDebuff then
+            aura = { 
+                [2] = 136118,
+                [3] = 3,
+                [4] = "Magic",
+                [5] = 10000,
+                [6] = GetTime() - 3500,
+            };
+        elseif self.auraGroupType == types.UndispellableDebuff then
+            aura = { 
+                [2] = 136113,
+                [3] = 3,
+                [4] = "none",
+                [5] = 10000,
+                [6] = GetTime() - 3500,
+            };
+        elseif self.auraGroupType == types.BossAura then
+            aura = { 
+                [2] = 1769069,
+                [3] = 3,
+                [4] = "none",
+                [5] = 10000,
+                [6] = GetTime() - 3500,
+            };
+        elseif self.auraGroupType == types.DefensiveBuff then
+            aura = { 
+                [2] = 135936,
+                [3] = 3,
+                [4] = "none",
+                [5] = 10000,
+                [6] = GetTime() - 3500,
+            };
+        else
+            error("invalid AuraGroup.Type: " .. self.auraGroupType);
+        end
+        for _, frame in ipairs(self.auraFrames) do
+            AuraFrame.SetTestAura(frame, aura);
+        end
+    else
+        AuraGroup.Update(self);
+    end
 end
 
 function AuraGroup.Update(self)

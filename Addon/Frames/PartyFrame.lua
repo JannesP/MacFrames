@@ -27,6 +27,32 @@ function PartyFrame.create()
     return _frame;
 end
 
+function PartyFrame.SetTestMode(enabled)
+    if (enabled == true) then
+        UnregisterAttributeDriver(_frame, "state-visibility");
+        _frame:Show();
+        PartyFrame.SetChildTestModes(enabled);
+    else
+        RegisterAttributeDriver(_frame, "state-visibility", PartySettings.StateDriverVisibility);
+        PartyFrame.SetChildTestModes(enabled);
+    end
+end
+
+function PartyFrame.SetChildTestModes(enabled)
+    for _, frame in ipairs(_unitFrames) do
+        UnitFrame.SetTestMode(frame, enabled);
+    end
+end
+
+function PartyFrame.SetDisabled(disabled)
+    if (disabled) then
+        UnregisterAttributeDriver(_frame, "state-visibility");
+        _frame:Hide();
+    else
+        RegisterAttributeDriver(_frame, "state-visibility", PartySettings.StateDriverVisibility);
+    end
+end
+
 function PartyFrame.ProcessLayout(self)
     if (not InCombatLockdown()) then
         local frameWidth = PartySettings.FrameWidth;

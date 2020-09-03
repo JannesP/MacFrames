@@ -33,6 +33,34 @@ function RaidFrame.create()
     return _frame;
 end
 
+function RaidFrame.SetTestMode(enabled)
+    if (enabled == true) then
+        UnregisterAttributeDriver(_frame, "state-visibility");
+        _frame:Show();
+        for _, frame in ipairs(_groupFrames) do
+            frame:Show();
+        end
+    else
+        RegisterAttributeDriver(_frame, "state-visibility", RaidSettings.StateDriverVisibility);
+    end
+    RaidFrame.SetChildTestModes(enabled);
+end
+
+function RaidFrame.SetDisabled(disabled)
+    if (disabled) then
+        UnregisterAttributeDriver(_frame, "state-visibility");
+        _frame:Hide();
+    else
+        RegisterAttributeDriver(_frame, "state-visibility", RaidSettings.StateDriverVisibility);
+    end
+end
+
+function RaidFrame.SetChildTestModes(enabled)
+    for _, frame in ipairs(_frames) do
+        UnitFrame.SetTestMode(frame, enabled);
+    end
+end
+
 function RaidFrame.SetupEvents(self)
     self:SetScript("OnEvent", RaidFrame.OnEvent);
 

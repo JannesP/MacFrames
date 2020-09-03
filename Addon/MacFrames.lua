@@ -8,13 +8,27 @@ local _partyFrame;
 local RaidFrame = _p.RaidFrame;
 local _raidFrame;
 
-local _addon = {};
-function _addon.Loaded()
+local Addon = {};
+_p.Addon = Addon;
+
+Addon.TestMode = {
+    Disabled = "disabled",
+    Party = "party",
+    Raid = "raid",
+}
+
+Addon.testMode = Addon.TestMode.Disabled;
+
+function Addon.Loaded()
     _partyFrame = PartyFrame.create();
     _raidFrame = RaidFrame.create();
 end
 
-function _addon.UpdatePlayerInfo()
+function Addon.EnteringCombat()
+    Addon.ToggleTestMode(Addon.TestMode.Disabled);
+end
+
+function Addon.UpdatePlayerInfo()
     local _, englishClass, _ = UnitClass("player");
     local specIndex = GetSpecialization();
     local specId, name = GetSpecializationInfo(specIndex);
@@ -34,24 +48,52 @@ function _addon.UpdatePlayerInfo()
     end
 end
 
+function Addon.ToggleTestMode(type)
+    if (InCombatLockdown()) then
+        _p.UserChatMessage("Cannot change test mode in combat.");
+        return;
+    end
+    if (Addon.testMode == type) then
+        newValue = Addon.TestMode.Disabled;
+    else
+        newValue = type;
+    end
+    if Addon.testMode ~= newValue then
+        Addon.testMode = newValue;
+        _p.Log("Setting test mode to: " .. Addon.testMode);
+        if (Addon.testMode == Addon.TestMode.Disabled) then
+            RaidFrame.SetTestMode(false);
+            PartyFrame.SetTestMode(false);
+        elseif (Addon.testMode == Addon.TestMode.Party) then
+            RaidFrame.SetDisabled(true);
+            PartyFrame.SetTestMode(true);
+        elseif (Addon.testMode == Addon.TestMode.Raid) then
+            RaidFrame.SetTestMode(true);
+            PartyFrame.SetDisabled(true);
+        end
+    end
+end
+
+
+-- ########### EVENT HANDLING ############
 local _eventFrame, _events = CreateFrame("Frame"), {};
 function _events:ADDON_LOADED(addonName)
     if (addonName == ADDON_NAME) then
-        _addon.Loaded();
+        Addon.Loaded();
     end
 end
 function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
-    _addon.UpdatePlayerInfo();
+    Addon.UpdatePlayerInfo();
 end
 function _events:PLAYER_REGEN_DISABLED()
-    --_addon.EnteringCombat();
+    Addon.EnteringCombat();
 end
 function _events:PLAYER_REGEN_ENABLED()
-    --_addon.LeftCombat();
+    --Addon.LeftCombat();
 end
 function _events:PLAYER_SPECIALIZATION_CHANGED(unit)
     if unit == "player" then
-        _addon.UpdatePlayerInfo();
+        Addon.UpdatePlayerInfo();
     end
 end
 
