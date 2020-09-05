@@ -11,6 +11,9 @@ Resources.lua
 Constants.lua
 Init.lua
 
+SavedVariables\Profile.lua
+SavedVariables\ProfileManager.lua
+
 Settings\Settings.lua
 Settings\DebuffBlacklist.lua
 Settings\CastBindings.lua
@@ -20,7 +23,7 @@ Util\FramePool.lua
 Util\PixelUtil.lua
 Util\SettingsUtil.lua
 Util\MyAuraUtil.lua
-
+Util\FrameUtil.lua
 Util\AuraManager.lua
 
 Frames\AuraFrame.xml
@@ -30,9 +33,10 @@ Frames\UnitFrame.xml
 Frames\UnitFrame.lua
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua
-Frames\ConfigurationFrame.lua
-Frames\ConfigurationWindow.lua
 
 MacFrames.lua
+
+Frames\ConfigurationFrame.lua
+Frames\ConfigurationWindow.lua
 Api.lua
 SlashCommands.lua

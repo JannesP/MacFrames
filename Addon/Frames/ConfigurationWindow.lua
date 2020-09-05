@@ -1,5 +1,6 @@
 local ADDON_NAME, _p = ...;
 local L = _p.L;
+local FrameUtil = _p.FrameUtil;
 
 _p.ConfigurationWindow = {};
 local ConfigurationWindow = _p.ConfigurationWindow;
@@ -34,10 +35,11 @@ do
         local headerFrame = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate");
         headerFrame:SetBackdrop(_backdropSettings);
 
-        headerFrame.text = headerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
-        headerFrame.text:SetAllPoints();
-        headerFrame.text:SetText(L["MacFrames Config"]);
-        headerFrame:SetSize(headerFrame.text:GetWidth() * 1.3, 30);
+        headerFrame.text = FrameUtil.CreateText(headerFrame, L["MacFrames Config"], "ARTWORK");
+        headerFrame.text:ClearAllPoints();
+        headerFrame.text:SetPoint("CENTER", headerFrame, "CENTER");
+        FrameUtil.WidthByText(headerFrame, headerFrame.text);
+        headerFrame:SetHeight(30);
         return headerFrame;
     end
     function ConfigurationWindow.Open()
@@ -55,49 +57,13 @@ do
             _window.heading:ClearAllPoints();
             _window.heading:SetPoint("BOTTOM", _window, "TOP", 0, -10);
 
-            _window:SetClampedToScreen(true);
-            _window:SetMovable(true);
-            _window:EnableMouse(true);
-            _window.heading:SetMovable(true);
-            _window.heading:EnableMouse(true);
-            _window.heading:SetScript("OnMouseDown", function(self, button) 
-                print("OnMouseDown");
-                if (button == "LeftButton" and not _window.isMoving) then
-                    _window:StartMoving();
-                    _window.isMoving = true;
-                end
-            end);
-            _window.heading:SetScript("OnMouseUp", function(self, button) 
-                if (_window.isMoving) then
-                    _window:StopMovingOrSizing();
-                    _window.isMoving = false;
-                end
-            end);
+            FrameUtil.ConfigureDragDropHost(_window.heading, _window);
 
-            _window.resizer = CreateFrame("Button", nil, _window);
-            _window.resizer:SetSize(15, 15);
-            _window.resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up");
-            _window.resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down");
-            _window.resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight");
-            _window.resizer:ClearAllPoints();
-            _window.resizer:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT", -5, 5);
-            _window:SetResizable(true);
+            FrameUtil.AddResizer(_window, _window);
             _window:SetMinResize(300, 200);
             _window:SetMaxResize(1000, 800);
-            _window.resizer:SetScript("OnMouseDown", function(self, button) 
-                if (button == "LeftButton" and not _window.isMoving) then
-                    _window:StartSizing();
-                    _window.isMoving = true;
-                end
-            end);
-            _window.resizer:SetScript("OnMouseUp", function(self, button) 
-                if (_window.isMoving) then
-                    _window:StopMovingOrSizing();
-                    _window.isMoving = false;
-                end
-            end);
 
-            _window.configFrame = ConfigurationFrame.new(_window);
+            _window.configFrame = ConfigurationFrame.Show(_window);
             _window.configFrame:SetPoint("TOPLEFT", _window, "TOPLEFT",  10, -10);
             _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
         end
@@ -108,10 +74,9 @@ do
 end
 
 function ConfigurationWindow.Close()
-    if (_window == nil) then
-        error("Window not yet created.");
+    if (_window ~= nil) then
+        _window:Hide();
     end
-    _window:Hide();
 end
 
 

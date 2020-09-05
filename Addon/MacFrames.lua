@@ -18,15 +18,39 @@ Addon.TestMode = {
 }
 
 Addon.testMode = Addon.TestMode.Disabled;
+Addon.framesMovable = false;
+
+function Addon.ToggleAnchors(override)
+    if (InCombatLockdown()) then
+        _p.UserChatMessage("Cannot change anchor mode in combat.");
+        return;
+    end
+    local newValue;
+    if (override ~= nil) then
+        newValue = override;
+    else
+        if (Addon.framesMovable == true) then
+            newValue = false;
+        else
+            newValue = true;
+        end
+    end
+    if (newValue ~= Addon.framesMovable) then
+        Addon.framesMovable = newValue;
+        PartyFrame.SetMovable(newValue);
+        RaidFrame.SetMovable(newValue);
+    end
+end
 
 function Addon.Loaded()
     _partyFrame = PartyFrame.create();
     _raidFrame = RaidFrame.create();
-    _p.ConfigurationWindow.Open();
 end
 
 function Addon.EnteringCombat()
     Addon.ToggleTestMode(Addon.TestMode.Disabled);
+    Addon.ToggleAnchors(false);
+    ConfigurationWindow.Close();
 end
 
 function Addon.UpdatePlayerInfo()

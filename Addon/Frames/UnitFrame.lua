@@ -21,6 +21,11 @@ _p.UnitFrames = _unitFrames;
 
 local UnitFrame = {};
 _p.UnitFrame = UnitFrame;
+
+function UnitFrame.GetMinimumSize()
+    return 70, 32;
+end
+
 UnitFrame.new = function(unit, parent, namePrefix)
     if (namePrefix == nil) then
         namePrefix = parent:GetName();
@@ -136,17 +141,17 @@ function UnitFrame.SetTestMode(self, enabled)
         UnregisterUnitWatch(self);
         self:SetScript("OnEvent", nil);
         self:SetScript("OnUpdate", nil);
+        self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
 
-        local health = math.random(1, 1000);
-        local incomingHeal = math.random(0, 200);
-        local absorb = math.random(0, 300);
-        local healAbsorb = math.random(0, 100);
+        self.testModeData = {
+            health = math.random(1, 1000),
+            maxHealth = 1000,
+            incomingHeal = math.random(0, 200),
+            absorb = math.random(0, 300),
+            healAbsorb = math.random(0, 100),
+        }
 
         self:Show();
-        self.healthBar:SetMinMaxValues(0, 1000);
-        self.healthBar:SetValue(health);
-        UnitFrame.SetHealthBarExtraInfo(self, health, 1000, incomingHeal, absorb, healAbsorb);
-        UnitFrame.SetHealth(self, health);
         local color =_classColorsByIndex[math.random(1, #_classColorsByIndex)];
         UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
         local name = GetUnitName("player", Settings.Frames.DisplayServerNames);
@@ -155,6 +160,7 @@ function UnitFrame.SetTestMode(self, enabled)
         end
         self.name:SetText(name);
         UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
+        UnitFrame.UpdateTestDisplay(self);
         for _, auraGroup in ipairs(self.auraGroups) do
             AuraGroup.SetTestMode(auraGroup, enabled);
         end
@@ -172,9 +178,17 @@ function UnitFrame.SetTestMode(self, enabled)
         RegisterUnitWatch(self);
         self:SetScript("OnEvent", UnitFrame.OnEvent);
         self:SetScript("OnUpdate", UnitFrame.OnUpdate);
+        self:SetScript("OnSizeChanged", nil);
 
         UnitFrame.UpdateAll(self);
     end
+end
+
+function UnitFrame.UpdateTestDisplay(self)
+    local data = self.testModeData;
+    self.healthBar:SetMinMaxValues(0, data.maxHealth);
+    UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
+    UnitFrame.SetHealth(self, data.health);
 end
 
 function UnitFrame.LayoutStatusIcons(self)

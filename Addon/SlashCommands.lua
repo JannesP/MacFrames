@@ -3,32 +3,34 @@ local Addon = _p.Addon;
 
 SLASH_MACFRAMES1, SLASH_MACFRAMES2 = "/macframes", "/mf";
 local AvailableOptions = {
-    Config = { key = "config", description = "Shows the config ui." },
-
-    TestOff = { key = "test", description = "Turns off test mode." },
-    TestOff2 = { key = "t", description = "Turns off test mode." },
-
-    TestParty = { key = "test party", description = "Puts the partyframes into test mode." },
-    TestParty2 = { key = "tp", description = "Puts the partyframes into test mode." },
-
-    TestRaid = { key = "test raid", description = "Puts the raidframes into test mode." },
-    TestRaid2 = { key = "tr", description = "Puts the raidframes into test mode." },
+    Config = { key = "config", alt = "c", description = "Shows the config ui." },
+    Anchors = { key = "anchors", alt = "a", description = "Allows you to resize/position the frames." },
+    TestOff = { key = "test", alt = "t", description = "Turns off test mode." },
+    TestParty = { key = "test party", alt = "tp", description = "Puts the partyframes into test mode." },
+    TestRaid = { key = "test raid", alt = "tr", description = "Puts the raidframes into test mode." },
 };
-SlashCmdList["MACFRAMES"] = function(msg, chatEditBox)
-    msg = string.lower(msg);
-    if (msg == AvailableOptions.Config.key) then
-        _p.ConfigurationWindow.Toggle();
-    elseif (msg == AvailableOptions.TestOff.key or msg == AvailableOptions.TestOff2.key) then
-        Addon.ToggleTestMode(Addon.TestMode.Disabled);
-    elseif (msg == AvailableOptions.TestOff.key or msg == AvailableOptions.TestParty2.key) then
-        Addon.ToggleTestMode(Addon.TestMode.Party);
-    elseif (msg == AvailableOptions.TestRaid.key or msg == AvailableOptions.TestRaid2.key) then
-        Addon.ToggleTestMode(Addon.TestMode.Raid);
-    else
-        local message = "Available commands for /macframes (/mf):";
-        for _, command in pairs(AvailableOptions) do
-            message = message .. "\n" .. command.key .. " -- " .. command.description;
+do
+    local function Matches(msg, option)
+        return msg == option.key or msg == option.alt;
+    end
+    SlashCmdList["MACFRAMES"] = function(msg, chatEditBox)
+        msg = string.lower(msg);
+        if (Matches(msg, AvailableOptions.Config)) then
+            _p.ConfigurationWindow.Toggle();
+        elseif (Matches(msg, AvailableOptions.TestOff)) then
+            Addon.ToggleTestMode(Addon.TestMode.Disabled);
+        elseif (Matches(msg, AvailableOptions.TestOff)) then
+            Addon.ToggleTestMode(Addon.TestMode.Party);
+        elseif (Matches(msg, AvailableOptions.TestRaid)) then
+            Addon.ToggleTestMode(Addon.TestMode.Raid);
+        elseif (Matches(msg, AvailableOptions.Anchors)) then
+            Addon.ToggleAnchors();
+        else
+            local message = "Available commands for /macframes (/mf):";
+            for _, command in pairs(AvailableOptions) do
+                message = message .. "\n" .. command.key .. " (" .. command.alt .. ") -- " .. command.description;
+            end
+            _p.UserChatMessage(message);
         end
-        _p.UserChatMessage(message);
     end
 end

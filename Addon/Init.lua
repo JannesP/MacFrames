@@ -43,14 +43,19 @@ _p.UserChatMessage = function(msg)
     DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0, GetChatTypeIndex("SYSTEM"));
 end
 
-_p.Log = function(msg)
+_p.Log = function(...)
     if (not _p.isLoggingEnabled) then return; end
+    local msg = { ... };
+    if (#msg == 1) then
+        msg = msg[1];
+    end
     local msgType = type(msg);
     if (msgType == "table") then
         print(_p.tprint(msg));
     else
         print(msg);
     end
+    
 end
 
 _p.Log("Finished init.");

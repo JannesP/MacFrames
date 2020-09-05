@@ -2,11 +2,13 @@ local ADDON_NAME, _p = ...;
 
 local Settings = {
     PartyFrame = {
+        FrameStrata = "BACKGROUND",
+        FrameLevel = 100,
         StateDriverVisibility = "[group:raid] hide; show;",
         AnchorInfo = {
-            OffsetX = -350,
-            OffsetY = 0,
-            AnchorPoint = "CENTER",
+            OffsetX = 450,
+            OffsetY = -450,
+            AnchorPoint = "TOPLEFT",
         },
         Vertical = true,
         FrameWidth = 100,
@@ -15,6 +17,8 @@ local Settings = {
         Margin = 0,
     },
     RaidFrame = {
+        FrameStrata = "BACKGROUND",
+        FrameLevel = 0,
         StateDriverVisibility = "[group:raid] show; hide;",
         AnchorInfo = {
             OffsetX = -480,

@@ -4,4 +4,9 @@ _p.PixelUtil = {
     GetIconZoomTransform = function(zoom)
         return 0 + zoom, 0 + zoom, 0 + zoom, 1 - zoom, 1 - zoom, 0 + zoom, 1 - zoom, 1 - zoom;
     end,
+    ColorFrame = function(frame, ...)
+        frame.debugTexture = frame:CreateTexture();
+        frame.debugTexture:SetAllPoints();
+        frame.debugTexture:SetColorTexture(...);
+    end,
 }
