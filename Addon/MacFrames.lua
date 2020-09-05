@@ -2,6 +2,7 @@ local ADDON_NAME, _p = ...;
 _p.Log(ADDON_NAME .. " version " .. _p.versionNumber .. " loaded.");
 local UnitFrame = _p.UnitFrame;
 local PlayerInfo = _p.PlayerInfo;
+local ProfileManager = _p.ProfileManager;
 
 local PartyFrame = _p.PartyFrame;
 local _partyFrame;
@@ -43,8 +44,15 @@ function Addon.ToggleAnchors(override)
 end
 
 function Addon.Loaded()
-    _partyFrame = PartyFrame.create();
-    _raidFrame = RaidFrame.create();
+    _p.Log({ UnitName("player"), GetRealmName() });
+    local success, result = pcall(ProfileManager.AddonLoaded);
+    if (not success) then
+        _p.UserChatMessage("Error loading profiles. Make sure the SavedVariables are correct and restart your game. To clear the settings type '/macframes reset'.");
+        error(result);
+    else
+        _partyFrame = PartyFrame.create();
+        _raidFrame = RaidFrame.create();
+    end
 end
 
 function Addon.EnteringCombat()
@@ -122,6 +130,9 @@ function _events:PLAYER_SPECIALIZATION_CHANGED(unit)
     if unit == "player" then
         Addon.UpdatePlayerInfo();
     end
+end
+function _events:PLAYER_LOGOUT()
+    ProfileManager.SaveSVars();
 end
 
 _eventFrame:SetScript("OnEvent", function(self, event, ...)

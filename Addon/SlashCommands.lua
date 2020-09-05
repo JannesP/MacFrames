@@ -1,5 +1,6 @@
 local ADDON_NAME, _p = ...;
 local Addon = _p.Addon;
+local ProfileManager = _p.ProfileManager;
 
 SLASH_MACFRAMES1, SLASH_MACFRAMES2 = "/macframes", "/mf";
 local AvailableOptions = {
@@ -8,6 +9,7 @@ local AvailableOptions = {
     TestOff = { key = "test", alt = "t", description = "Turns off test mode." },
     TestParty = { key = "test party", alt = "tp", description = "Puts the partyframes into test mode." },
     TestRaid = { key = "test raid", alt = "tr", description = "Puts the raidframes into test mode." },
+    ResetAddonSettings = { key = "reset", alt = "reset", description = "Resets all addon settings and deletes all profiles." },
 };
 do
     local function Matches(msg, option)
@@ -19,12 +21,14 @@ do
             _p.ConfigurationWindow.Toggle();
         elseif (Matches(msg, AvailableOptions.TestOff)) then
             Addon.ToggleTestMode(Addon.TestMode.Disabled);
-        elseif (Matches(msg, AvailableOptions.TestOff)) then
+        elseif (Matches(msg, AvailableOptions.TestParty)) then
             Addon.ToggleTestMode(Addon.TestMode.Party);
         elseif (Matches(msg, AvailableOptions.TestRaid)) then
             Addon.ToggleTestMode(Addon.TestMode.Raid);
         elseif (Matches(msg, AvailableOptions.Anchors)) then
             Addon.ToggleAnchors();
+        elseif (Matches(msg, AvailableOptions.ResetAddonSettings)) then
+            ProfileManager.ResetAddonSettings();
         else
             local message = "Available commands for /macframes (/mf):";
             for _, command in pairs(AvailableOptions) do

@@ -66,9 +66,9 @@ do
             _window.configFrame = ConfigurationFrame.Show(_window);
             _window.configFrame:SetPoint("TOPLEFT", _window, "TOPLEFT",  10, -10);
             _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
+            _window:SetSize(600, 450);
+            _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
         end
-        _window:SetSize(600, 450);
-        _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
         _window:Show();
     end
 end

@@ -4,6 +4,7 @@
 ## Version: 0.0.1
 ## Author: DeppImAll#2982
 ## DefaultState: enabled
+## SavedVariables: MacFramesSavedVariables
 
 Embeds.xml
 Resources.lua
@@ -11,6 +12,7 @@ Resources.lua
 Constants.lua
 Init.lua
 
+SavedVariables\DefaultProfileSettings.lua
 SavedVariables\Profile.lua
 SavedVariables\ProfileManager.lua
 

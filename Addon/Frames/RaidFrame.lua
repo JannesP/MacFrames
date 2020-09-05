@@ -5,22 +5,51 @@ local Constants = _p.Constants;
 local Resources = _p.Resources;
 local UnitFrame = _p.UnitFrame;
 local FrameUtil = _p.FrameUtil;
+local ProfileManager = _p.ProfileManager;
 
 _p.RaidFrame = {};
 local RaidFrame = _p.RaidFrame;
-local RaidSettings = _p.Settings.RaidFrame;
 
+local _raidSettings = nil;
 local _frame = nil;
 local _groupFrames = nil;
 local _frames = nil;
 local _groupChangedInCombat = false;
+local _changingSettings = false;
+
+local function RaidSettings_PropertyChanged(key)
+    if (_changingSettings == true) then return; end
+    if (key == "FrameStrata") then
+        _frame:SetFrameStrata(_raidSettings.FrameStrata);
+    elseif (key == "FrameLevel") then
+        _frame:SetFrameLevel(_raidSettings.FrameLevel);
+    else
+        RaidFrame.ProcessLayout(_frame);
+    end
+end
+
+local function RaidSettings_AnchorInfo_PropertyChanged(key)
+    if (_changingSettings == true) then return; end
+    RaidFrame.UpdateRect(_frame);
+    RaidFrame.ProcessLayout(_frame);
+end
+
+ProfileManager.RegisterProfileChangedListener(function(newProfile)
+    if (_raidSettings ~= nil) then
+        _raidSettings:UnregisterPropertyChanged(RaidSettings_PropertyChanged);
+        _raidSettings.AnchorInfo:UnregisterPropertyChanged(RaidSettings_AnchorInfo_PropertyChanged);
+    end
+    _raidSettings = newProfile.RaidFrame;
+    _raidSettings:RegisterPropertyChanged(RaidSettings_PropertyChanged);
+    _raidSettings.AnchorInfo:RegisterPropertyChanged(RaidSettings_AnchorInfo_PropertyChanged);
+end);
 
 function RaidFrame.create()
     if _frame ~= nil then error("You can only create a single RaidFrame.") end
     local frameName = Constants.RaidFrameGlobalName;
     _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
-    _frame:SetFrameStrata(RaidSettings.FrameStrata);
-    _frame:SetFrameLevel(RaidSettings.FrameLevel);
+    _frame:SetFrameStrata(_raidSettings.FrameStrata);
+    _frame:SetFrameLevel(_raidSettings.FrameLevel);
 
     _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frame)
         RaidFrame.UpdateAnchorFromCurrentPosition(frame);
@@ -30,11 +59,11 @@ function RaidFrame.create()
 
     FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
         function(dragDropHost, frame)   --resizeStart
-            local spacing = RaidSettings.FrameSpacing;
-            local margin = RaidSettings.Margin;
+            local spacing = _raidSettings.FrameSpacing;
+            local margin = _raidSettings.Margin;
             _frame:SetScript("OnSizeChanged", function(frame, width, height)
-                RaidSettings.FrameWidth = (width - ((Constants.GroupSize - 1) * spacing) - (2 * margin)) / Constants.GroupSize;
-                RaidSettings.FrameHeight = (height - ((Constants.RaidGroupCount - 1) * spacing) - (2 * margin)) / Constants.RaidGroupCount;
+                _raidSettings.FrameWidth = (width - ((Constants.GroupSize - 1) * spacing) - (2 * margin)) / Constants.GroupSize;
+                _raidSettings.FrameHeight = (height - ((Constants.RaidGroupCount - 1) * spacing) - (2 * margin)) / Constants.RaidGroupCount;
                 RaidFrame.ProcessLayout(frame);
             end);
         end, 
@@ -60,16 +89,18 @@ function RaidFrame.create()
 
     RaidFrame.UpdateRect(_frame);
     RaidFrame.ProcessLayout(_frame);
-    RegisterAttributeDriver(_frame, "state-visibility", RaidSettings.StateDriverVisibility);
+    RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
     RaidFrame.SetupEvents(_frame);
     return _frame;
 end
 
 function RaidFrame.UpdateAnchorFromCurrentPosition(self)
     local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint(1);
-    RaidSettings.AnchorInfo.OffsetX = xOfs;
-    RaidSettings.AnchorInfo.OffsetY = yOfs;
-    RaidSettings.AnchorInfo.AnchorPoint = point;
+    _changingSettings = true;
+    _raidSettings.AnchorInfo.OffsetX = xOfs;
+    _raidSettings.AnchorInfo.OffsetY = yOfs;
+    _raidSettings.AnchorInfo.AnchorPoint = point;
+    _changingSettings = false;
 end
 
 function RaidFrame.SetTestMode(enabled)
@@ -80,7 +111,7 @@ function RaidFrame.SetTestMode(enabled)
             frame:Show();
         end
     else
-        RegisterAttributeDriver(_frame, "state-visibility", RaidSettings.StateDriverVisibility);
+        RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
     end
     RaidFrame.SetChildTestModes(enabled);
 end
@@ -92,7 +123,7 @@ function RaidFrame.SetMovable(movable)
         _frame.dragDropHost:Show();
     else
         RaidFrame.SetTestMode(false);
-        _frame:SetFrameStrata(RaidSettings.FrameStrata);
+        _frame:SetFrameStrata(_raidSettings.FrameStrata);
         _frame.dragDropHost:Hide();
     end
 end
@@ -102,7 +133,7 @@ function RaidFrame.SetDisabled(disabled)
         UnregisterAttributeDriver(_frame, "state-visibility");
         _frame:Hide();
     else
-        RegisterAttributeDriver(_frame, "state-visibility", RaidSettings.StateDriverVisibility);
+        RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
     end
 end
 
@@ -147,7 +178,7 @@ function RaidFrame.LeavingCombat(self)
 end
 
 function RaidFrame.HideGroupsForContent(self)
-    if (RaidSettings.HideUnnecessaryGroupsInCombat) then
+    if (_raidSettings.HideUnnecessaryGroupsInCombat) then
         local _, _, difficultyId = GetInstanceInfo();
         local groupNumberToShow = Constants.RaidGroupCount;
         --https://wow.gamepedia.com/DifficultyID
@@ -172,13 +203,13 @@ function RaidFrame.ShowAllGroups(self)
 end
 
 function RaidFrame.UpdateRect(self)
-    local frameWidth = RaidSettings.FrameWidth;
-    local frameHeight = RaidSettings.FrameHeight;
-    local spacing = RaidSettings.FrameSpacing;
-    local margin = RaidSettings.Margin;
+    local frameWidth = _raidSettings.FrameWidth;
+    local frameHeight = _raidSettings.FrameHeight;
+    local spacing = _raidSettings.FrameSpacing;
+    local margin = _raidSettings.Margin;
     local totalWidth = (Constants.GroupSize * frameWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
     local totalHeight = (Constants.RaidGroupCount * frameHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
-    local anchorInfo = RaidSettings.AnchorInfo;
+    local anchorInfo = _raidSettings.AnchorInfo;
 
     local minUfWidth, minUfHeight = UnitFrame.GetMinimumSize();
     local minWidth = (Constants.GroupSize * minUfWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
@@ -196,10 +227,10 @@ function RaidFrame.ProcessLayout(self)
         error("Cannot call this in combat!");
     end
 
-    local frameWidth = RaidSettings.FrameWidth;
-    local frameHeight = RaidSettings.FrameHeight;
-    local spacing = RaidSettings.FrameSpacing;
-    local margin = RaidSettings.Margin;
+    local frameWidth = _raidSettings.FrameWidth;
+    local frameHeight = _raidSettings.FrameHeight;
+    local spacing = _raidSettings.FrameSpacing;
+    local margin = _raidSettings.Margin;
     local totalWidth, totalHeight = self:GetSize();
     
     for _, group in ipairs(_groupFrames) do

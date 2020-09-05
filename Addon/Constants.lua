@@ -6,5 +6,6 @@ _p.Constants = {
     GroupSize = 5,
     RaidGroupCount = 8,
     TestModeFrameStrata = "HIGH",
+    DefaultProfileName = "Default",
 };
 local Constants = _p.Constants;

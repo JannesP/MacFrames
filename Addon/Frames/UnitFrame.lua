@@ -1,7 +1,6 @@
 local ADDON_NAME, _p = ...;
 local LSM = LibStub("LibSharedMedia-3.0");
 
-local Settings = _p.Settings;
 local Resources = _p.Resources;
 local PlayerInfo = _p.PlayerInfo;
 local SettingsUtil = _p.SettingsUtil;
@@ -9,8 +8,12 @@ local MyAuraUtil = _p.MyAuraUtil;
 local AuraFrame = _p.AuraFrame;
 local AuraGroup = _p.AuraGroup;
 local AuraManager = _p.AuraManager;
+local ProfileManager = _p.ProfileManager;
 
-local _padding = Settings.Frames.Padding;
+local _settings = nil;
+local _padding = nil;
+local _changingSettings = false;
+
 local _classColorsByIndex = {};
 for key, value in pairs(RAID_CLASS_COLORS) do
     tinsert(_classColorsByIndex, value);
@@ -25,6 +28,32 @@ _p.UnitFrame = UnitFrame;
 function UnitFrame.GetMinimumSize()
     return 70, 32;
 end
+
+local function Settings_Frames_PropertyChanged(key)
+    if (_changingSettings == true) then return; end
+    if (key == "OutOfRangeAlpha") then
+    elseif (key == "DisplayServerNames") then
+    elseif (key == "HealthBarTextureName") then
+    elseif (key == "BorderTargetName") then
+    elseif (key == "BorderAggroName") then
+    elseif (key == "RoleIconSize") then
+    elseif (key == "StatusIconSize") then
+    elseif (key == "BlendToDangerColors") then
+    elseif (key == "BlendToDangerColorsRatio" or key == "BlendToDangerColorsMinimum" or key == "BlendToDangerColorsMaximum") then
+    elseif (key == "Padding") then
+    else
+        RaidFrame.ProcessLayout(_frame);
+    end
+end
+
+ProfileManager.RegisterProfileChangedListener(function(newProfile)
+    if (_settings ~= nil) then
+        _settings.Frames:UnregisterPropertyChanged(Settings_Frames_PropertyChanged);
+    end
+    _padding = newProfile.Frames.Padding;
+    _settings = newProfile;
+    _settings.Frames:RegisterPropertyChanged(Settings_Frames_PropertyChanged);
+end);
 
 UnitFrame.new = function(unit, parent, namePrefix)
     if (namePrefix == nil) then
@@ -49,7 +78,7 @@ function UnitFrame.Setup(self)
     self:SetAlpha(1);
     self.background:SetTexture(Resources.SB_HEALTH_BACKGROUND);
 
-    local healthBarTexturePath = LSM:Fetch("statusbar", Settings.Frames.HealthBarTextureName);
+    local healthBarTexturePath = LSM:Fetch("statusbar", _settings.Frames.HealthBarTextureName);
     self.healthBar:SetStatusBarTexture(healthBarTexturePath, "BORDER");
     PixelUtil.SetPoint(self.healthBar, "TOPLEFT", self, "TOPLEFT", 1, -1);
     PixelUtil.SetPoint(self.healthBar, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
@@ -81,16 +110,16 @@ function UnitFrame.Setup(self)
     PixelUtil.SetPoint(self.healPrediction, "TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
     PixelUtil.SetPoint(self.healPrediction, "BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
 
-    self.targetHighlight:SetTexture(LSM:Fetch("border", Settings.Frames.BorderTargetName));
+    self.targetHighlight:SetTexture(LSM:Fetch("border", _settings.Frames.BorderTargetName));
     self.targetHighlight:SetAllPoints();
     self.targetHighlight:Hide();
 
-    self.aggroHighlight:SetTexture(LSM:Fetch("border", Settings.Frames.BorderAggroName));
+    self.aggroHighlight:SetTexture(LSM:Fetch("border", _settings.Frames.BorderAggroName));
     self.aggroHighlight:SetAllPoints();
     self.aggroHighlight:Hide();
 
     self.roleIcon:ClearAllPoints();
-    PixelUtil.SetSize(self.roleIcon, 1, Settings.Frames.RoleIconSize);
+    PixelUtil.SetSize(self.roleIcon, 1, _settings.Frames.RoleIconSize);
     PixelUtil.SetPoint(self.roleIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
 
     local nameFontName, nameFontSize, nameFontFlags = self.name:GetFont();
@@ -100,7 +129,7 @@ function UnitFrame.Setup(self)
     
     local sic = self.statusIconContainer;
     sic.statusText.defaultHeight = select(2, sic.statusText:GetFont());
-    PixelUtil.SetHeight(sic, Settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
+    PixelUtil.SetHeight(sic, _settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
     PixelUtil.SetWidth(sic, self:GetWidth());
     PixelUtil.SetPoint(sic, "CENTER", self, "CENTER", 0, -(nameFontSize / 2))
     
@@ -143,6 +172,7 @@ function UnitFrame.SetTestMode(self, enabled)
         self:SetScript("OnUpdate", nil);
         self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
 
+        self.isTestMode = true;
         self.testModeData = {
             health = math.random(1, 1000),
             maxHealth = 1000,
@@ -150,11 +180,10 @@ function UnitFrame.SetTestMode(self, enabled)
             absorb = math.random(0, 300),
             healAbsorb = math.random(0, 100),
         }
-
         self:Show();
         local color =_classColorsByIndex[math.random(1, #_classColorsByIndex)];
         UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
-        local name = GetUnitName("player", Settings.Frames.DisplayServerNames);
+        local name = GetUnitName("player", _settings.Frames.DisplayServerNames);
         if (math.random(0, 1) == 0) then
             name = name .. "(*)";
         end
@@ -180,6 +209,7 @@ function UnitFrame.SetTestMode(self, enabled)
         self:SetScript("OnUpdate", UnitFrame.OnUpdate);
         self:SetScript("OnSizeChanged", nil);
 
+        self.isTestMode = false;
         UnitFrame.UpdateAll(self);
     end
 end
@@ -198,7 +228,7 @@ function UnitFrame.LayoutStatusIcons(self)
     end
     local visibleFrames = {};
 
-    PixelUtil.SetHeight(sic, Settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
+    PixelUtil.SetHeight(sic, _settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
     PixelUtil.SetWidth(sic, self:GetWidth());
 
     local function ProcessIcon(icon)
@@ -218,7 +248,7 @@ function UnitFrame.LayoutStatusIcons(self)
         sic.statusText:ClearAllPoints();
         PixelUtil.SetPoint(sic.statusText, "CENTER", sic, "CENTER", 0, 0);
     else
-        local iconSize = Settings.Frames.StatusIconSize;
+        local iconSize = _settings.Frames.StatusIconSize;
         local totalWidth = #visibleFrames * iconSize;
         PixelUtil.SetPoint(visibleFrames[1], "BOTTOMLEFT", sic, "BOTTOMLEFT", (sic:GetWidth() / 2) - (totalWidth / 2), 0);
         PixelUtil.SetSize(visibleFrames[1], iconSize, iconSize);
@@ -244,23 +274,23 @@ function UnitFrame.CreateAuraDisplays(self)
         end
         wipe(self.auraGroups);
     end
-    local s = Settings.DefensiveBuff;
+    local s = _settings.DefensiveBuff;
     local defensives = AuraGroup.new(self, self.unit, AuraGroup.Type.DefensiveBuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     AuraGroup.SetReverseOrder(defensives, true);
     defensives:Show();
     tinsert(self.auraGroups, defensives);
 
-    s = Settings.BossAuras;
+    s = _settings.BossAuras;
     local auraGroupBossAuras = AuraGroup.new(self, self.unit, AuraGroup.Type.BossAura, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     auraGroupBossAuras:Show();
     tinsert(self.auraGroups, auraGroupBossAuras);
 
-    s = Settings.DispellableDebuffs;
+    s = _settings.DispellableDebuffs;
     local auraGroupDispellable = AuraGroup.new(self, self.unit, AuraGroup.Type.DispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     auraGroupDispellable:Show();
     tinsert(self.auraGroups, auraGroupDispellable);
 
-    s = Settings.OtherDebuffs;
+    s = _settings.OtherDebuffs;
     local auraGroupUndispellable = AuraGroup.new(self, self.unit, AuraGroup.Type.UndispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     auraGroupUndispellable:Show();
     tinsert(self.auraGroups, auraGroupUndispellable);
@@ -610,13 +640,13 @@ function UnitFrame.UpdateRoleIcon(self)
             UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
 		else
 			self.roleIcon:Hide();
-			PixelUtil.SetSize(self.roleIcon, 1, Settings.Frames.RoleIconSize);
+			PixelUtil.SetSize(self.roleIcon, 1, _settings.Frames.RoleIconSize);
 		end
 	end
 end
 
 function UnitFrame.SetRoleIcon(self, texture, ...)
-    local roleIconSize = Settings.Frames.RoleIconSize;
+    local roleIconSize = _settings.Frames.RoleIconSize;
     self.roleIcon:SetTexture(texture);
     self.roleIcon:SetTexCoord(...);
     self.roleIcon:Show();
@@ -658,10 +688,10 @@ end
 function UnitFrame.SetHealth(self, health)
     local hb = self.healthBar;
     hb:SetValue(health);
-    if (Settings.Frames.BlendToDangerColors) then
-        local blendRatio = Settings.Frames.BlendToDangerColorsRatio;
-        local blendMinimum = Settings.Frames.BlendToDangerColorsMinimum;
-        local blendMaximum = Settings.Frames.BlendToDangerColorsMaximum;
+    if (_settings.Frames.BlendToDangerColors) then
+        local blendRatio = _settings.Frames.BlendToDangerColorsRatio;
+        local blendMinimum = _settings.Frames.BlendToDangerColorsMinimum;
+        local blendMaximum = _settings.Frames.BlendToDangerColorsMaximum;
         local _, maxValue = hb:GetMinMaxValues();
         if (maxValue == 0) then
             hb.texture:SetAlpha(1);
@@ -765,7 +795,7 @@ function UnitFrame.ProcessHealthBarExtraInfoBar(texture, amount, previousFrame, 
 end
 
 function UnitFrame.UpdateName(self)
-    local name = GetUnitName(self.displayUnit, Settings.Frames.DisplayServerNames);
+    local name = GetUnitName(self.displayUnit, _settings.Frames.DisplayServerNames);
     self.name:SetText(name);
 end
 
@@ -806,7 +836,7 @@ end
 
 function UnitFrame.UpdateInRange(self)
     local time = GetTime();
-    if (self.lastRangeCheckAt == nil or time - self.lastRangeCheckAt > Settings.Frames.RangeCheckThrottleSeconds) then
+    if (self.lastRangeCheckAt == nil or time - self.lastRangeCheckAt > _settings.Frames.RangeCheckThrottleSeconds) then
         self.lastRangeCheckAt = time;
         if (self.displayUnit == "player") then --UnitInRange always return false, false for the player
             self:SetAlpha(1);
@@ -860,7 +890,7 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
     local lastFrame = nil;
     for spellId, details in pairs(requiredDisplays) do
         if (details.enabled == true) then
-            local settings = Settings.SpecialClassDisplay;
+            local settings = _settings.SpecialClassDisplay;
             local newFrame = AuraFrame.new(self, settings.iconWidth, settings.iconHeight, settings.iconZoom);
             AuraFrame.SetColoringMode(newFrame, AuraFrame.ColoringMode.Custom, 0.25, 0.25, 0.25);
             AuraFrame.SetPinnedAuraWithId(newFrame, self.unit, details.spellId, details.debuff, details.onlyByPlayer);
@@ -878,13 +908,13 @@ end
 function UnitFrame.CreateSpecialClassDisplays()
     local requiredDisplays = SettingsUtil.GetSpecialClassDisplays();
     if (requiredDisplays == nil) then return end
-    for name, frame in pairs(_unitFrames) do
+    for _, frame in pairs(_unitFrames) do
         UnitFrame.CreateSpecialClassDisplay(frame, requiredDisplays);
     end
 end
 
 function UnitFrame.UpdateAllCastBindings()
-    for name, frame in pairs(_unitFrames) do
+    for _, frame in pairs(_unitFrames) do
         UnitFrame.SetupCastBindings(frame);
     end
 end
