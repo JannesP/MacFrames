@@ -29,9 +29,11 @@ local function NewWrapper()
                 if (type(value) == "table") then
                     error("Cannot assign tables to settings!");
                 end
-                self._settings[key] = value;
-                print("__newindex", key, value);
-                self:OnPropertyChanged(key);
+                if (self._settings[key] ~= value) then
+                    self._settings[key] = value;
+                    _p.Log("Changing Setting: " .. key " - " .. value);
+                    self:OnPropertyChanged(key);
+                end
             end,
         }
     );

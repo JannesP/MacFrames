@@ -16,7 +16,7 @@ local _partySettings = nil;
 local _changingSettings = false;
 
 local function PartySettings_PropertyChanged(key)
-    if (_changingSettings == true) then return; end
+    if (_changingSettings == true or _frame == nil) then return; end
     if (key == "FrameStrata") then
         _frame:SetFrameStrata(_partySettings.FrameStrata);
     elseif (key == "FrameLevel") then
@@ -29,7 +29,7 @@ local function PartySettings_PropertyChanged(key)
 end
 
 local function PartySettings_AnchorInfo_PropertyChanged(key)
-    if (_changingSettings == true) then return; end
+    if (_changingSettings == true or _frame == nil) then return; end
     PartyFrame.ProcessLayout(_frame, true);
 end
 
@@ -42,6 +42,10 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     PartyFrame._partySettings = _partySettings;
     _partySettings:RegisterPropertyChanged(PartySettings_PropertyChanged);
     _partySettings.AnchorInfo:RegisterPropertyChanged(PartySettings_AnchorInfo_PropertyChanged);
+
+    if (_frame ~= nil) then
+        PartyFrame.ProcessLayout(_frame, true);
+    end
 end);
 
 function PartyFrame.create()
@@ -57,6 +61,9 @@ function PartyFrame.create()
         _partySettings.AnchorInfo.OffsetX = xOfs;
         _partySettings.AnchorInfo.OffsetY = yOfs;
         _partySettings.AnchorInfo.AnchorPoint = point;
+        for _, frame in ipairs(_unitFrames) do
+            UnitFrame.SnapToPixels(frame);
+        end
         _changingSettings = false;
     end);
     
@@ -176,6 +183,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
                 frame:ClearAllPoints();
                 PixelUtil.SetPoint(frame, "TOPLEFT", self, "TOPLEFT", x, -y);
                 PixelUtil.SetSize(frame, frameWidth, frameHeight);
+                UnitFrame.SnapToPixels(frame);
             end
         end
     end

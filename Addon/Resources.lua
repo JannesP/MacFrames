@@ -1,4 +1,5 @@
 local ADDON_NAME, _p = ...;
+local Constants = _p.Constants;
 local LSM = LibStub("LibSharedMedia-3.0");
 
 local Resources = {
@@ -12,7 +13,7 @@ local Resources = {
 }
 _p.Resources = Resources;
 
-LSM:Register("statusbar", "MacFrames Health Bar", Resources.SB_HEALTH_FILL);
+LSM:Register("statusbar", Constants.HealthBarDefaultTextureName, Resources.SB_HEALTH_FILL);
 
-LSM:Register("border", "MacFrames Target Border", Resources.BORDER_HEALTH_TARGET);
-LSM:Register("border", "MacFrames Aggro Border", Resources.BORDER_HEALTH_AGGRO);
+LSM:Register("border", Constants.TargetBorderDefaultTextureName, Resources.BORDER_HEALTH_TARGET);
+LSM:Register("border", Constants.AggroBorderDefaultTextureName, Resources.BORDER_HEALTH_AGGRO);

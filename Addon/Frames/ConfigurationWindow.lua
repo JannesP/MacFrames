@@ -45,6 +45,7 @@ do
     function ConfigurationWindow.Open()
         if (_window == nil) then
             _window = CreateFrame("Frame", "MacFramesConfigurationWindow", UIParent, BackdropTemplateMixin and "BackdropTemplate");
+            _window:SetFrameStrata("HIGH");
             _window:SetBackdrop(_backdropSettings);
             tinsert(UISpecialFrames, _window:GetName());
             _window:SetScript("OnShow", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN); end);

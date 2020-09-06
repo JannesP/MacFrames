@@ -6,10 +6,11 @@
 ## DefaultState: enabled
 ## SavedVariables: MacFramesSavedVariables
 
+Constants.lua
+
 Embeds.xml
 Resources.lua
 
-Constants.lua
 Init.lua
 
 SavedVariables\DefaultProfileSettings.lua
@@ -35,6 +36,8 @@ Frames\UnitFrame.xml
 Frames\UnitFrame.lua
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua
+
+PopupDisplays.lua
 
 MacFrames.lua
 

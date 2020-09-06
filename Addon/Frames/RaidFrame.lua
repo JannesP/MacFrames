@@ -18,7 +18,7 @@ local _groupChangedInCombat = false;
 local _changingSettings = false;
 
 local function RaidSettings_PropertyChanged(key)
-    if (_changingSettings == true) then return; end
+    if (_changingSettings == true or _frame == nil) then return; end
     if (key == "FrameStrata") then
         _frame:SetFrameStrata(_raidSettings.FrameStrata);
     elseif (key == "FrameLevel") then
@@ -29,7 +29,7 @@ local function RaidSettings_PropertyChanged(key)
 end
 
 local function RaidSettings_AnchorInfo_PropertyChanged(key)
-    if (_changingSettings == true) then return; end
+    if (_changingSettings == true or _frame == nil) then return; end
     RaidFrame.UpdateRect(_frame);
     RaidFrame.ProcessLayout(_frame);
 end
@@ -42,6 +42,10 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     _raidSettings = newProfile.RaidFrame;
     _raidSettings:RegisterPropertyChanged(RaidSettings_PropertyChanged);
     _raidSettings.AnchorInfo:RegisterPropertyChanged(RaidSettings_AnchorInfo_PropertyChanged);
+    if (_frame ~= nil) then
+        RaidFrame.UpdateRect(_frame);
+        RaidFrame.ProcessLayout(_frame);
+    end
 end);
 
 function RaidFrame.create()
@@ -273,6 +277,7 @@ function RaidFrame.ProcessLayout(self)
             frame:SetParent(groupFrame);
             PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", x, 0);
             PixelUtil.SetSize(frame, frameWidth, frameHeight);
+            UnitFrame.SnapToPixels(frame);
         end
     end
 end
