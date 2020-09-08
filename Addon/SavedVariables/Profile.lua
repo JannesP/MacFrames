@@ -29,9 +29,12 @@ local function NewWrapper()
                 if (type(value) == "table") then
                     error("Cannot assign tables to settings!");
                 end
+                if (InCombatLockdown()) then
+                    error("Cannot change settings in combat!");
+                end
                 if (self._settings[key] ~= value) then
                     self._settings[key] = value;
-                    _p.Log("Changing Setting: " .. key " - " .. value);
+                    _p.Log("Changing Setting: " .. key .. " - " .. value);
                     self:OnPropertyChanged(key);
                 end
             end,

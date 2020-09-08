@@ -53,10 +53,10 @@ function AuraManager.LoadUnitDebuffs(unit)
     
     for _, slot in ipairs(slots) do
         debuffCache[slot] = {
-            dispellable = false,
-            displayed = false,
-            byPlayer = false,
-        }
+            dispellable = false;
+            displayed = false;
+            byPlayer = false;
+        };
     end
     for _, slot in ipairs(dispellableSlots) do
         debuffCache[slot].dispellable = true;
@@ -78,14 +78,16 @@ do
         if (resultList == nil) then
             resultList = {};
         end
-        for slot, info in pairs(cache) do
-            local aura = GetAuraFromInfo(unit, slot, info);
-            if (DebuffBlacklist[aura[10]] ~= true) then
-                if filterFunc(slot, info) then
-                    info.displayed = true;
-                    tinsert(resultList, aura);
-                    if (count ~= nil and #resultList == count) then
-                        return resultList;
+        if (cache ~= nil) then
+            for slot, info in pairs(cache) do
+                local aura = GetAuraFromInfo(unit, slot, info);
+                if (DebuffBlacklist[aura[10]] ~= true) then
+                    if filterFunc(slot, info) then
+                        info.displayed = true;
+                        tinsert(resultList, aura);
+                        if (count ~= nil and #resultList == count) then
+                            return resultList;
+                        end
                     end
                 end
             end

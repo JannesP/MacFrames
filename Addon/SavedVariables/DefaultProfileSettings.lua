@@ -1,4 +1,5 @@
 local ADDON_NAME, _p = ...;
+local Constants = _p.Constants;
 
 _p.DefaultProfileSettings = {
     Version = 0,

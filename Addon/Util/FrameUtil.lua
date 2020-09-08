@@ -6,7 +6,7 @@ local FrameUtil = _p.FrameUtil;
 
 
 function FrameUtil.CreateText(frame, text, strata)
-    local textFrame = frame:CreateFontString(nil, strata or "ARTWORK", "GameFontNormalSmall");
+    local textFrame = frame:CreateFontString(nil, strata or "ARTWORK", "GameFontNormal");
     textFrame:SetText(text);
     return textFrame;
 end
@@ -102,8 +102,8 @@ function FrameUtil.MoveFrame(frame, x, y)
         error("This function only works with a single Anchor from SetPoint!");
     end
     local pixelScale = PixelUtil.GetPixelToUIUnitFactor();
-    x = x * pixelScale;
-    y = y * pixelScale;
+    x = x / pixelScale;
+    y = y / pixelScale;
     local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint(1);
     frame:SetPoint(point, relativeTo, relativePoint, xOfs + x, yOfs + y);
 end
@@ -161,58 +161,36 @@ function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDrag
     end);
 end
 
-do
-    local function SetAnchorTopLeft(frame)
-        frame.resizeOriginalPoints = {};
-        for i=1, frame:GetNumPoints() do   
-            tinsert(frame.resizeOriginalPoints, { frame:GetPoint(i) });
-        end
-        local left, bottom, width, height = frame:GetRect();
-        frame:ClearAllPoints();
-        frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", left, bottom + height);
-    end
-    local function RevertToOriginalAnchor(frame)
-        frame:ClearAllPoints();
-        for i, point in ipairs(frame.resizeOriginalPoints) do
-            frame:SetPoint(point[1], point[2], point[3], point[4], point[5]);
-        end
-    end
-    function ReanchorFrame(frame)
-        local left, bottom, width, height = frame:GetRect();
-        frame:ClearAllPoints();
-        frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom);
-    end
-    function FrameUtil.AddResizer(frameToAttach, frameToResize, OnStartResize, OnFinishResize)
-        frameToAttach.resizer = CreateFrame("Button", nil, frameToAttach);
-        frameToAttach.resizer:SetSize(15, 15);
-        frameToAttach.resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up");
-        frameToAttach.resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down");
-        frameToAttach.resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight");
-        frameToAttach.resizer:ClearAllPoints();
-        frameToAttach.resizer:SetPoint("BOTTOMRIGHT", frameToAttach, "BOTTOMRIGHT", -5, 5);
-        frameToAttach.resizer:SetIgnoreParentAlpha(true);
-        frameToAttach.resizer:SetAlpha(1);
-        frameToAttach.resizer:SetScript("OnMouseDown", function(self, button) 
-            if (button == "LeftButton" and not frameToResize.isResizing) then
-                frameToResize:SetResizable(true);
-                frameToResize:StartSizing();
-                frameToResize.isResizing = true;
-                if (OnStartResize ~= nil) then
-                    OnStartResize(frameToAttach, frameToResize);
-                end
+function FrameUtil.AddResizer(frameToAttach, frameToResize, OnStartResize, OnFinishResize)
+    frameToAttach.resizer = CreateFrame("Button", nil, frameToAttach);
+    frameToAttach.resizer:SetSize(15, 15);
+    frameToAttach.resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up");
+    frameToAttach.resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down");
+    frameToAttach.resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight");
+    frameToAttach.resizer:ClearAllPoints();
+    frameToAttach.resizer:SetPoint("BOTTOMRIGHT", frameToAttach, "BOTTOMRIGHT", -5, 5);
+    frameToAttach.resizer:SetIgnoreParentAlpha(true);
+    frameToAttach.resizer:SetAlpha(1);
+    frameToAttach.resizer:SetScript("OnMouseDown", function(self, button) 
+        if (button == "LeftButton" and not frameToResize.isResizing) then
+            frameToResize:SetResizable(true);
+            frameToResize:StartSizing();
+            frameToResize.isResizing = true;
+            if (OnStartResize ~= nil) then
+                OnStartResize(frameToAttach, frameToResize);
             end
-        end);
-        frameToAttach.resizer:SetScript("OnMouseUp", function(self, button) 
-            if (frameToResize.isResizing) then
-                frameToResize:StopMovingOrSizing();
-                frameToResize.isResizing = false;
-                frameToResize:SetResizable(false);
-                if (OnFinishResize ~= nil) then
-                    OnFinishResize(frameToAttach, frameToResize);
-                end
+        end
+    end);
+    frameToAttach.resizer:SetScript("OnMouseUp", function(self, button) 
+        if (frameToResize.isResizing) then
+            frameToResize:StopMovingOrSizing();
+            frameToResize.isResizing = false;
+            frameToResize:SetResizable(false);
+            if (OnFinishResize ~= nil) then
+                OnFinishResize(frameToAttach, frameToResize);
             end
-        end);
-    end
+        end
+    end);
 end
 
 function FrameUtil.CreateTextButton(parent, nameSuffix, text, onClickHandler)
@@ -221,4 +199,10 @@ function FrameUtil.CreateTextButton(parent, nameSuffix, text, onClickHandler)
     b:SetScript("OnClick", onClickHandler);
     FrameUtil.WidthByText(b, b.Text);
     return b;
+end
+
+function FrameUtil.ColorFrame(frame, ...)
+    frame.debugTexture = frame:CreateTexture();
+    frame.debugTexture:SetAllPoints();
+    frame.debugTexture:SetColorTexture(...);
 end

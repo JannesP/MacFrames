@@ -3,10 +3,13 @@ _p.Log(ADDON_NAME .. " version " .. _p.versionNumber .. " loaded.");
 local UnitFrame = _p.UnitFrame;
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
-
 local PartyFrame = _p.PartyFrame;
-local _partyFrame;
 local RaidFrame = _p.RaidFrame;
+
+--these can only be loaded after the addon is loaded
+local ConfigurationWindow;
+
+local _partyFrame;
 local _raidFrame;
 
 local Addon = {};
@@ -44,15 +47,7 @@ function Addon.ToggleAnchors(override)
 end
 
 function Addon.Loaded()
-    _p.Log({ UnitName("player"), GetRealmName() });
-    local success, result = pcall(ProfileManager.AddonLoaded);
-    if (not success) then
-        _p.UserChatMessage("Error loading profiles. Make sure the SavedVariables are correct and restart your game. To clear the settings type '/macframes reset'.");
-        error(result);
-    else
-        _partyFrame = PartyFrame.create();
-        _raidFrame = RaidFrame.create();
-    end
+    ConfigurationWindow = _p.ConfigurationWindow;
 end
 
 function Addon.EnteringCombat()
@@ -63,20 +58,35 @@ end
 
 function Addon.UpdatePlayerInfo()
     local _, englishClass, _ = UnitClass("player");
-    local specIndex = GetSpecialization();
-    local specId, name = GetSpecializationInfo(specIndex);
+    if (PlayerInfo.ClassSpecializations == nil) then
+        local numSpecs = GetNumSpecializations();
+        PlayerInfo.ClassSpecializations = {};
+        for i=1,numSpecs do
+            local id, name, description, icon, _, role, _ = GetSpecializationInfo(i);
+            tinsert(PlayerInfo.ClassSpecializations, {
+                SpecId = id,
+                Name = name,
+                Icon = icon,
+                Role = role,
+            });
+        end
+    end
+
+    local currentSpecIndex = GetSpecialization();
+    local currentSpec = PlayerInfo.ClassSpecializations[currentSpecIndex];
     local changedInfo = false;
     if (PlayerInfo.class ~= englishClass) then
         PlayerInfo.class = englishClass;
         changedInfo = true;
     end
-    if (PlayerInfo.specId ~= specId) then
-        PlayerInfo.specId = specId;
+    if (PlayerInfo.specId ~= currentSpec.SpecId) then
+        PlayerInfo.specId = currentSpec.SpecId;
         changedInfo = true;
     end
 
-    _p.Log("Logged on with class: " .. englishClass .. " (" .. name .. ")");
+    _p.Log("Logged on with class: " .. englishClass .. " (" .. currentSpec.Name .. ")");
     if (changedInfo) then
+        ProfileManager.PlayerInfoChanged();
         UnitFrame.PlayerInfoChanged();
     end
 end
@@ -116,8 +126,17 @@ function _events:ADDON_LOADED(addonName)
     end
 end
 function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
+    Addon.UpdatePlayerInfo();
     if (isInitialLogin or isReloadingUi) then
-        Addon.UpdatePlayerInfo();
+        _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
+        local success, result = pcall(ProfileManager.AddonLoaded);
+        if (not success) then
+            _p.UserChatMessage("Error loading profiles. Make sure the SavedVariables are correct and restart your game. To clear the settings type '/macframes reset'.");
+            error(result);
+        else
+            _partyFrame = PartyFrame.create();
+            _raidFrame = RaidFrame.create();
+        end
     end
 end
 function _events:PLAYER_REGEN_DISABLED()
@@ -134,8 +153,11 @@ end
 function _events:PLAYER_LOGOUT()
     ProfileManager.SaveSVars();
 end
-
+EventRecord = {};
 _eventFrame:SetScript("OnEvent", function(self, event, ...)
+    if (event ~= "ADDON_LOADED" or select(1, ...) == ADDON_NAME) then
+        tinsert(EventRecord, event);
+    end
     _events[event](self, ...); -- call one of the functions above
 end);
 for k, v in pairs(_events) do

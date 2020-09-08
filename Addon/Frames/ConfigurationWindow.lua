@@ -43,34 +43,36 @@ do
         return headerFrame;
     end
     function ConfigurationWindow.Open()
-        if (_window == nil) then
-            _window = CreateFrame("Frame", "MacFramesConfigurationWindow", UIParent, BackdropTemplateMixin and "BackdropTemplate");
-            _window:SetFrameStrata("HIGH");
-            _window:SetBackdrop(_backdropSettings);
-            tinsert(UISpecialFrames, _window:GetName());
-            _window:SetScript("OnShow", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN); end);
-            _window:SetScript("OnHide", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE); end);
+        if (not InCombatLockdown()) then
+            if (_window == nil) then
+                _window = CreateFrame("Frame", "MacFramesConfigurationWindow", UIParent, BackdropTemplateMixin and "BackdropTemplate");
+                _window:SetFrameStrata("HIGH");
+                _window:SetBackdrop(_backdropSettings);
+                tinsert(UISpecialFrames, _window:GetName());
+                _window:SetScript("OnShow", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN); end);
+                _window:SetScript("OnHide", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE); end);
 
-            _window.closeButton = CreateCloseButton(_window);
-            _window.closeButton:SetPoint("CENTER", _window, "TOPRIGHT", -30, 0);
+                _window.closeButton = CreateCloseButton(_window);
+                _window.closeButton:SetPoint("CENTER", _window, "TOPRIGHT", -30, 0);
 
-            _window.heading = CreateHeading(_window);
-            _window.heading:ClearAllPoints();
-            _window.heading:SetPoint("BOTTOM", _window, "TOP", 0, -10);
+                _window.heading = CreateHeading(_window);
+                _window.heading:ClearAllPoints();
+                _window.heading:SetPoint("BOTTOM", _window, "TOP", 0, -10);
 
-            FrameUtil.ConfigureDragDropHost(_window.heading, _window);
+                FrameUtil.ConfigureDragDropHost(_window.heading, _window);
 
-            FrameUtil.AddResizer(_window, _window);
-            _window:SetMinResize(300, 200);
-            _window:SetMaxResize(1000, 800);
+                FrameUtil.AddResizer(_window, _window);
+                _window:SetMinResize(300, 200);
+                _window:SetMaxResize(1000, 800);
 
-            _window.configFrame = ConfigurationFrame.Show(_window);
-            _window.configFrame:SetPoint("TOPLEFT", _window, "TOPLEFT",  10, -10);
-            _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
-            _window:SetSize(600, 450);
-            _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+                _window.configFrame = ConfigurationFrame.Show(_window);
+                _window.configFrame:SetPoint("TOPLEFT", _window, "TOPLEFT",  10, -10);
+                _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
+                _window:SetSize(600, 450);
+                _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+            end
+            _window:Show();
         end
-        _window:Show();
     end
 end
 

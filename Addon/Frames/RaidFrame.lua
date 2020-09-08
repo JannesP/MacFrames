@@ -277,7 +277,6 @@ function RaidFrame.ProcessLayout(self)
             frame:SetParent(groupFrame);
             PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", x, 0);
             PixelUtil.SetSize(frame, frameWidth, frameHeight);
-            UnitFrame.SnapToPixels(frame);
         end
     end
 end

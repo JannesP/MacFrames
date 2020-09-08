@@ -41,6 +41,8 @@ PopupDisplays.lua
 
 MacFrames.lua
 
+Frames\ConfigurationOptions.lua
+Frames\ConfigurationFrameTab.lua
 Frames\ConfigurationFrame.lua
 Frames\ConfigurationWindow.lua
 Api.lua

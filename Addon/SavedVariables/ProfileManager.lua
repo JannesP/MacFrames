@@ -1,20 +1,61 @@
 local ADDON_NAME, _p = ...;
+local L = _p.L;
 local Profile = _p.Profile;
 local Constants = _p.Constants;
+local PlayerInfo = _p.PlayerInfo;
 
 _p.ProfileManager = {};
 local ProfileManager  = _p.ProfileManager;
 
+ProfileManager.AddonDefaults = L["Addon Defaults"];
+
 local _profileChangedListeners = {};
 local _characterProfileMapping;
 local _defaultProfileName;
-local _currentProfile;
+local _currentProfile, _currentProfileName;
 local _profiles;
 
 local function OnProfileChanged(newProfile)
     for listener, _ in pairs(_profileChangedListeners) do
         listener(newProfile);
     end
+end
+
+local function GetCurrentCharacterKey()
+    return UnitName("player") .. "-" .. GetRealmName();
+end
+
+local function GetProfileForCurrentCharacter()
+    local resultProfile, resultProfileName;
+    local characterKey = GetCurrentCharacterKey();
+    local characterProfileNames = _characterProfileMapping[characterKey];
+    if (characterProfileNames ~= nil) then
+        local specProfileName = characterProfileNames[PlayerInfo.specId];
+        if (specProfileName ~= nil) then
+            resultProfile = _profiles[specProfileName];
+            if (resultProfile ~= nil) then
+                resultProfileName = specProfileName;
+            end
+        end
+    end
+
+    if (resultProfile == nil or resultProfileName == nil) then
+        local defaultProfileName, _ = ProfileManager.GetDefaultProfile();
+        if (characterProfileNames == nil) then
+            characterProfileNames = {};
+            for _, spec in ipairs(PlayerInfo.ClassSpecializations) do
+                characterProfileNames[spec.SpecId] = defaultProfileName;
+            end
+            _characterProfileMapping[characterKey] = characterProfileNames;
+        end
+        if (characterProfileNames[PlayerInfo.specId] == nil) then
+            characterProfileNames[PlayerInfo.specId] = defaultProfileName;
+        end
+
+        resultProfileName = characterProfileNames[PlayerInfo.specId];
+        resultProfile = _profiles[resultProfileName];
+    end
+    return resultProfileName, resultProfile;
 end
 
 function ProfileManager.AddonLoaded()
@@ -25,21 +66,20 @@ function ProfileManager.AddonLoaded()
     else
         ProfileManager.LoadSVars(MacFramesSavedVariables);
     end
-    local characterKey = UnitName("player") .. "-" .. GetRealmName();
-    profileName = _characterProfileMapping[characterKey];
-    print("profile", profileName);
-    _currentProfile = _profiles[profileName];
-    print("_currentProfile", _currentProfile);
-    if (_currentProfile == nil) then
-        profileName, _currentProfile = ProfileManager.GetDefaultProfile();
-        _characterProfileMapping[characterKey] = profileName;
-    end
+    _currentProfileName, _currentProfile = GetProfileForCurrentCharacter();
     MacFramesSavedVariables = ProfileManager.BuildSavedVariables();
     OnProfileChanged(_currentProfile);
 end
 
+function ProfileManager.PlayerInfoChanged()
+    if _characterProfileMapping ~= nil then
+        local newProfileName, _  = GetProfileForCurrentCharacter();
+        ProfileManager.SetActiveProfile(newProfileName);
+    end
+end
+
 function ProfileManager.GetCurrent()
-    return _currentProfile;
+    return _currentProfile, _currentProfileName;
 end
 
 function ProfileManager.GetDefaultProfile()
@@ -52,6 +92,26 @@ function ProfileManager.GetDefaultProfile()
         _profiles[_defaultProfileName] = profile;
     end
     return _defaultProfileName, profile;
+end
+
+function ProfileManager.GetSelectedProfileNameForSpec(specId)
+    local characterKey = GetCurrentCharacterKey();
+    local profilesForCharacter = _characterProfileMapping[characterKey];
+    local result = profilesForCharacter[specId];
+    if (result == nil) then
+        result = select(1, ProfileManager.GetDefaultProfile());
+        profilesForCharacter[PlayerInfo.specId] = result;
+    end
+    return result;
+end
+
+function ProfileManager.SelectProfileForSpec(specId, profileName)
+    local characterKey = GetCurrentCharacterKey();
+    local profilesForCharacter = _characterProfileMapping[characterKey];
+    profilesForCharacter[specId] = profileName;
+    if (specId == PlayerInfo.specId) then
+        ProfileManager.SetActiveProfile(profileName);
+    end
 end
 
 function ProfileManager.ResetAddonSettings()
@@ -101,11 +161,13 @@ function ProfileManager.GetProfileList()
 end
 
 function ProfileManager.SetActiveProfile(name)
-    local newActiveProfile = _profiles[name];
-    if (newActiveProfile == nil) then error("Profile with name '" .. name .. "' not found!"); end
-
-    _currentProfile = newActiveProfile;
-    OnProfileChanged(newActiveProfile);
+    if (name ~= _currentProfileName) then
+        local newActiveProfile = _profiles[name];
+        if (newActiveProfile == nil) then error("Profile with name '" .. name .. "' not found!"); end
+        _currentProfileName = name;
+        _currentProfile = newActiveProfile;
+        OnProfileChanged(newActiveProfile);
+    end
 end
 
 function ProfileManager.RegisterProfileChangedListener(Callback)
@@ -114,4 +176,36 @@ end
 
 function ProfileManager.UnregisterProfileChangedListener(Callback)
     _profileChangedListeners[Callback] = nil;
+end
+
+function ProfileManager.IsNewProfileNameValid(name)
+    if (name == nil) then
+        return false, L["No name was given."];
+    elseif (type(name) ~= "string") then
+        error("This function requires a string!");
+    elseif (name == ProfileManager.AddonDefaults) then
+        return false, L["This name is reserved!"];
+    elseif (_profiles[name] ~= nil) then
+        return false, L["This name is already in use!"];
+    elseif (#name == 0) then
+        return false, L["The name cannot be empty!"];
+    else
+        return true;
+    end
+end
+
+function ProfileManager.CreateProfileCopy(oldProfileName, newProfileName)
+    local isNewNameValid, newNameError = ProfileManager.IsNewProfileNameValid(newProfileName);
+    if (not isNewNameValid) then
+        _p.UserChatMessage(newNameError);
+        return;
+    end
+    if (oldProfileName == ProfileManager.AddonDefaults) then
+        _profiles[newProfileName] = Profile.LoadDefault();
+    else
+        local oldProfile = _profiles[oldProfileName];
+        if (oldProfile) then
+            _profiles[newProfileName] = Profile.Load(Profile.GetSVars(oldProfile));
+        end
+    end
 end

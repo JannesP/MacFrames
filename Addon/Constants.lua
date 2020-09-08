@@ -10,5 +10,6 @@ _p.Constants = {
     RaidGroupCount = 8,
     TestModeFrameStrata = "MEDIUM",
     DefaultProfileName = "Default",
+    TooltipBorderClearance = 6,
 };
 local Constants = _p.Constants;

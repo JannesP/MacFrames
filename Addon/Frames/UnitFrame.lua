@@ -110,6 +110,8 @@ UnitFrame.new = function(unit, parent, namePrefix)
         _unitFrames[frameName] = frame;
     end
     frame.isChangingSettings = false;
+    frame.displayUnit = unit;
+    frame.unit = unit;
     UnitFrame.Setup(frame);
     UnitFrame.RegisterEvents(frame);
     UnitFrame.UpdateAllSettings(frame);
@@ -362,7 +364,6 @@ function UnitFrame.LayoutStatusIcons(self)
 end
 
 function UnitFrame.CreateAuraDisplays(self)
-    local frameLevel = self:GetFrameLevel();
     --somewhat special aura frame
     UnitFrame.CreateSpecialClassDisplay(self);
     --continue with 'normal aura displays'
@@ -1013,6 +1014,7 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
     if (requiredDisplays == nil) then
         requiredDisplays = SettingsUtil.GetSpecialClassDisplays();
     end
+    if (requiredDisplays == nil) then return; end
 
     if (self.specialClassDisplays == nil) then
         self.specialClassDisplays = {};
@@ -1022,8 +1024,6 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
         end
         wipe(self.specialClassDisplays);
     end
-
-    if (requiredDisplays == nil) then return; end
 
     local lastFrame = nil;
     for spellId, details in pairs(requiredDisplays) do
@@ -1045,6 +1045,7 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
 end
 
 function UnitFrame.CreateSpecialClassDisplays()
+    if (#_unitFrames == 0) then return; end;
     local requiredDisplays = SettingsUtil.GetSpecialClassDisplays();
     if (requiredDisplays == nil) then return end
     for _, frame in pairs(_unitFrames) do
