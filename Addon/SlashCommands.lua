@@ -1,6 +1,7 @@
 local ADDON_NAME, _p = ...;
 local Addon = _p.Addon;
 local ProfileManager = _p.ProfileManager;
+local PopupDisplays = _p.PopupDisplays;
 
 SLASH_MACFRAMES1, SLASH_MACFRAMES2 = "/macframes", "/mf";
 local AvailableOptions = {
@@ -28,7 +29,7 @@ do
         elseif (Matches(msg, AvailableOptions.Anchors)) then
             Addon.ToggleAnchors();
         elseif (Matches(msg, AvailableOptions.ResetAddonSettings)) then
-            ProfileManager.ResetAddonSettings();
+            PopupDisplays.ShowResetSettingsPrompt();
         else
             local message = "Available commands for /macframes (/mf):";
             for _, command in pairs(AvailableOptions) do

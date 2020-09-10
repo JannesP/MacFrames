@@ -25,6 +25,7 @@ function AuraFrame.new(parent, width, height, zoom)
     frame.pinnedAura = nil;
     frame.cooldown:SetDrawEdge(false);
     frame.cooldown:SetHideCountdownNumbers(true);
+    frame.cooldown:Resume();
 
     frame.coloringMode = ColoringMode.Debuff;
 
@@ -49,7 +50,6 @@ function AuraFrame.SetTestAura(self, aura)
         AuraFrame.DisplayAura(self, aura);
         self.cooldown:Pause();
     else
-        self.cooldown:Resume();
         AuraFrame.DisplayAura(self, nil);
     end
 end
@@ -115,6 +115,7 @@ function AuraFrame.DisplayAura(self, aura)
         AuraFrame.SetBackgroundColor(self, aura);
         self.icon:SetTexture(icon);
         self.cooldown:SetCooldown(expirationTime - duration, duration);
+        self.cooldown:Resume();
         self:Show();
 
         if (stacks > 0) then

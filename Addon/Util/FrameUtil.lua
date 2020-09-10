@@ -5,8 +5,9 @@ _p.FrameUtil = {};
 local FrameUtil = _p.FrameUtil;
 
 
-function FrameUtil.CreateText(frame, text, strata)
-    local textFrame = frame:CreateFontString(nil, strata or "ARTWORK", "GameFontNormal");
+function FrameUtil.CreateText(frame, text, strata, font)
+    --GameFontNormal, GameFontNormalSmall, GameFontNormalLarge
+    local textFrame = frame:CreateFontString(nil, strata or "ARTWORK", font or "GameFontNormal");
     textFrame:SetText(text);
     return textFrame;
 end

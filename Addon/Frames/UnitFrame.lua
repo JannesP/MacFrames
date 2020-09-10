@@ -12,9 +12,6 @@ local AuraGroup = _p.AuraGroup;
 local AuraManager = _p.AuraManager;
 local ProfileManager = _p.ProfileManager;
 
-local _settings = nil;
-local _padding = nil;
-
 local _classColorsByIndex = {};
 for key, value in pairs(RAID_CLASS_COLORS) do
     tinsert(_classColorsByIndex, value);
@@ -30,72 +27,99 @@ function UnitFrame.GetMinimumSize()
     return 70, 32;
 end
 
-local function Settings_Frames_PropertyChangedHandler(frame, key)
-    if (frame == nil or frame.isChangingSettings == true) then return; end
+function UnitFrame.OnSettingChanged(self, key)
+    if (self == nil or self.isChangingSettings == true) then return; end
     if (key == "HealthBarTextureName") then
-        UnitFrame.UpdateHealthBarTextureFromSettings(frame);
+        UnitFrame.UpdateHealthBarTextureFromSettings(self);
     elseif (key == "BorderTargetName") then
-        UnitFrame.UpdateTargetHighlightTextureFromSettings(frame);
+        UnitFrame.UpdateTargetHighlightTextureFromSettings(self);
     elseif (key == "BorderAggroName") then
-        UnitFrame.UpdateAggroHighlightTextureFromSettings(frame);
+        UnitFrame.UpdateAggroHighlightTextureFromSettings(self);
     elseif (key == "StatusIconSize") then
-        UnitFrame.LayoutStatusIcons(frame);
+        UnitFrame.LayoutStatusIcons(self);
     elseif (key == "Padding") then
-        UnitFrame.CreateAuraDisplays(frame);
+        UnitFrame.CreateAuraDisplays(self);
     else    --settings that affect test mode data
-        if frame.isTestMode then
+        if self.isTestMode then
             UnitFrame.SetTestMode(self, true);
         else
             if (key == "DisplayServerNames") then
-                UnitFrame.UpdateName(frame);
+                UnitFrame.UpdateName(self);
             elseif (key == "BlendToDangerColors" or key == "BlendToDangerColorsRatio" or key == "BlendToDangerColorsMinimum" or key == "BlendToDangerColorsMaximum") then
-                UnitFrame.UpdateHealth(frame);
+                UnitFrame.UpdateHealth(self);
             elseif (key == "OutOfRangeAlpha") then
-                UnitFrame.UpdateInRange(frame);
+                UnitFrame.UpdateInRange(self);
             elseif (key == "RoleIconSize") then
-                UnitFrame.UpdateRoleIcon(frame);
+                UnitFrame.UpdateRoleIcon(self);
             end
         end
     end
 end
 
-local function ForEachUnitFrame(func, ...)
-    for _, frame in pairs(_unitFrames) do
-        func(frame, ...);
+function UnitFrame.OnSpecialClassDisplaySettingChanged(self, key)
+    UnitFrame.CreateSpecialClassDisplay(self);
+    if (self.isTestMode) then
+        UnitFrame.SetTestMode(self, true);
+    else
+        UnitFrame.UpdateAuras(self);
     end
 end
 
-local function Settings_Frames_PropertyChanged(key) ForEachUnitFrame(Settings_Frames_PropertyChangedHandler, key); end
-local function Settings_DispellableDebuffs_PropertyChanged(key) ForEachUnitFrame(UnitFrame.CreateDispellablesFromSettings); end
-local function Settings_OtherDebuffs_PropertyChanged(key) ForEachUnitFrame(UnitFrame.CreateUndispellablesFromSettings); end
-local function Settings_BossAuras_PropertyChanged(key) ForEachUnitFrame(UnitFrame.CreateBossAurasFromSettings); end
-local function Settings_DefensiveBuff_PropertyChanged(key) ForEachUnitFrame(UnitFrame.CreateDefensivesFromSettings); end
-
-ProfileManager.RegisterProfileChangedListener(function(newProfile)
-    if (_settings ~= nil) then
-        _settings.Frames:UnregisterPropertyChanged(Settings_Frames_PropertyChanged);
-
-        _settings.DispellableDebuffs:UnregisterPropertyChanged(Settings_DispellableDebuffs_PropertyChanged);
-        _settings.OtherDebuffs:UnregisterPropertyChanged(Settings_OtherDebuffs_PropertyChanged);
-        _settings.BossAuras:UnregisterPropertyChanged(Settings_BossAuras_PropertyChanged);
-        _settings.DefensiveBuff:UnregisterPropertyChanged(Settings_DefensiveBuff_PropertyChanged);
-        _settings.SpecialClassDisplay:UnregisterPropertyChanged(UnitFrame.CreateSpecialClassDisplays);
-        
+do
+    local function E(self, eventHandler, forwardKey)
+        if (forwardKey) then
+            return function(key)
+                if (self == nil or self.isChangingSettings == true) then return; end
+                eventHandler(self, key);
+            end
+        else
+            return function(key)
+                if (self == nil or self.isChangingSettings == true) then return; end
+                eventHandler(self);
+            end
+        end
     end
-    _padding = newProfile.Frames.Padding;
-    _settings = newProfile;
-    _settings.Frames:RegisterPropertyChanged(Settings_Frames_PropertyChanged);
+    function UnitFrame.SetSettings(self, settings, suppressUpdate)
+        if (self.propertyChancedHandlers == nil) then
+            self.propertyChancedHandlers = {
+                Frames = E(self, UnitFrame.OnSettingChanged, true),
+                DispellableDebuffs = E(self, UnitFrame.CreateDispellablesFromSettings),
+                OtherDebuffs = E(self, UnitFrame.CreateUndispellablesFromSettings),
+                BossAuras = E(self, UnitFrame.CreateBossAurasFromSettings),
+                DefensiveBuff = E(self, UnitFrame.CreateDefensivesFromSettings),
+                SpecialClassDisplay = E(self, UnitFrame.OnSpecialClassDisplaySettingChanged),
+            };
+        end
+        local handlers = self.propertyChancedHandlers;
 
-    _settings.DispellableDebuffs:RegisterPropertyChanged(Settings_DispellableDebuffs_PropertyChanged);
-    _settings.OtherDebuffs:RegisterPropertyChanged(Settings_OtherDebuffs_PropertyChanged);
-    _settings.BossAuras:RegisterPropertyChanged(Settings_BossAuras_PropertyChanged);
-    _settings.DefensiveBuff:RegisterPropertyChanged(Settings_DefensiveBuff_PropertyChanged);
-    _settings.SpecialClassDisplay:RegisterPropertyChanged(UnitFrame.CreateSpecialClassDisplays);
-    ForEachUnitFrame(UnitFrame.UpdateAllSettings);
-    ForEachUnitFrame(UnitFrame.UpdateAll);
-end);
+        if (self.settings ~= nil) then
+            local oldSettings = self.settings;
+            _p.Log(handlers);
+            oldSettings.Frames:UnregisterPropertyChanged(handlers.Frames);
+            oldSettings.DispellableDebuffs:UnregisterPropertyChanged(handlers.DispellableDebuffs);
+            oldSettings.OtherDebuffs:UnregisterPropertyChanged(handlers.OtherDebuffs);
+            oldSettings.BossAuras:UnregisterPropertyChanged(handlers.BossAuras);
+            oldSettings.DefensiveBuff:UnregisterPropertyChanged(handlers.DefensiveBuff);
+            oldSettings.SpecialClassDisplay:UnregisterPropertyChanged(handlers.SpecialClassDisplay);
+        end
 
-UnitFrame.new = function(unit, parent, namePrefix)
+        self.settings = settings;
+        local newSettings = settings;
+        newSettings.Frames:RegisterPropertyChanged(handlers.Frames);
+        newSettings.DispellableDebuffs:RegisterPropertyChanged(handlers.DispellableDebuffs);
+        newSettings.OtherDebuffs:RegisterPropertyChanged(handlers.OtherDebuffs);
+        newSettings.BossAuras:RegisterPropertyChanged(handlers.BossAuras);
+        newSettings.DefensiveBuff:RegisterPropertyChanged(handlers.DefensiveBuff);
+        newSettings.SpecialClassDisplay:RegisterPropertyChanged(handlers.SpecialClassDisplay);
+
+        if (not suppressUpdate) then
+            UnitFrame.UpdateAllSettings(self);
+            UnitFrame.UpdateAll(self);
+        end
+    end
+end
+
+UnitFrame.new = function(unit, parent, namePrefix, settings)
     if (namePrefix == nil) then
         namePrefix = parent:GetName();
         if (namePrefix == nil) then
@@ -112,6 +136,7 @@ UnitFrame.new = function(unit, parent, namePrefix)
     frame.isChangingSettings = false;
     frame.displayUnit = unit;
     frame.unit = unit;
+    UnitFrame.SetSettings(frame, settings, true);
     UnitFrame.Setup(frame);
     UnitFrame.RegisterEvents(frame);
     UnitFrame.UpdateAllSettings(frame);
@@ -128,7 +153,6 @@ function UnitFrame.SnapToPixels(self)
     else
         UnitFrame.UpdateAll(self);
     end
-
 end
 
 function UnitFrame.Setup(self)
@@ -145,7 +169,7 @@ function UnitFrame.Setup(self)
     self.aggroHighlight:Hide();
 
     self.roleIcon:ClearAllPoints();
-    PixelUtil.SetSize(self.roleIcon, 1, _settings.Frames.RoleIconSize);
+    PixelUtil.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
     PixelUtil.SetPoint(self.roleIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
 
     local nameFontName, nameFontSize, nameFontFlags = self.name:GetFont();
@@ -155,9 +179,10 @@ function UnitFrame.Setup(self)
     
     local sic = self.statusIconContainer;
     sic.statusText.defaultHeight = select(2, sic.statusText:GetFont());
-    PixelUtil.SetHeight(sic, _settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
-    PixelUtil.SetWidth(sic, self:GetWidth());
-    PixelUtil.SetPoint(sic, "CENTER", self, "CENTER", 0, -(nameFontSize / 2))
+    PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
+    PixelUtil.SetPoint(sic, "LEFT", self, "LEFT", 0, -(nameFontSize / 2));
+    PixelUtil.SetPoint(sic, "RIGHT", self, "RIGHT", 0, -(nameFontSize / 2));
+    sic:Show();
     
     PixelUtil.SetPoint(sic.statusText, "TOP", sic, "TOP", 0, 0);
     sic.statusText:SetJustifyH("CENTER");
@@ -204,8 +229,8 @@ end
 function UnitFrame.UpdateTargetHighlightTextureFromSettings(self)
     self.isChangingSettings = true;
     local texturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
-        "border", _settings.Frames.BorderTargetName, Constants.TargetBorderDefaultTextureName);
-    _settings.Frames.BorderTargetName = usedLsmName;
+        "border", self.settings.Frames.BorderTargetName, Constants.TargetBorderDefaultTextureName);
+    self.settings.Frames.BorderTargetName = usedLsmName;
     self.isChangingSettings = false;
 
     self.targetHighlight:SetTexture(texturePath);
@@ -214,8 +239,8 @@ end
 function UnitFrame.UpdateAggroHighlightTextureFromSettings(self)
     self.isChangingSettings = true;
     local texturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
-        "border", _settings.Frames.BorderAggroName, Constants.AggroBorderDefaultTextureName);
-    _settings.Frames.BorderAggroName = usedLsmName;
+        "border", self.settings.Frames.BorderAggroName, Constants.AggroBorderDefaultTextureName);
+    self.settings.Frames.BorderAggroName = usedLsmName;
     self.isChangingSettings = false;
 
     self.aggroHighlight:SetTexture(texturePath);
@@ -224,8 +249,8 @@ end
 function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     self.isChangingSettings = true;
     local healthBarTexturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
-        "statusbar", _settings.Frames.HealthBarTextureName, Constants.HealthBarDefaultTextureName);
-    _settings.Frames.HealthBarTextureName = usedLsmName;
+        "statusbar", self.settings.Frames.HealthBarTextureName, Constants.HealthBarDefaultTextureName);
+    self.settings.Frames.HealthBarTextureName = usedLsmName;
     self.isChangingSettings = false;
     self.healthBar:SetStatusBarTexture(healthBarTexturePath, "BORDER");
     local healthBarTexture = self.healthBar:GetStatusBarTexture();
@@ -283,11 +308,11 @@ function UnitFrame.SetTestMode(self, enabled)
         self:Show();
         local color =_classColorsByIndex[math.random(1, #_classColorsByIndex)];
         UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
-        local name = GetUnitName("player", _settings.Frames.DisplayServerNames);
+        local name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
         if (math.random(0, 1) == 0) then
             name = name .. "(*)";
         end
-        UnitFrame.SetInRange(self, math.random(0, 1) == 0);
+        UnitFrame.SetInRange(self, math.random(0, 3) == 0);
         self.name:SetText(name);
         UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
         UnitFrame.UpdateTestDisplay(self);
@@ -329,8 +354,7 @@ function UnitFrame.LayoutStatusIcons(self)
     end
     local visibleFrames = {};
 
-    PixelUtil.SetHeight(sic, _settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
-    PixelUtil.SetWidth(sic, self:GetWidth());
+    PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
 
     local function ProcessIcon(icon)
         if (icon:IsShown()) then
@@ -349,7 +373,7 @@ function UnitFrame.LayoutStatusIcons(self)
         sic.statusText:ClearAllPoints();
         PixelUtil.SetPoint(sic.statusText, "CENTER", sic, "CENTER", 0, 0);
     else
-        local iconSize = _settings.Frames.StatusIconSize;
+        local iconSize = self.settings.Frames.StatusIconSize;
         local totalWidth = #visibleFrames * iconSize;
         PixelUtil.SetPoint(visibleFrames[1], "BOTTOMLEFT", sic, "BOTTOMLEFT", (sic:GetWidth() / 2) - (totalWidth / 2), 0);
         PixelUtil.SetSize(visibleFrames[1], iconSize, iconSize);
@@ -377,7 +401,7 @@ function UnitFrame.CreateAuraDisplays(self)
 end
 
 function UnitFrame.CreateDefensivesFromSettings(self)
-    local s = _settings.DefensiveBuff;
+    local s = self.settings.DefensiveBuff;
     local auraGroup = self.auraGroups.defensives;
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.defensives);
@@ -385,28 +409,30 @@ function UnitFrame.CreateDefensivesFromSettings(self)
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.DefensiveBuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.defensives = auraGroup;
     AuraGroup.SetReverseOrder(auraGroup, true);
-    PixelUtil.SetPoint(auraGroup, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -_padding, _padding);
+    local padding = self.settings.Frames.Padding;
+    PixelUtil.SetPoint(auraGroup, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
     auraGroup:Show();
     return auraGroup;
 end
 
 function UnitFrame.CreateUndispellablesFromSettings(self)
-    local s = _settings.OtherDebuffs;
+    local s = self.settings.OtherDebuffs;
     local auraGroup = self.auraGroups.undispellable;
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.undispellable);
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.UndispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.undispellable = auraGroup;
-    PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self, "BOTTOMLEFT", _padding, _padding);
+    local padding = self.settings.Frames.Padding;
+    PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self, "BOTTOMLEFT", padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
     auraGroup:Show();
     return auraGroup;
 end
 
 function UnitFrame.CreateDispellablesFromSettings(self)
-    local s = _settings.DispellableDebuffs;
+    local s = self.settings.DispellableDebuffs;
     local auraGroup = self.auraGroups.dispellable;
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.dispellable);
@@ -420,7 +446,7 @@ function UnitFrame.CreateDispellablesFromSettings(self)
 end
 
 function UnitFrame.CreateBossAurasFromSettings(self)
-    local s = _settings.DispellableDebuffs;
+    local s = self.settings.DispellableDebuffs;
     local auraGroup = self.auraGroups.dispellable;
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.dispellable);
@@ -583,7 +609,6 @@ end
 function UnitFrame.UpdateAll(self)
     if (UnitExists(self.displayUnit)) then
         UnitFrame.UpdateName(self);
-        UnitFrame.UpdateStatusText(self);
         UnitFrame.UpdateHealthColor(self);
         UnitFrame.UpdateMaxHealth(self);
         UnitFrame.UpdateHealth(self);
@@ -593,6 +618,7 @@ function UnitFrame.UpdateAll(self)
         UnitFrame.UpdateTargetHighlight(self);
         UnitFrame.UpdateAggroHighlight(self);
         UnitFrame.UpdateAuras(self);
+        UnitFrame.UpdateStatusText(self);
 
         self.statusIconContainer.disableLayouting = true;
         UnitFrame.UpdateSummonStatus(self);
@@ -771,13 +797,13 @@ function UnitFrame.UpdateRoleIcon(self)
             UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
 		else
 			self.roleIcon:Hide();
-			PixelUtil.SetSize(self.roleIcon, 1, _settings.Frames.RoleIconSize);
+			PixelUtil.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
 		end
 	end
 end
 
 function UnitFrame.SetRoleIcon(self, texture, ...)
-    local roleIconSize = _settings.Frames.RoleIconSize;
+    local roleIconSize = self.settings.Frames.RoleIconSize;
     self.roleIcon:SetTexture(texture);
     self.roleIcon:SetTexCoord(...);
     self.roleIcon:Show();
@@ -787,16 +813,16 @@ end
 function UnitFrame.UpdateStatusText(self)
     local text = self.statusIconContainer.statusText;
     if not UnitIsConnected(self.unit) then
-        text:SetText("Offline");
+        text:SetText(L["Offline"]);
         text:Show();
     elseif UnitIsDeadOrGhost(self.unit) then
-        text:SetText("Dead");
+        text:SetText(L["Dead"]);
         text:Show();
     elseif not InCombatLockdown() and UnitIsAFK(self.unit) then
-        text:SetText("AFK");
+        text:SetText(L["AFK"]);
         text:Show();
     elseif not InCombatLockdown() and UnitIsDND(self.unit) then
-        text:SetText("DND");
+        text:SetText(L["DND"]);
         text:Show();
     else
         text:Hide();
@@ -819,10 +845,10 @@ end
 function UnitFrame.SetHealth(self, health)
     local hb = self.healthBar;
     hb:SetValue(health);
-    if (_settings.Frames.BlendToDangerColors) then
-        local blendRatio = _settings.Frames.BlendToDangerColorsRatio;
-        local blendMinimum = _settings.Frames.BlendToDangerColorsMinimum;
-        local blendMaximum = _settings.Frames.BlendToDangerColorsMaximum;
+    if (self.settings.Frames.BlendToDangerColors) then
+        local blendRatio = self.settings.Frames.BlendToDangerColorsRatio;
+        local blendMinimum = self.settings.Frames.BlendToDangerColorsMinimum;
+        local blendMaximum = self.settings.Frames.BlendToDangerColorsMaximum;
         local _, maxValue = hb:GetMinMaxValues();
         if (maxValue == 0) then
             hb.texture:SetAlpha(1);
@@ -926,7 +952,7 @@ function UnitFrame.ProcessHealthBarExtraInfoBar(texture, amount, previousFrame, 
 end
 
 function UnitFrame.UpdateName(self)
-    local name = GetUnitName(self.displayUnit, _settings.Frames.DisplayServerNames);
+    local name = GetUnitName(self.displayUnit, self.settings.Frames.DisplayServerNames);
     self.name:SetText(name);
 end
 
@@ -967,7 +993,7 @@ end
 
 function UnitFrame.UpdateInRange(self)
     local time = GetTime();
-    if (self.lastRangeCheckAt == nil or time - self.lastRangeCheckAt > _settings.Frames.RangeCheckThrottleSeconds) then
+    if (self.lastRangeCheckAt == nil or time - self.lastRangeCheckAt > self.settings.Frames.RangeCheckThrottleSeconds) then
         self.lastRangeCheckAt = time;
         if (self.displayUnit == "player") then --UnitInRange always return false, false for the player
             UnitFrame.SetInRange(self, true);
@@ -986,7 +1012,7 @@ function UnitFrame.SetInRange(self, isInRange)
     if (isInRange) then
         self:SetAlpha(1);
     else
-        self:SetAlpha(_settings.Frames.OutOfRangeAlpha);
+        self:SetAlpha(self.settings.Frames.OutOfRangeAlpha);
     end
 end
 
@@ -1024,17 +1050,17 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
         end
         wipe(self.specialClassDisplays);
     end
-
     local lastFrame = nil;
     for spellId, details in pairs(requiredDisplays) do
         if (details.enabled == true) then
-            local settings = _settings.SpecialClassDisplay;
+            local settings = self.settings.SpecialClassDisplay;
             local newFrame = AuraFrame.new(self, settings.iconWidth, settings.iconHeight, settings.iconZoom);
             newFrame:SetFrameLevel(self:GetFrameLevel() + 4);
             AuraFrame.SetColoringMode(newFrame, AuraFrame.ColoringMode.Custom, 0.25, 0.25, 0.25);
             AuraFrame.SetPinnedAuraWithId(newFrame, self.unit, details.spellId, details.debuff, details.onlyByPlayer);
             if (lastFrame == nil) then
-                PixelUtil.SetPoint(newFrame, "TOPRIGHT", self, "TOPRIGHT", -_padding, -_padding);
+                local padding = self.settings.Frames.Padding;
+                PixelUtil.SetPoint(newFrame, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
             else
                 PixelUtil.SetPoint(newFrame, "TOPRIGHT", lastFrame, "TOPLEFT", -1, 0);
             end

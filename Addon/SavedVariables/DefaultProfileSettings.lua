@@ -17,6 +17,55 @@ _p.DefaultProfileSettings = {
         FrameHeight = 50,
         FrameSpacing = 2,
         Margin = 0,
+        Frames = {
+            RangeCheckThrottleSeconds = 0.050,  --The minimum time between range checks in seconds (used with GetTime())
+            OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
+            DisplayServerNames = false,  --display the server name for people on a different server or display "(*)"
+            HealthBarTextureName = Constants.HealthBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
+            BorderTargetName = Constants.TargetBorderDefaultTextureName, --resource key for border type in LibSharedResource
+            BorderAggroName = Constants.AggroBorderDefaultTextureName, --resource key for border type in LibSharedResource
+            RoleIconSize = 10,
+            StatusIconSize = 14,
+            BlendToDangerColors = false,
+            BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
+            BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
+            BlendToDangerColorsMaximum = 0.8,   --the maximum point for blending, above this everything is normal
+            Padding = 2,
+        },
+        SpecialClassDisplay = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconZoom = 0.1,  
+        },
+        DispellableDebuffs = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconZoom = 0.1,  
+            iconCount = 2,
+            iconSpacing = 1,
+        },
+        OtherDebuffs = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconZoom = 0.1,  
+            iconCount = 3,
+            iconSpacing = 1,
+            UseBlizzardAuraFilter = false,
+        },
+        BossAuras = {
+            iconWidth = 20,
+            iconHeight = 20,
+            iconZoom = 0.1,  
+            iconCount = 1,
+            iconSpacing = 2,
+        },
+        DefensiveBuff = {
+            iconWidth = 16,
+            iconHeight = 16,
+            iconZoom = 0.1,  
+            iconCount = 2,
+            iconSpacing = 2,
+        },
     },
     RaidFrame = {
         FrameStrata = "BACKGROUND",
@@ -32,55 +81,55 @@ _p.DefaultProfileSettings = {
         FrameHeight = 50,
         FrameSpacing = 1,
         Margin = 0,
-    },
-    Frames = {
-        RangeCheckThrottleSeconds = 0.050,  --The minimum time between range checks in seconds (used with GetTime())
-        OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
-        DisplayServerNames = false,  --display the server name for people on a different server or display "(*)"
-        HealthBarTextureName = Constants.HealthBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
-        BorderTargetName = Constants.TargetBorderDefaultTextureName, --resource key for border type in LibSharedResource
-        BorderAggroName = Constants.AggroBorderDefaultTextureName, --resource key for border type in LibSharedResource
-        RoleIconSize = 10,
-        StatusIconSize = 14,
-        BlendToDangerColors = false,
-        BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
-        BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
-        BlendToDangerColorsMaximum = 0.8,   --the maximum point for blending, above this everything is normal
-        Padding = 2,
-    },
-    SpecialClassDisplay = {
-        iconWidth = 14,
-        iconHeight = 14,
-        iconZoom = 0.1,  
-    },
-    DispellableDebuffs = {
-        iconWidth = 14,
-        iconHeight = 14,
-        iconZoom = 0.1,  
-        iconCount = 2,
-        iconSpacing = 1,
-    },
-    OtherDebuffs = {
-        iconWidth = 14,
-        iconHeight = 14,
-        iconZoom = 0.1,  
-        iconCount = 3,
-        iconSpacing = 1,
-        UseBlizzardAuraFilter = false,
-    },
-    BossAuras = {
-        iconWidth = 20,
-        iconHeight = 20,
-        iconZoom = 0.1,  
-        iconCount = 1,
-        iconSpacing = 2,
-    },
-    DefensiveBuff = {
-        iconWidth = 16,
-        iconHeight = 16,
-        iconZoom = 0.1,  
-        iconCount = 2,
-        iconSpacing = 2,
+        Frames = {
+            RangeCheckThrottleSeconds = 0.050,  --The minimum time between range checks in seconds (used with GetTime())
+            OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
+            DisplayServerNames = false,  --display the server name for people on a different server or display "(*)"
+            HealthBarTextureName = Constants.HealthBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
+            BorderTargetName = Constants.TargetBorderDefaultTextureName, --resource key for border type in LibSharedResource
+            BorderAggroName = Constants.AggroBorderDefaultTextureName, --resource key for border type in LibSharedResource
+            RoleIconSize = 10,
+            StatusIconSize = 14,
+            BlendToDangerColors = false,
+            BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
+            BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
+            BlendToDangerColorsMaximum = 0.8,   --the maximum point for blending, above this everything is normal
+            Padding = 2,
+        },
+        SpecialClassDisplay = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconZoom = 0.1,  
+        },
+        DispellableDebuffs = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconZoom = 0.1,  
+            iconCount = 2,
+            iconSpacing = 1,
+        },
+        OtherDebuffs = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconZoom = 0.1,  
+            iconCount = 3,
+            iconSpacing = 1,
+            UseBlizzardAuraFilter = false,
+        },
+        BossAuras = {
+            iconWidth = 20,
+            iconHeight = 20,
+            iconZoom = 0.1,  
+            iconCount = 1,
+            iconSpacing = 2,
+        },
+        DefensiveBuff = {
+            iconWidth = 16,
+            iconHeight = 16,
+            iconZoom = 0.1,  
+            iconCount = 2,
+            iconSpacing = 2,
+        },
     },
     SpecialClassDisplays = {    --shown in top right in order of appearance here (top right to top left)
         ["PRIEST"] = {

@@ -68,7 +68,7 @@ function ProfileManager.AddonLoaded()
     end
     _currentProfileName, _currentProfile = GetProfileForCurrentCharacter();
     MacFramesSavedVariables = ProfileManager.BuildSavedVariables();
-    OnProfileChanged(_currentProfile);
+    OnProfileChanged(_currentProfile, nil);
 end
 
 function ProfileManager.PlayerInfoChanged()
@@ -165,8 +165,9 @@ function ProfileManager.SetActiveProfile(name)
         local newActiveProfile = _profiles[name];
         if (newActiveProfile == nil) then error("Profile with name '" .. name .. "' not found!"); end
         _currentProfileName = name;
+        local oldProfile = _currentProfile;
         _currentProfile = newActiveProfile;
-        OnProfileChanged(newActiveProfile);
+        OnProfileChanged(newActiveProfile, oldProfile);
     end
 end
 

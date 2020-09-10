@@ -45,6 +45,9 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
 
     if (_frame ~= nil) then
         PartyFrame.ProcessLayout(_frame, true);
+        for _, frame in ipairs(_unitFrames) do
+            UnitFrame.SetSettings(frame, _partySettings);
+        end
     end
 end);
 
@@ -91,9 +94,9 @@ function PartyFrame.create()
 
     _unitFrames = {};
     _frame.unitFrames = _unitFrames;
-    tinsert(_unitFrames, UnitFrame.new("player", _frame));
+    tinsert(_unitFrames, UnitFrame.new("player", _frame, nil, _partySettings));
     for i=1,4 do
-        tinsert(_unitFrames, UnitFrame.new("party" .. i, _frame));
+        tinsert(_unitFrames, UnitFrame.new("party" .. i, _frame, nil, _partySettings));
     end
 
     PartyFrame.ProcessLayout(_frame, true);

@@ -35,7 +35,7 @@
 			<Frame name="$parentStatusIconContainer" parentKey="statusIconContainer" useParentLevel="true">
 				<Layers>
 					<Layer level="ARTWORK">
-						<FontString name="$parentStatusText" inherits="GameFontDisable" parentKey="statusText"/>
+						<FontString name="$parentStatusText" inherits="GameFontDisable" parentKey="statusText" ignoreParentAlpha="true"/>
 					</Layer>
 					<Layer level="OVERLAY">
 						<Texture name="$parentReadyCheckIcon" parentKey="readyCheckIcon" ignoreParentAlpha="true"/>

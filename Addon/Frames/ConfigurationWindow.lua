@@ -62,7 +62,7 @@ do
                 FrameUtil.ConfigureDragDropHost(_window.heading, _window);
 
                 FrameUtil.AddResizer(_window, _window);
-                _window:SetMinResize(300, 200);
+                _window:SetMinResize(600, 450);
                 _window:SetMaxResize(1000, 800);
 
                 _window.configFrame = ConfigurationFrame.Show(_window);

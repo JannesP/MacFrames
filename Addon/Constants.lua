@@ -11,5 +11,6 @@ _p.Constants = {
     TestModeFrameStrata = "MEDIUM",
     DefaultProfileName = "Default",
     TooltipBorderClearance = 6,
+    ProfileOptionsName = "Profiles",
 };
 local Constants = _p.Constants;

@@ -1,5 +1,6 @@
 local ADDON_NAME, _p = ...;
 local L = _p.L;
+local Constants = _p.Constants;
 local ConfigurationOptions = _p.ConfigurationOptions;
 local PlayerInfo = _p.PlayerInfo;
 local FrameUtil = _p.FrameUtil;
@@ -10,35 +11,212 @@ _p.ConfigurationFrameTab = {};
 local ConfigurationFrameTab = _p.ConfigurationFrameTab;
 
 local CType = ConfigurationOptions.Type;
-local CreateEditor, CreateProfileEditor, CreateSliderValueEditor;
+local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateSliderValueEditor;
 
-function ConfigurationFrameTab.Create(parent, category)
-    local options = category.Options;
-    local frame = CreateFrame("Frame", nil, parent);
-    frame.options = {};
-    if (options[1].Type == CType.ProfileSelector) then
-        local profileEditor = CreateProfileEditor(frame, options[1]);
-        profileEditor:SetAllPoints(frame);
-        tinsert(frame.options, profileEditor);
-    else
-        for i, option in ipairs(options) do
-            local editor = CreateEditor(frame, option);
-            tinsert(frame.options, editor);
-        end
-    
-        local lastFrame = nil;
-        for i, text in ipairs(frame.options) do
-            text:SetWidth(400);
-            text:ClearAllPoints();
-            if (lastFrame == nil) then
-                text:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-            else
-                text:SetPoint("TOPLEFT", lastFrame, "BOTTOMLEFT", 0, 0);
-            end
-            lastFrame = text;
+local _innerMargin = 5;
+local _frames = {};
+local _refreshingSettingsFromProfile = false;
+local _changingSetting = false;
+local function RefreshFromProfile()
+    _refreshingSettingsFromProfile = true;
+    for _, frame in ipairs(_frames) do
+        ConfigurationFrameTab.RefreshFromProfile(frame);
+    end
+    _refreshingSettingsFromProfile = false;
+end
+
+local function OnOptionChanged()
+    if (_refreshingSettingsFromProfile or _changingSetting) then return end;
+    RefreshFromProfile();
+end
+local function RegisterOnOptionChanged(profile)
+    print("RegisterOnOptionChanged", profile);
+    profile:RegisterPropertyChanged(OnOptionChanged);
+    for _, setting in pairs(profile) do
+        print("setting: ", setting);
+        if (type(setting) == "table" and setting.RegisterOnOptionChanged) then
+            RegisterOnOptionChanged(setting);
         end
     end
+end
+local function UnregisterOnOptionChanged(profile)
+    profile:UnregisterPropertyChanged(OnOptionChanged);
+    for _, setting in pairs(profile) do
+        if (type(setting) == "table" and setting.UnregisterPropertyChanged) then
+            UnregisterOnOptionChanged(setting);
+        end
+    end
+end
+ProfileManager.RegisterProfileChangedListener(function (newProfile, oldProfile)
+    if (oldProfile ~= nil) then
+        oldProfile:UnregisterAllPropertyChanged(OnOptionChanged);
+    end
+    newProfile:RegisterAllPropertyChanged(OnOptionChanged);
+    RefreshFromProfile();
+end);
 
+function ConfigurationFrameTab.Create(parent, category)
+    local frame = CreateFrame("Frame", nil, parent);
+    frame.category = category;
+    if (category.Name == L[Constants.ProfileOptionsName]) then
+        local profileEditor = CreateProfileEditor(frame);
+        profileEditor:SetAllPoints(frame);
+        frame.optionSections = {
+            [1] = {
+                options = {
+                    [1] = profileEditor,
+                },
+            },
+        };
+    else
+        frame.optionSections = {};
+        for n, section in ipairs(category.Sections) do
+            local uiSection = {};
+            uiSection.seperator = CreateSectionSeperator(frame, section.Name);
+            uiSection.content = CreateFrame("Frame", nil, frame);
+            uiSection.options = {};
+            for i, option in ipairs(section.Options) do
+                local editor = CreateEditor(uiSection.content, option);
+                uiSection.options[i] = editor;
+            end
+            frame.optionSections[n] = uiSection;
+        end
+        ConfigurationFrameTab.Layout(frame);
+        frame:SetScript("OnSizeChanged", ConfigurationFrameTab.Layout);
+    end
+    tinsert(_frames, frame);
+    ConfigurationFrameTab.RefreshFromProfile(frame);
+    return frame;
+end
+
+function ConfigurationFrameTab.RefreshFromProfile(self)
+    for _, section in ipairs(self.optionSections) do
+        for _, option in ipairs(section.options) do
+            option:RefreshFromProfile();
+        end
+    end
+end
+
+do
+    local rows = {};
+    local function ClearRows()
+        for i, row in ipairs(rows) do
+            wipe(row);
+        end
+    end
+    local function AddInRow(num, element)
+        if (rows[num] == nil) then
+            rows[num] = {};
+        end
+        tinsert(rows[num], element);
+    end
+    local function CalcRowSize(row)
+        local w, h = 0, 0;
+        for _, e in ipairs(row) do
+            local eW, eH = e:GetSize();
+            w = w + eW;
+            if (h < eH) then
+                h = eH;
+            end
+        end
+        return w, h;
+    end
+    function ConfigurationFrameTab.Layout(self)
+        local lastLowestFrame = nil;
+        for n, section in ipairs(self.optionSections) do
+            local seperator = section.seperator;
+            if (seperator ~= nil) then
+                if (lastLowestFrame == nil) then
+                    seperator:SetPoint("TOP", self, "TOP", 0, 0);
+                else
+                    seperator:SetPoint("TOP", lastLowestFrame, "BOTTOM", 0, 0);
+                end
+                seperator:SetPoint("LEFT", self, "LEFT", 0, 0);
+                seperator:SetPoint("RIGHT", self, "RIGHT", 0, 0);
+                lastLowestFrame = seperator;
+            end
+
+            local content = section.content;
+            if (content == nil) then error("section content needs to be created on creation!") end
+            if (lastLowestFrame == nil) then
+                content:SetPoint("TOP", self, "TOP", 0, 0);
+            else
+                content:SetPoint("TOP", lastLowestFrame, "BOTTOM", 0, 0);
+            end
+            content:SetPoint("LEFT", self, "LEFT", 0, 0);
+            content:SetPoint("RIGHT", self, "RIGHT", 0, 0);
+
+            ClearRows();
+            local width = content:GetWidth();
+            local calcWidth, row = 0, 1;
+            for _, option in ipairs(section.options) do
+                local oW = option:GetWidth();
+                if (oW > width) then
+                    if (calcWidth == 0) then
+                        AddInRow(row, option);
+                        row = row + 1;
+                    else
+                        row = row + 1;
+                        AddInRow(row, option);
+                        row = row + 1; --skip row because its already full
+                        calcWidth = 0;
+                    end
+                else
+                    if (calcWidth + oW < width) then
+                        calcWidth = calcWidth + oW;
+                        AddInRow(row, option);
+                    else
+                        calcWidth = 0;
+                        row = row + 1;
+                        AddInRow(row, option);
+                    end
+                end
+            end
+            
+            local rowY = 0;
+            for _, row in ipairs(rows) do
+                local rowWidth, rowHeight = CalcRowSize(row);
+                local spacing = (width - rowWidth) / (#row + 1);
+                local lastElement = nil;
+                for _, e in ipairs(row) do
+                    local eY = (rowHeight - e:GetHeight()) / 2; --- (e:GetHeight() / 2);
+                    e:ClearAllPoints();
+                    if (lastElement == nil) then
+                        e:SetPoint("TOPLEFT", content, "TOPLEFT", spacing, -rowY-eY);
+                    else
+                        e:SetPoint("LEFT", lastElement, "RIGHT", spacing, 0);
+                    end
+                    lastElement = e;
+                end
+                rowY = rowY + rowHeight;
+            end
+            content:SetHeight(rowY + _innerMargin);
+            lastLowestFrame = content;
+            ClearRows();
+        end
+    end
+end
+
+CreateSectionSeperator = function(parent, text)
+    local frame = CreateFrame("Frame", nil, parent);
+    frame.leftLine = frame:CreateTexture();
+    frame.rightLine = frame:CreateTexture();
+    frame.text = FrameUtil.CreateText(frame, text);
+
+    frame.leftLine:SetColorTexture(.4, .4, .4, 1);
+    PixelUtil.SetHeight(frame.leftLine, 2);
+
+    frame.rightLine:SetColorTexture(.4, .4, .4, 1);
+    PixelUtil.SetHeight(frame.rightLine, 2);
+
+    frame.text:SetPoint("CENTER", frame, "CENTER");
+    frame.text:SetJustifyH("CENTER");
+    frame:SetHeight(select(2, frame.text:GetFont()));
+    local p = 5;
+    frame.leftLine:SetPoint("LEFT", frame, "LEFT", p, 0);
+    frame.leftLine:SetPoint("RIGHT", frame.text, "LEFT", -p, 0);
+    frame.rightLine:SetPoint("LEFT", frame.text, "RIGHT", p, 0);
+    frame.rightLine:SetPoint("RIGHT", frame, "RIGHT", -p, 0);
     return frame;
 end
 
@@ -116,7 +294,7 @@ do
         frame:SetSize(width, frame.dropDownSelectProfile:GetHeight());
         return frame;
     end
-    CreateProfileEditor = function(parent, option)
+    CreateProfileEditor = function(parent)
         local frame = CreateFrame("Frame", nil, parent);
         frame.textCreateNew = FrameUtil.CreateText(frame, L["Create new profile from:"]);
         frame.textCreateNew:SetPoint("TOPLEFT", frame, "TOPLEFT");
@@ -147,13 +325,92 @@ do
         for _, profileSelector in ipairs(frame.profileSelectors) do
             profileSelector:SetWidth(biggestWidth);
         end
+
+        frame.RefreshFromProfile = function(self) end
         return frame;
     end
 end
+do
+    local function EditorOnChange(handler)
+        return function(...)
+            if (_refreshingSettingsFromProfile) then return end;
+            handler(...);
+        end
+    end
 
-CreateSliderValueEditor = function(parent, option)
-    local frame = FrameUtil.CreateFrameWithText(parent, nil, option.Name);
-    FrameUtil.WidthByText(frame, frame.text);
-    frame:SetHeight(20);
-    return frame;
+    local function Set(option, ...)
+        _changingSetting = true;
+        option.Set(...);
+        _changingSetting = false;
+    end
+
+    CreateSliderValueEditor = function(parent, option)
+        local value = option.Get();
+        local frame = CreateFrame("Frame", nil, parent);
+
+        local heading = FrameUtil.CreateText(frame, option.Name);
+        frame.heading = heading;
+        heading.fontHeight = select(2, heading:GetFont());
+        heading:ClearAllPoints();
+        heading:SetJustifyH("CENTER");
+        heading:SetPoint("TOP", frame, "TOP", 0, 0);
+
+        local slider = CreateFrame("Slider", nil, frame, "OptionsSliderTemplate");
+        frame.slider = slider;
+        slider:SetPoint("TOP", heading, "BOTTOM", 0, 0);
+        slider:SetPoint("LEFT", frame, "LEFT", 0, 0);
+        slider:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
+        slider:SetMinMaxValues(option.Min, option.SoftMax);
+        slider:SetValue(value);
+        slider:SetValueStep(option.StepSize or 1);
+        slider:SetObeyStepOnDrag(true);
+        slider.Low:SetText(option.Min);
+        slider.High:SetText(option.SoftMax);
+
+        local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
+        frame.editBox = editBox;
+        editBox:SetAutoFocus(false);
+        editBox:SetNumeric(true);
+        editBox:SetMaxLetters(3);
+        editBox:SetNumber(value);
+        editBox:SetWidth(27);
+        editBox:ClearAllPoints();
+        editBox:SetPoint("BOTTOM", frame, "BOTTOM", 0, 4);
+        editBox:SetHeight(select(2, slider.Low:GetFont()));
+        editBox:SetFrameLevel(slider:GetFrameLevel() + 1);
+        
+        local function Unfocus()
+            editBox:ClearFocus();
+        end
+        editBox:SetScript("OnEnterPressed", Unfocus);
+        editBox:SetScript("OnTabPressed", Unfocus);
+
+        editBox:SetScript("OnEditFocusLost", EditorOnChange(function(self)
+            if (self.isUpdating) then return end;
+            self.isUpdating = true;
+            editBox:HighlightText(0, 0);
+            local value = self:GetNumber();
+            slider:SetValue(value);
+            Set(option, value);
+            self.isUpdating = false;
+        end));
+
+        frame:SetWidth(slider:GetWidth());
+        frame:SetHeight(heading.fontHeight + editBox:GetHeight() + slider:GetHeight() + 4);
+        slider:SetScript("OnValueChanged", EditorOnChange(function(self, value) 
+            if (self.isUpdating) then return end;
+            self.isUpdating = true;
+            editBox:SetNumber(value);
+            Set(option, value);
+            self.isUpdating = false;
+        end));
+        frame.RefreshFromProfile = function(self) 
+            local value = option.Get();
+            print("RefreshFromProfile", value);
+            slider:SetValue(value);
+            editBox:SetNumber(floor(value));
+            editBox:SetCursorPosition(0);
+        end
+        return frame;
+    end
 end

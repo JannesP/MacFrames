@@ -16,7 +16,24 @@ local function NewWrapper()
                 self._propertyChangedListeners[callback] = true;
             end,
             UnregisterPropertyChanged = function(self, callback)
+                _p.Log(callback);
                 self._propertyChangedListeners[callback] = nil;
+            end,
+            RegisterAllPropertyChanged = function(self, callback)
+                self:RegisterPropertyChanged(callback);
+                for _, setting in pairs(self._settings) do
+                    if (type(setting) == "table") then
+                        setting:RegisterAllPropertyChanged(callback);
+                    end
+                end
+            end,
+            UnregisterAllPropertyChanged = function(self, callback)
+                self:UnregisterPropertyChanged(callback);
+                for _, setting in pairs(self._settings) do
+                    if (type(setting) == "table") then
+                        setting:UnregisterAllPropertyChanged(callback);
+                    end
+                end
             end,
             GetRawEntries = function(self)
                 return self._settings;

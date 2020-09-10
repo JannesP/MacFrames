@@ -13,7 +13,7 @@ local RaidFrame = _p.RaidFrame;
 local _raidSettings = nil;
 local _frame = nil;
 local _groupFrames = nil;
-local _frames = nil;
+local _unitFrames = nil;
 local _groupChangedInCombat = false;
 local _changingSettings = false;
 
@@ -45,6 +45,9 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     if (_frame ~= nil) then
         RaidFrame.UpdateRect(_frame);
         RaidFrame.ProcessLayout(_frame);
+        for _, frame in ipairs(_unitFrames) do
+            UnitFrame.SetSettings(frame, _raidSettings);
+        end
     end
 end);
 
@@ -86,9 +89,9 @@ function RaidFrame.create()
         _groupFrames[i].attachedFrames = {};
     end
     _frame.groups = _groupFrames;
-    _frames = {};
+    _unitFrames = {};
     for i=1,40 do
-        tinsert(_frames, UnitFrame.new("raid" .. i, _frame));
+        tinsert(_unitFrames, UnitFrame.new("raid" .. i, _frame, nil, _raidSettings));
     end
 
     RaidFrame.UpdateRect(_frame);
@@ -142,7 +145,7 @@ function RaidFrame.SetDisabled(disabled)
 end
 
 function RaidFrame.SetChildTestModes(enabled)
-    for _, frame in ipairs(_frames) do
+    for _, frame in ipairs(_unitFrames) do
         UnitFrame.SetTestMode(frame, enabled);
     end
 end
@@ -244,7 +247,7 @@ function RaidFrame.ProcessLayout(self)
         wipe(group.attachedFrames);
     end
 
-    for raidIndex, frame in ipairs(_frames) do
+    for raidIndex, frame in ipairs(_unitFrames) do
         local name, _, group = GetRaidRosterInfo(raidIndex);
         if (name ~= nil) then
             tinsert(_groupFrames[group].attachedFrames, frame);
@@ -254,7 +257,7 @@ function RaidFrame.ProcessLayout(self)
         end
     end
 
-    for raidIndex, frame in ipairs(_frames) do
+    for raidIndex, frame in ipairs(_unitFrames) do
         if frame.isGrouped == false then
             for _, group in ipairs(_groupFrames) do
                 if #group.attachedFrames < Constants.GroupSize then
