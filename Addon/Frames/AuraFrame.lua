@@ -5,6 +5,7 @@ local AuraManager = _p.AuraManager;
 local AuraFrame = {};
 _p.AuraFrame = AuraFrame;
 AuraFrame.ColoringMode = {
+    None = "none",
     Custom = "custom",
     Debuff = "debuff",
     Buff = "buff",
@@ -35,11 +36,11 @@ function AuraFrame.new(parent, width, height, zoom)
         frame.icon:SetTexCoord(_p.PixelUtil.GetIconZoomTransform(zoom));
     end
 
-    PixelUtil.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1);
-    PixelUtil.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
+    PixelUtil.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1, 1, 1);
+    PixelUtil.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1, 1, 1);
 
-    PixelUtil.SetPoint(frame.cooldown, "TOPLEFT", frame, "TOPLEFT", 1, -1);
-    PixelUtil.SetPoint(frame.cooldown, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
+    PixelUtil.SetPoint(frame.cooldown, "TOPLEFT", frame, "TOPLEFT", 1, -1, 1, 1);
+    PixelUtil.SetPoint(frame.cooldown, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1, 1, 1);
 
     frame:Hide();
     return frame;
@@ -56,14 +57,32 @@ end
 
 function AuraFrame.SetColoringMode(self, coloringMode, ...)
     self.coloringMode = coloringMode;
-    if (coloringMode == ColoringMode.Custom) then
-        self.background:SetColorTexture(...);
-    elseif (coloringMode == ColoringMode.Debuff) then
-        self.background:SetColorTexture(1, 0, 0, 1);
-    elseif (coloringMode == ColoringMode.Buff) then
-        self.background:SetColorTexture(0.2, 0.9, 0.9, 1);
+    if (coloringMode == ColoringMode.None) then
+        PixelUtil.SetPoint(self.icon, "TOPLEFT", self, "TOPLEFT", 0, 0);
+        PixelUtil.SetPoint(self.icon, "BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0);
+
+        PixelUtil.SetPoint(self.cooldown, "TOPLEFT", self, "TOPLEFT", 0, 0);
+        PixelUtil.SetPoint(self.cooldown, "BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0);
+        self.background:Hide();
     else
-        self.background:SetColorTexture(0, 1, 1, 1);
+        PixelUtil.SetPoint(self.icon, "TOPLEFT", self, "TOPLEFT", 1, -1, 1, 1);
+        PixelUtil.SetPoint(self.icon, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1, 1, 1);
+
+        PixelUtil.SetPoint(self.cooldown, "TOPLEFT", self, "TOPLEFT", 1, -1, 1, 1);
+        PixelUtil.SetPoint(self.cooldown, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1, 1, 1);
+        if (coloringMode == ColoringMode.Custom) then
+            self.background:SetColorTexture(...);
+            self.background:Show();
+        elseif (coloringMode == ColoringMode.Debuff) then
+            self.background:SetColorTexture(1, 0, 0, 1);
+            self.background:Show();
+        elseif (coloringMode == ColoringMode.Buff) then
+            self.background:SetColorTexture(0.2, 0.9, 0.9, 1);
+            self.background:Show();
+        else
+            self.background:SetColorTexture(0, 1, 1, 1);
+            self.background:Show();
+        end
     end
 end
 

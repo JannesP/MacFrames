@@ -100,6 +100,7 @@ function ConfigurationFrame.SetActiveTab(self, tabButton)
     tab:SetPoint("TOPLEFT", _frame.tabHost, "TOPLEFT", _borderClearance, -_borderClearance);
     tab:SetPoint("BOTTOMRIGHT", _frame.tabHost, "BOTTOMRIGHT", -_borderClearance, _borderClearance);
     tab:Show();
+    ConfigurationFrameTab.Layout(tab);
 end
 
 function ConfigurationFrame.Show(parent)

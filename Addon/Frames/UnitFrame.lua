@@ -41,7 +41,7 @@ function UnitFrame.OnSettingChanged(self, key)
         UnitFrame.CreateAuraDisplays(self);
     else    --settings that affect test mode data
         if self.isTestMode then
-            UnitFrame.SetTestMode(self, true);
+            UnitFrame.SetTestMode(self, true, true);
         else
             if (key == "DisplayServerNames") then
                 UnitFrame.UpdateName(self);
@@ -59,13 +59,23 @@ end
 function UnitFrame.OnSpecialClassDisplaySettingChanged(self, key)
     UnitFrame.CreateSpecialClassDisplay(self);
     if (self.isTestMode) then
-        UnitFrame.SetTestMode(self, true);
+        UnitFrame.SetTestMode(self, true, true);
     else
         UnitFrame.UpdateAuras(self);
     end
 end
 
 do
+    local function CreateAuraChanged(self, auraCreator)
+        return function(key)
+            auraCreator(self);
+            if (self.isTestMode) then
+                UnitFrame.SetTestMode(self, true, true);
+            else
+                UnitFrame.UpdateAuras(self);
+            end
+        end
+    end
     local function E(self, eventHandler, forwardKey)
         if (forwardKey) then
             return function(key)
@@ -83,11 +93,11 @@ do
         if (self.propertyChancedHandlers == nil) then
             self.propertyChancedHandlers = {
                 Frames = E(self, UnitFrame.OnSettingChanged, true),
-                DispellableDebuffs = E(self, UnitFrame.CreateDispellablesFromSettings),
-                OtherDebuffs = E(self, UnitFrame.CreateUndispellablesFromSettings),
-                BossAuras = E(self, UnitFrame.CreateBossAurasFromSettings),
-                DefensiveBuff = E(self, UnitFrame.CreateDefensivesFromSettings),
-                SpecialClassDisplay = E(self, UnitFrame.OnSpecialClassDisplaySettingChanged),
+                DispellableDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateDispellablesFromSettings)),
+                OtherDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateUndispellablesFromSettings)),
+                BossAuras = E(self, CreateAuraChanged(self, UnitFrame.CreateBossAurasFromSettings)),
+                DefensiveBuff = E(self, CreateAuraChanged(self, UnitFrame.CreateDefensivesFromSettings)),
+                SpecialClassDisplay = E(self, CreateAuraChanged(self, UnitFrame.CreateSpecialClassDisplay)),
             };
         end
         local handlers = self.propertyChancedHandlers;
@@ -290,7 +300,7 @@ function UnitFrame.UpdateAllSettings(self)
     UnitFrame.CreateAuraDisplays(self);
 end
 
-function UnitFrame.SetTestMode(self, enabled)
+function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
     if (enabled == true) then
         UnregisterUnitWatch(self);
         self:SetScript("OnEvent", nil);
@@ -298,21 +308,27 @@ function UnitFrame.SetTestMode(self, enabled)
         self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
 
         self.isTestMode = true;
-        self.testModeData = {
-            health = math.random(1, 1000),
-            maxHealth = 1000,
-            incomingHeal = math.random(0, 200),
-            absorb = math.random(0, 300),
-            healAbsorb = math.random(0, 100),
-        }
+        if (self.testModeData == nil) then
+            self.testModeData = {};
+        end
+        if (not preserveTestModeData) then
+            self.testModeData.health = math.random(1, 1000);
+            self.testModeData.maxHealth = 1000;
+            self.testModeData.incomingHeal = math.random(0, 200);
+            self.testModeData.absorb = math.random(0, 300);
+            self.testModeData.healAbsorb = math.random(0, 100);
+            self.testModeData.classColor = _classColorsByIndex[math.random(1, #_classColorsByIndex)];
+            self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
+            self.testModeData.isInRange = (math.random(0, 3) > 0);
+        end
         self:Show();
-        local color =_classColorsByIndex[math.random(1, #_classColorsByIndex)];
+        local color = self.testModeData.classColor;
         UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
         local name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
-        if (math.random(0, 1) == 0) then
-            name = name .. "(*)";
+        if (self.testModeData.displayServerPlaceholder) then
+            name = name .. "-(*)";
         end
-        UnitFrame.SetInRange(self, math.random(0, 3) == 0);
+        UnitFrame.SetInRange(self, self.testModeData.isInRange);
         self.name:SetText(name);
         UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
         UnitFrame.UpdateTestDisplay(self);
@@ -446,13 +462,13 @@ function UnitFrame.CreateDispellablesFromSettings(self)
 end
 
 function UnitFrame.CreateBossAurasFromSettings(self)
-    local s = self.settings.DispellableDebuffs;
-    local auraGroup = self.auraGroups.dispellable;
+    local s = self.settings.BossAuras;
+    local auraGroup = self.auraGroups.bossAuras;
     if (auraGroup ~= nil) then
-        AuraGroup.Recycle(self.auraGroups.dispellable);
+        AuraGroup.Recycle(self.auraGroups.bossAuras);
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.BossAura, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
-    self.auraGroups.dispellable = auraGroup;
+    self.auraGroups.bossAuras = auraGroup;
     PixelUtil.SetPoint(auraGroup, "CENTER", self, "CENTER", 0, 0);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 3);
     auraGroup:Show();
