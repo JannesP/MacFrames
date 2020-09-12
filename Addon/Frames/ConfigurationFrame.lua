@@ -97,8 +97,7 @@ function ConfigurationFrame.SetActiveTab(self, tabButton)
     _frame.tabHost.content = tab;
     tabButton.highlight:SetVertexColor(1, 1, 0);
     tabButton:LockHighlight()
-    tab:SetPoint("TOPLEFT", _frame.tabHost, "TOPLEFT", _borderClearance, -_borderClearance);
-    tab:SetPoint("BOTTOMRIGHT", _frame.tabHost, "BOTTOMRIGHT", -_borderClearance, _borderClearance);
+    tab:SetAllPoints(_frame.tabHost);
     tab:Show();
     ConfigurationFrameTab.Layout(tab);
 end
@@ -111,8 +110,7 @@ function ConfigurationFrame.Show(parent)
         _frame.bottomBar:SetPoint("BOTTOMLEFT", _frame, "BOTTOMLEFT", 0, 0);
         _frame.bottomBar:SetPoint("BOTTOMRIGHT", _frame, "BOTTOMRIGHT", 0, 0);
 
-        _frame.tabHost = CreateFrame("Frame", _frameName .. "TabHost", _frame, BackdropTemplateMixin and "BackdropTemplate");
-        _frame.tabHost:SetBackdrop(BACKDROP_TOOLTIP_0_16);
+        _frame.tabHost = CreateFrame("Frame", _frameName .. "TabHost", _frame);
 
         _frame.tabSelector = CreateTabSelector(_frame);
         _frame.tabSelector:ClearAllPoints();

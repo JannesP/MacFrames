@@ -11,9 +11,10 @@ _p.ConfigurationFrameTab = {};
 local ConfigurationFrameTab = _p.ConfigurationFrameTab;
 
 local CType = ConfigurationOptions.Type;
-local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateSliderValueEditor;
+local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateSliderValueEditor, CreateCheckBoxValueEditor;
 
-local _innerMargin = 5;
+local _innerMargin = 10;
+local _innserSpacing = 5;
 local _frames = {};
 local _refreshingSettingsFromProfile = false;
 local _changingSetting = false;
@@ -55,8 +56,11 @@ ProfileManager.RegisterProfileChangedListener(function (newProfile, oldProfile)
     RefreshFromProfile();
 end);
 
+local _tabPanelCount = 0;
+local _configFramesCount = 0;
 function ConfigurationFrameTab.Create(parent, category)
-    local frame = CreateFrame("Frame", nil, parent);
+    _configFramesCount = _configFramesCount + 1;
+    local frame = CreateFrame("Frame", parent:GetName() .. "FrameTab" .. _configFramesCount, parent);
     frame.category = category;
     if (category.Name == L[Constants.ProfileOptionsName]) then
         local profileEditor = CreateProfileEditor(frame);
@@ -69,11 +73,44 @@ function ConfigurationFrameTab.Create(parent, category)
             },
         };
     else
+        local borderPadding = Constants.TooltipBorderClearance;
         frame.optionSections = {};
+
+        _tabPanelCount = _tabPanelCount + 1;
+        frame.tabPanelSectionSelector = CreateFrame("Frame", frame:GetName() .. "TabPanelSectionSelector" .. _tabPanelCount, frame);
+        frame.tabPanelSectionSelector:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
+        frame.tabPanelSectionSelector:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
+        frame.tabPanelSectionSelector:SetHeight(22);
+        frame.tabPanelSectionSelector.Tabs = {};
+
+        frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "BackdropTemplate");
+        frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
+        frame.contentContainer:SetPoint("TOPLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
+        frame.contentContainer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
+
+        frame.contentHost = CreateFrame("Frame", frame:GetName() .. "ContentHost", frame.contentContainer);
+        frame.contentHost:SetPoint("TOPLEFT", frame.contentContainer, "TOPLEFT", borderPadding, -borderPadding);
+        frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -borderPadding, borderPadding);
+
+        local lastSeperator = nil;
         for n, section in ipairs(category.Sections) do
             local uiSection = {};
-            uiSection.seperator = CreateSectionSeperator(frame, section.Name);
-            uiSection.content = CreateFrame("Frame", nil, frame);
+            uiSection.seperator = CreateTabSectionSelector(frame.tabPanelSectionSelector, n, section.Name);
+            if (lastSeperator == nil) then
+                uiSection.seperator:SetPoint("BOTTOMLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
+            else
+                uiSection.seperator:SetPoint("BOTTOMLEFT", lastSeperator, "BOTTOMRIGHT", -16, 0);
+            end
+            tinsert(frame.tabPanelSectionSelector.Tabs, uiSection.seperator);
+            lastSeperator = uiSection.seperator;
+            uiSection.seperator:SetScript("OnClick", function(self)
+                PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB);
+                PanelTemplates_Tab_OnClick(self, self:GetParent());
+                ConfigurationFrameTab.SectionSelected(frame);
+            end);
+
+            uiSection.content = CreateFrame("Frame", nil, frame.contentHost);
+            uiSection.content:SetAllPoints();
             uiSection.options = {};
             for i, option in ipairs(section.Options) do
                 local editor = CreateEditor(uiSection.content, option);
@@ -81,12 +118,26 @@ function ConfigurationFrameTab.Create(parent, category)
             end
             frame.optionSections[n] = uiSection;
         end
+        PanelTemplates_SetNumTabs(frame.tabPanelSectionSelector, #category.Sections);
+        PanelTemplates_SetTab(frame.tabPanelSectionSelector, 1);
+        ConfigurationFrameTab.SectionSelected(frame);
         ConfigurationFrameTab.Layout(frame);
         frame:SetScript("OnSizeChanged", ConfigurationFrameTab.Layout);
     end
     tinsert(_frames, frame);
     ConfigurationFrameTab.RefreshFromProfile(frame);
     return frame;
+end
+
+function ConfigurationFrameTab.SectionSelected(self)
+    local tabIndex = PanelTemplates_GetSelectedTab(self.tabPanelSectionSelector);
+    for i, section in ipairs(self.optionSections) do
+        if (i == tabIndex) then
+            section.content:Show();
+        else
+            section.content:Hide();
+        end
+    end
 end
 
 function ConfigurationFrameTab.RefreshFromProfile(self)
@@ -123,25 +174,18 @@ do
     end
     function ConfigurationFrameTab.Layout(self)
         local lastLowestFrame = nil;
+        for _, tab in ipairs(self.tabPanelSectionSelector.Tabs) do
+            PanelTemplates_TabResize(tab, 4);
+        end
+        PanelTemplates_ResizeTabsToFit(self.tabPanelSectionSelector, self.tabPanelSectionSelector:GetWidth() + ((#self.tabPanelSectionSelector.Tabs - 1) * 16));
         for n, section in ipairs(self.optionSections) do
-            local seperator = section.seperator;
-            if (seperator ~= nil) then
-                if (lastLowestFrame == nil) then
-                    seperator:SetPoint("TOP", self, "TOP", 0, 0);
-                else
-                    seperator:SetPoint("TOP", lastLowestFrame, "BOTTOM", 0, 0);
-                end
-                seperator:SetPoint("LEFT", self, "LEFT", 0, 0);
-                seperator:SetPoint("RIGHT", self, "RIGHT", 0, 0);
-                lastLowestFrame = seperator;
-            end
-
             local content = section.content;
             if (content == nil) then error("section content needs to be created on creation!") end
             if (lastLowestFrame == nil) then
-                content:SetPoint("TOP", self, "TOP", 0, 0);
+                content:SetPoint("TOP", content:GetParent(), "TOP", 0, -_innerMargin);
             else
-                content:SetPoint("TOP", lastLowestFrame, "BOTTOM", 0, 0);
+                local spacing = _innserSpacing * 2;
+                content:SetPoint("TOP", lastLowestFrame, "BOTTOM", 0, -spacing);
             end
             content:SetPoint("LEFT", self, "LEFT", 0, 0);
             content:SetPoint("RIGHT", self, "RIGHT", 0, 0);
@@ -162,8 +206,9 @@ do
                         calcWidth = 0;
                     end
                 else
-                    if (calcWidth + oW < width) then
-                        calcWidth = calcWidth + oW;
+                    local newWidth = calcWidth + oW + _innserSpacing;
+                    if (newWidth < width) then
+                        calcWidth = newWidth;
                         AddInRow(row, option);
                     else
                         calcWidth = 0;
@@ -176,7 +221,7 @@ do
             local rowY = 0;
             for _, row in ipairs(rows) do
                 local rowWidth, rowHeight = CalcRowSize(row);
-                local spacing = (width - rowWidth) / (#row + 1);
+                local spacing = (width - (rowWidth + ((#row - 1) * _innserSpacing))) / (#row + 1);
                 local lastElement = nil;
                 for _, e in ipairs(row) do
                     local eY = (rowHeight - e:GetHeight()) / 2; --- (e:GetHeight() / 2);
@@ -184,7 +229,7 @@ do
                     if (lastElement == nil) then
                         e:SetPoint("TOPLEFT", content, "TOPLEFT", spacing, -rowY-eY);
                     else
-                        e:SetPoint("LEFT", lastElement, "RIGHT", spacing, 0);
+                        e:SetPoint("LEFT", lastElement, "RIGHT", spacing + _innserSpacing, 0);
                     end
                     lastElement = e;
                 end
@@ -201,7 +246,7 @@ CreateSectionSeperator = function(parent, text)
     local frame = CreateFrame("Frame", nil, parent);
     frame.leftLine = frame:CreateTexture();
     frame.rightLine = frame:CreateTexture();
-    frame.text = FrameUtil.CreateText(frame, text);
+    frame.text = FrameUtil.CreateText(frame, text, nil, "GameFontNormal");
 
     frame.leftLine:SetColorTexture(.4, .4, .4, 1);
     PixelUtil.SetHeight(frame.leftLine, 2);
@@ -220,11 +265,21 @@ CreateSectionSeperator = function(parent, text)
     return frame;
 end
 
+CreateTabSectionSelector = function(parent, tabIndex, text)
+    local button = CreateFrame("Button", parent:GetName() .. "Tab" .. tabIndex, parent, "OptionsFrameTabButtonTemplate");
+    button:SetText(text);
+    PanelTemplates_TabResize(button, 2);
+    button:SetID(tabIndex);
+    return button;
+end
+
 CreateEditor = function(parent, option)
     if (option.Type == CType.ProfileSelector) then
         return CreateProfileEditor(parent, option);
     elseif (option.Type == CType.SliderValue) then
         return CreateSliderValueEditor(parent, option);
+    elseif (option.Type == CType.CheckBox) then
+        return CreateCheckBoxValueEditor(parent, option);
     else
         error("Option type '" .. option.Type .. "' not implemented!");
     end
@@ -344,28 +399,33 @@ do
         _changingSetting = false;
     end
 
+    local function CreateFrameWithHeading(parent, text)
+        local frame = CreateFrame("Frame", nil, parent);
+        frame.heading = FrameUtil.CreateText(frame, text, nil, "GameFontNormalSmall");
+        frame.heading.fontHeight = select(2, frame.heading:GetFont());
+        frame.heading:ClearAllPoints();
+        frame.heading:SetJustifyH("CENTER");
+        frame.heading:SetPoint("TOP", frame, "TOP", 0, 0);
+        return frame;
+    end
+
     CreateSliderValueEditor = function(parent, option)
         local value = option.Get();
-        local frame = CreateFrame("Frame", nil, parent);
-
-        local heading = FrameUtil.CreateText(frame, option.Name);
-        frame.heading = heading;
-        heading.fontHeight = select(2, heading:GetFont());
-        heading:ClearAllPoints();
-        heading:SetJustifyH("CENTER");
-        heading:SetPoint("TOP", frame, "TOP", 0, 0);
+        local frame = CreateFrameWithHeading(parent, option.Name);
 
         local slider = CreateFrame("Slider", nil, frame, "OptionsSliderTemplate");
         frame.slider = slider;
-        slider:SetPoint("TOP", heading, "BOTTOM", 0, 0);
+        slider:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
         slider:SetPoint("LEFT", frame, "LEFT", 0, 0);
         slider:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
-        slider:SetMinMaxValues(option.Min, option.SoftMax);
+        slider:SetMinMaxValues(option.Min, option.Max or option.SoftMax or error("Sliders need a maximum value (either SoftMax or Max)"));
         slider:SetValue(value);
         slider:SetValueStep(option.StepSize or 1);
-        slider:SetObeyStepOnDrag(true);
+        slider:SetObeyStepOnDrag(false);
+        slider.Low:SetPoint("TOPLEFT", slider, "BOTTOMLEFT");
         slider.Low:SetText(option.Min);
-        slider.High:SetText(option.SoftMax);
+        slider.High:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT");
+        slider.High:SetText(option.Max or option.SoftMax);
 
         local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
         frame.editBox = editBox;
@@ -388,15 +448,21 @@ do
         editBox:SetScript("OnEditFocusLost", EditorOnChange(function(self)
             if (self.isUpdating) then return end;
             self.isUpdating = true;
-            editBox:HighlightText(0, 0);
             local value = self:GetNumber();
-            slider:SetValue(value);
-            Set(option, value);
+            if (option.Min and option.Min > value) or (option.Max and option.Max < value) then
+                --out of bounds value
+                editBox:SetNumber(option.Get());
+            else
+                slider:SetValue(value);
+                Set(option, value);
+            end
+            editBox:HighlightText(0, 0);
+            editBox:SetCursorPosition(0);
             self.isUpdating = false;
         end));
 
-        frame:SetWidth(slider:GetWidth());
-        frame:SetHeight(heading.fontHeight + editBox:GetHeight() + slider:GetHeight() + 4);
+        frame:SetWidth(130); -- +8 because the min/max values stick out
+        frame:SetHeight(frame.heading.fontHeight + editBox:GetHeight() + slider:GetHeight() + 4);
         slider:SetScript("OnValueChanged", EditorOnChange(function(self, value) 
             if (self.isUpdating) then return end;
             self.isUpdating = true;
@@ -406,10 +472,30 @@ do
         end));
         frame.RefreshFromProfile = function(self) 
             local value = option.Get();
-            print("RefreshFromProfile", value);
             slider:SetValue(value);
             editBox:SetNumber(floor(value));
             editBox:SetCursorPosition(0);
+        end
+        return frame;
+    end
+
+    CreateCheckBoxValueEditor = function(parent, option)
+        local value = option.Get();
+        local frame = CreateFrameWithHeading(parent, option.Name);
+
+        local checkBox = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate");
+        checkBox:SetText("test");
+        checkBox:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
+        checkBox.tooltip = "Test";
+
+        frame:SetHeight(frame.heading.fontHeight + checkBox:GetHeight());
+        frame:SetWidth(math.max(frame.heading:GetWidth(), checkBox:GetWidth()));
+
+        checkBox:SetScript("OnClick", EditorOnChange(function(self)
+            Set(option, self:GetChecked());
+        end));
+        frame.RefreshFromProfile = function(self)
+            checkBox:SetChecked(option.Get());
         end
         return frame;
     end

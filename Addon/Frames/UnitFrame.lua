@@ -890,6 +890,7 @@ function UnitFrame.SetHealth(self, health)
         
         hb.overlay:Show();
     else
+        hb.texture:SetAlpha(1);
         hb.overlay:Hide();
     end
 end

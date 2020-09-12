@@ -51,7 +51,7 @@ local function NewWrapper()
                 end
                 if (self._settings[key] ~= value) then
                     self._settings[key] = value;
-                    _p.Log("Changing Setting: " .. key .. " - " .. value);
+                    _p.Log("Changing Setting: " .. key .. " - " .. tostring(value));
                     self:OnPropertyChanged(key);
                 end
             end,
