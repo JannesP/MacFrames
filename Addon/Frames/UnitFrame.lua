@@ -185,6 +185,8 @@ function UnitFrame.Setup(self)
     local nameFontName, nameFontSize, nameFontFlags = self.name:GetFont();
     PixelUtil.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
     PixelUtil.SetPoint(self.name, "BOTTOMLEFT", self.roleIcon, "BOTTOMRIGHT", 2, 0);
+    PixelUtil.SetPoint(self.name, "RIGHT", self, "RIGHT", -2, 0);
+    self.name:SetWordWrap(false);
     self.name:SetJustifyH("LEFT");
     
     local sic = self.statusIconContainer;
