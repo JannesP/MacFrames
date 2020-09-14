@@ -95,7 +95,7 @@ function AuraFrame.SetPinnedAuraWithId(self, unit, auraId, debuff, onlyByPlayer)
         unit = unit,
         id = auraId,
         debuff = debuff,
-        onlyByPlayer, onlyByPlayer,
+        onlyByPlayer = onlyByPlayer,
     };
     local _, _, spellIcon = GetSpellInfo(auraId);
     self.icon:SetTexture(spellIcon);
