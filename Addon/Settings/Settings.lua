@@ -1,245 +1,289 @@
 local ADDON_NAME, _p = ...;
+local L = _p.L;
+local ProfileManager = _p.ProfileManager;
+local Constants = _p.Constants;
 
-local Settings = {
-    PartyFrame = {
-        FrameStrata = "BACKGROUND",
-        FrameLevel = 100,
-        StateDriverVisibility = "[group:raid] hide; show;",
-        AnchorInfo = {
-            OffsetX = 450,
-            OffsetY = -450,
-            AnchorPoint = "TOPLEFT",
-        },
-        Vertical = true,
-        FrameWidth = 100,
-        FrameHeight = 50,
-        FrameSpacing = 2,
-        Margin = 0,
-    },
-    RaidFrame = {
-        FrameStrata = "BACKGROUND",
-        FrameLevel = 0,
-        StateDriverVisibility = "[group:raid] show; hide;",
-        AnchorInfo = {
-            OffsetX = -480,
-            OffsetY = -100,
-            AnchorPoint = "CENTER",
-        },
-        HideUnnecessaryGroupsInCombat = true,
-        FrameWidth = 90,
-        FrameHeight = 50,
-        FrameSpacing = 1,
-        Margin = 0,
-    },
-    Frames = {
-        RangeCheckThrottleSeconds = 0.050,  --The minimum time between range checks in seconds (used with GetTime())
-        OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
-        DisplayServerNames = false,  --display the server name for people on a different server or display "(*)"
-        HealthBarTextureName = "MacFrames Health Bar", --resource key for statusbar type in LibSharedResource
-        BorderTargetName = "MacFrames Target Border", --resource key for border type in LibSharedResource
-        BorderAggroName = "MacFrames Aggro Border", --resource key for border type in LibSharedResource
-        RoleIconSize = 10,
-        StatusIconSize = 14,
-        BlendToDangerColors = false,
-        BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
-        BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
-        BlendToDangerColorsMaximum = 0.8,   --the maximum point for blending, above this everything is normal
-        Padding = 2,
-    },
-    SpecialClassDisplay = {
-        iconWidth = 14,
-        iconHeight = 14,
-        iconZoom = 0.1,  
-    },
-    DispellableDebuffs = {
-        iconWidth = 14,
-        iconHeight = 14,
-        iconZoom = 0.1,  
-        iconCount = 2,
-        iconSpacing = 1,
-    },
-    OtherDebuffs = {
-        iconWidth = 14,
-        iconHeight = 14,
-        iconZoom = 0.1,  
-        iconCount = 3,
-        iconSpacing = 1,
-        UseBlizzardAuraFilter = false,
-    },
-    BossAuras = {
-        iconWidth = 20,
-        iconHeight = 20,
-        iconZoom = 0.1,  
-        iconCount = 1,
-        iconSpacing = 2,
-    },
-    DefensiveBuff = {
-        iconWidth = 16,
-        iconHeight = 16,
-        iconZoom = 0.1,  
-        iconCount = 2,
-        iconSpacing = 2,
-    },
-    SpecialClassDisplays = {    --shown in top right in order of appearance here (top right to top left)
-        ["PRIEST"] = {
-            [256] = {   --discipline
-                [1] = { --Atonement
-                    spellId = 194384,   
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },    
-                [2] = { --Weakened Soul
-                    spellId = 6788, 
-                    enabled = true,
-                    debuff = true,
-                    onlyByPlayer = true,
-                },
-                [3] = { --PI
-                    spellId = 10060, 
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = false,
-                },
-            },
-            [257] = {   --holy
-                [1] = { --Weakened Soul
-                    spellId = 6788,
-                    enabled = true,
-                    debuff = true,
-                    onlyByPlayer = true,
-                },
-                [2] = { --PI
-                    spellId = 10060, 
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = false,
-                },
-            },
-            [258] = {   --shadow
-                [1] = { --Weakened Soul
-                    spellId = 6788,
-                    enabled = true,
-                    debuff = true,
-                    onlyByPlayer = true,
-                },
-                [2] = { --PI
-                    spellId = 10060, 
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = false,
-                },
-            },
-        },
-        ["SHAMAN"] = {
-            [262] = {   --ele
-                [1] = { --earth shield
-                    spellId = 974,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-            },
-            [263] = {   --enh
-                [1] = { --earth shield
-                    spellId = 974,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-            },
-            [264] = {   --resto
-                [1] = { --riptide
-                    spellId = 61295,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-                [2] = { --earth shield
-                    spellId = 974,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-            },
-        },
-        ["PALADIN"] = {
-            [65] = {   --holy
-            },
-            [66] = {   --prot
-            },
-            [70] = {   --ret
-            },
-        },
-        ["MONK"] = {
-            [268] = {   --brewmaster
-            },
-            [269] = {   --mistweaver
-            },
-            [270] = {   --windwalker
-            },
-        },
-        ["DRUID"] = {
-            [102] = {   --Balance
-            },
-            [103] = {   --Feral
-            },
-            [104] = {   --Guardian
-            },
-            [105] = {   --resto
-            },
-        },
-        ["MAGE"] = {
-            [62] = {   --arcane
-            },
-            [63] = {   --fire
-            },
-            [64] = {   --frost
-            },
-        },
-        ["HUNTER"] = {
-            [253] = {   --bm
-            },
-            [254] = {   --marksman
-            },
-            [255] = {   --survival
-            },
-        },
-        ["WARLOCK"] = {
-            [265] = {   --affli
-                [1] = { --Soulstone
-                    spellId = 20707,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-            },
-            [266] = {   --demo
-                [1] = { --Soulstone
-                    spellId = 20707,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-            },
-            [267] = {   --destro
-                [1] = { --Soulstone
-                    spellId = 20707,
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = true,
-                },
-            },
-        },
-        ["ROGUE"] = {
-            [259] = {   --assa
-            },
-            [260] = {   --outlaw
-            },
-            [261] = {   --sub
-            },
-        },
-    },
+_p.Settings = {};
+local Settings = _p.Settings;
 
+--[[
+    structure:
+    {
+        Name = "Name of the category",
+        Type = Settings.CategoryType.???,
+        Sections = {
+            [1] = {
+                Name = "Name of the Section",  
+                Options = {
+                    [1] = {
+                        Name = "Name of the option",
+                        Type = Settings.OptionType.???,
+                        Set = function to set value from the ui, should do the necessary conversions,
+                        Get = function to display in the ui, should do the necessary conversions,
+                        [...] = special properties spcific to the given OptionType,
+                    }
+                },
+                Sections = {
+                    [1] = { Same structure again },
+                }
+            },
+        }
+    }
+]]
+Settings.Categories = {}
+Settings.OptionType = {
+    SliderValue = "SliderValue",
+    ProfileSelector = "ProfileSelector",
+    CheckBox = "CheckBox",
 }
-_p.Settings = Settings;
+Settings.CategoryType = {
+    Profile = "profile",
+    Options = "options",
+}
+
+local OptionType = Settings.OptionType;
+
+
+local function P()
+    return ProfileManager.GetCurrent();
+end
+
+local function CreateSection(name)
+    return {
+        Name = name,
+        Options = {},
+        Sections = {},
+    }
+end
+
+local _ufFrameLayoutIndex = 1;
+
+local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
+    local auraGroupSettings = {};
+    tinsert(auraGroupSettings, {
+        Name = L["Width"],
+        Type = OptionType.SliderValue,
+        Min = 4,
+        SoftMax = 100,
+        Set = function(value)
+            GetAuraSettings().iconWidth = value;
+        end,
+        Get = function()
+            return GetAuraSettings().iconWidth;
+        end,
+    });
+    tinsert(auraGroupSettings, {
+        Name = L["Height"],
+        Type = OptionType.SliderValue,
+        Min = 4,
+        SoftMax = 100,
+        Set = function(value)
+            GetAuraSettings().iconHeight = value;
+        end,
+        Get = function()
+            return GetAuraSettings().iconHeight;
+        end,
+    });
+    tinsert(auraGroupSettings, {
+        Name = L["Count"],
+        Type = OptionType.SliderValue,
+        Min = 1,
+        SoftMax = 10,
+        Set = function(value)
+            GetAuraSettings().iconCount = value;
+        end,
+        Get = function()
+            return GetAuraSettings().iconCount;
+        end,
+    });
+    tinsert(auraGroupSettings, {
+        Name = L["Spacing"],
+        Type = OptionType.SliderValue,
+        Min = 0,
+        SoftMax = 10,
+        Set = function(value)
+            GetAuraSettings().iconSpacing = value;
+        end,
+        Get = function()
+            return GetAuraSettings().iconSpacing;
+        end,
+    });
+        
+    for _, option in ipairs(auraGroupSettings) do
+        tinsert(targetOptions, option);
+    end
+end
+
+local function CreateAuraGroupOptions(name, GetAuraSettings)
+    local options = {
+        Name = L[name],
+        Options = {},
+    };
+    AddAuraGroupOptions(options.Options, GetAuraSettings);
+    return options;
+end
+
+local function AddUnitFrameOptions(targetSections, PS)
+    local unitFrameOptions = {};
+    local frameLayoutOptions = CreateSection(L["Frame Layout"]);
+    
+    local subSectionIndicators = CreateSection(L["Indicators"]);
+    tinsert(frameLayoutOptions.Sections, subSectionIndicators);
+    local subSectionPerformance = CreateSection(L["Performance"]);
+    tinsert(frameLayoutOptions.Sections, subSectionPerformance);
+
+    tinsert(unitFrameOptions, frameLayoutOptions);
+    tinsert(frameLayoutOptions.Options, {
+        Name = L["Width"],
+        Type = OptionType.SliderValue,
+        Min = Constants.UnitFrame.MinWidth,
+        SoftMax = 400,
+        Set = function(value)
+            PS().FrameWidth = value;
+        end,
+        Get = function()
+            return PS().FrameWidth;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
+        Name = L["Height"],
+        Type = OptionType.SliderValue,
+        Min = Constants.UnitFrame.MinHeight,
+        SoftMax = 200,
+        Set = function(value)
+            PS().FrameHeight = value;
+        end,
+        Get = function()
+            return PS().FrameHeight;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
+        Name = L["Inner Spacing"],
+        Type = OptionType.SliderValue,
+        Min = 0,
+        SoftMax = 10,
+        Set = function(value)
+            PS().FrameSpacing = value;
+        end,
+        Get = function()
+            return PS().FrameSpacing;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
+        Name = L["Show Server Names"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.DisplayServerNames = value;
+        end,
+        Get = function()
+            return PS().Frames.DisplayServerNames;
+        end,
+    });
+    
+    tinsert(subSectionIndicators.Options, {
+        Name = L["Color based on Health"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.BlendToDangerColors = value;
+        end,
+        Get = function()
+            return PS().Frames.BlendToDangerColors;
+        end,
+    });
+    tinsert(subSectionIndicators.Options, {
+        Name = L["Out of Range Alpha %"],
+        Type = OptionType.SliderValue,
+        Min = 0,
+        Max = 100,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.OutOfRangeAlpha = value / 100;
+        end,
+        Get = function()
+            return PS().Frames.OutOfRangeAlpha * 100;
+        end,
+    });
+    tinsert(subSectionPerformance.Options, {
+        Name = L["Range Checks per Second"],
+        Type = OptionType.SliderValue,
+        Min = 1,
+        SoftMax = 144,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.RangeCheckThrottleSeconds = 1 / value;
+        end,
+        Get = function()
+            return 1 / PS().Frames.RangeCheckThrottleSeconds;
+        end,
+    });
+    
+    local classDisplayOptions = {
+        Name = L["Class Displays"],
+        Options = {},
+    }
+    tinsert(unitFrameOptions, classDisplayOptions);
+    tinsert(classDisplayOptions.Options, {
+        Name = L["Width"],
+        Type = OptionType.SliderValue,
+        Min = 4,
+        SoftMax = 100,
+        Set = function(value)
+            PS().SpecialClassDisplay.iconWidth = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.iconWidth;
+        end,
+    });
+    tinsert(classDisplayOptions.Options, {
+        Name = L["Height"],
+        Type = OptionType.SliderValue,
+        Min = 4,
+        SoftMax = 100,
+        Set = function(value)
+            PS().SpecialClassDisplay.iconHeight = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.iconHeight;
+        end,
+    });
+    
+    tinsert(unitFrameOptions, CreateAuraGroupOptions("Defensives", function() return PS().DefensiveBuff; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptions("Boss Auras", function() return PS().BossAuras; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptions("Undispellable Debuffs", function() return PS().OtherDebuffs; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptions("Dispellable Debuffs", function() return PS().DispellableDebuffs; end));
+
+    for _, section in ipairs(unitFrameOptions) do
+        tinsert(targetSections, section);
+    end
+end
+
+local _raidFrames = {
+    Name = L["Raidframes"],
+    Type = Settings.CategoryType.Options,
+    Sections = {},
+};
+AddUnitFrameOptions(_raidFrames.Sections, function() return P().RaidFrame; end);
+tinsert(Settings.Categories, _raidFrames);
+
+local _partyFrames = {
+    Name = L["Partyframes"],
+    Type = Settings.CategoryType.Options,
+    Sections = {},
+};
+AddUnitFrameOptions(_partyFrames.Sections, function() return P().PartyFrame; end);
+tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
+    Name = L["Vertical"],
+    Type = OptionType.CheckBox,
+    Set = function(value)
+        P().PartyFrame.Vertical = value;
+    end,
+    Get = function()
+        return P().PartyFrame.Vertical;
+    end,
+});
+tinsert(Settings.Categories, _partyFrames);
+
+tinsert(Settings.Categories, {
+    Name = L["Profiles"],
+    Type = Settings.CategoryType.Profile,
+});

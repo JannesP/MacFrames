@@ -149,7 +149,7 @@ function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDrag
             dragDropHost.isMoving = true;
         end
     end);
-    dragDropHost:SetScript("OnMouseUp", function(self, button) 
+    dragDropHost:SetScript("OnMouseUp", function(self, button)
         if (self.isMoving) then
             frameToMove:StopMovingOrSizing();
             self.isMoving = false;
@@ -182,7 +182,7 @@ function FrameUtil.AddResizer(frameToAttach, frameToResize, OnStartResize, OnFin
             end
         end
     end);
-    frameToAttach.resizer:SetScript("OnMouseUp", function(self, button) 
+    frameToAttach.resizer:SetScript("OnMouseUp", function(self, button)
         if (frameToResize.isResizing) then
             frameToResize:StopMovingOrSizing();
             frameToResize.isResizing = false;
@@ -206,4 +206,84 @@ function FrameUtil.ColorFrame(frame, ...)
     frame.debugTexture = frame:CreateTexture();
     frame.debugTexture:SetAllPoints();
     frame.debugTexture:SetColorTexture(...);
+end
+
+do
+    local rows = {
+        count = 0,
+    };
+    local function ClearRows()
+        for i=1, rows.count do
+            wipe(rows[i]);
+        end
+        rows.count = 0;
+    end
+    local function AddRow()
+        local i = rows.count + 1;
+        if (rows[i] == nil) then
+            rows[i] = {};
+        end
+        rows.count = rows.count + 1;
+    end
+    local function AddInRow(i, element)
+        tinsert(rows[i], element);
+    end
+    local function GetRow(i)
+        return rows[i];
+    end
+    local function CalcRowSize(row)
+        local w, h = 0, 0;
+        for _, e in ipairs(row) do
+            local eW, eH = e:GetSize();
+            w = w + eW;
+            if (h < eH) then
+                h = eH;
+            end
+        end
+        return w, h;
+    end
+    local function AssignFramesToRows(horizontalSpace, children, minSpacing)
+        local rowWidth, elementsInRow, rowIndex = 0, 0, 1;
+        AddRow();
+        for i, child in ipairs(children) do
+            local cWidth = child:GetWidth();
+                local rowUsedSpace = math.max(0, elementsInRow - 1) * minSpacing + rowWidth;
+                if (rowUsedSpace + cWidth >= horizontalSpace) then
+                    rowWidth = cWidth;
+                    elementsInRow = 1;
+                    AddRow();
+                    rowIndex = rowIndex + 1;
+                    AddInRow(rowIndex, child);
+                else
+                    AddInRow(rowIndex, child);
+                    rowWidth = rowWidth + cWidth;
+                    elementsInRow = elementsInRow + 1;
+                end
+        end
+    end
+    function FrameUtil.FlowChildren(frame, children, padding, minSpacing, widthOverride)
+        ClearRows();
+        local fWidth = widthOverride or frame:GetWidth();
+        local horizontalSpace = fWidth - (padding * 2);
+        AssignFramesToRows(horizontalSpace, children, minSpacing);
+        local rowYOffset = padding;
+        for i = 1, rows.count do
+            local row = GetRow(i);
+            if (i > 1) then
+                rowYOffset = rowYOffset + minSpacing;
+            end
+            local rowWidth, rowHeight = CalcRowSize(row);
+            local spacing = (horizontalSpace - rowWidth) / (#row + 1);
+            local usedRowWidth = 0;
+            for i, child in ipairs(row) do
+                local xOffset = padding + usedRowWidth + (i * spacing);
+                local yOffset = rowYOffset + (rowHeight  / 2) - (child:GetHeight() / 2);
+                child:SetPoint("TOPLEFT", frame, "TOPLEFT", xOffset, -yOffset);
+                usedRowWidth = usedRowWidth + child:GetWidth();
+            end
+            rowYOffset = rowYOffset + rowHeight;
+        end
+        frame:SetWidth(fWidth);
+        frame:SetHeight(rowYOffset + padding);
+    end
 end

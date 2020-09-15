@@ -2,10 +2,10 @@ local ADDON_NAME, _p = ...;
 local L = _p.L;
 local FrameUtil = _p.FrameUtil;
 
-_p.ConfigurationWindow = {};
-local ConfigurationWindow = _p.ConfigurationWindow;
+_p.SettingsWindow = {};
+local SettingsWindow = _p.SettingsWindow;
 
-local ConfigurationFrame = _p.ConfigurationFrame;
+local SettingsFrame = _p.SettingsFrame;
 
 local _backdropSettings = {
     bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
@@ -28,24 +28,24 @@ do
         closeButton:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight");
         closeButton:RegisterForClicks("LeftButtonUp");
         closeButton:SetPoint("CENTER", closeButtonFrame, "CENTER");
-        closeButton:SetScript("OnClick", function() ConfigurationWindow.Close() end);
+        closeButton:SetScript("OnClick", function() SettingsWindow.Close() end);
         return closeButtonFrame;
     end
     local function CreateHeading(parent)
         local headerFrame = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate");
         headerFrame:SetBackdrop(_backdropSettings);
 
-        headerFrame.text = FrameUtil.CreateText(headerFrame, L["MacFrames Config"], "ARTWORK");
+        headerFrame.text = FrameUtil.CreateText(headerFrame, L["MacFrames Options"], "ARTWORK");
         headerFrame.text:ClearAllPoints();
         headerFrame.text:SetPoint("CENTER", headerFrame, "CENTER");
         FrameUtil.WidthByText(headerFrame, headerFrame.text);
         headerFrame:SetHeight(30);
         return headerFrame;
     end
-    function ConfigurationWindow.Open()
+    function SettingsWindow.Open()
         if (not InCombatLockdown()) then
             if (_window == nil) then
-                _window = CreateFrame("Frame", "MacFramesConfigurationWindow", UIParent, BackdropTemplateMixin and "BackdropTemplate");
+                _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, BackdropTemplateMixin and "BackdropTemplate");
                 _window:SetFrameStrata("HIGH");
                 _window:SetBackdrop(_backdropSettings);
                 tinsert(UISpecialFrames, _window:GetName());
@@ -62,31 +62,32 @@ do
                 FrameUtil.ConfigureDragDropHost(_window.heading, _window);
 
                 FrameUtil.AddResizer(_window, _window);
-                --_window:SetMinResize(600, 450);
-                --_window:SetMaxResize(1000, 800);
+                _window:SetMinResize(600, 450);
+                _window:SetMaxResize(1000, 800);
 
-                _window.configFrame = ConfigurationFrame.Show(_window);
-                _window.configFrame:SetPoint("TOPLEFT", _window, "TOPLEFT",  10, -10);
-                _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
                 _window:SetSize(600, 450);
                 _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+
+                _window.configFrame = SettingsFrame.Show(_window);
+                _window.configFrame:SetPoint("TOPLEFT", _window, "TOPLEFT",  10, -10);
+                _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
             end
             _window:Show();
         end
     end
 end
 
-function ConfigurationWindow.Close()
+function SettingsWindow.Close()
     if (_window ~= nil) then
         _window:Hide();
     end
 end
 
 
-function ConfigurationWindow.Toggle()
+function SettingsWindow.Toggle()
     if (_window == nil or _window:IsVisible() == false) then
-        ConfigurationWindow.Open();
+        SettingsWindow.Open();
     else
-        ConfigurationWindow.Close();
+        SettingsWindow.Close();
     end
 end

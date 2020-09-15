@@ -148,7 +148,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
         local spacing = _partySettings.FrameSpacing;
         local margin = _partySettings.Margin;
 
-        local minUfWidth, minUfHeight = UnitFrame.GetMinimumSize();
+        local minUfWidth, minUfHeight = Constants.UnitFrame.MinWidth, Constants.UnitFrame.MinHeight;
         
         if (reanchor == true) then
             local anchorInfo = _partySettings.AnchorInfo;

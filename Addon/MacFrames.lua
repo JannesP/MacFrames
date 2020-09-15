@@ -7,7 +7,7 @@ local PartyFrame = _p.PartyFrame;
 local RaidFrame = _p.RaidFrame;
 
 --these can only be loaded after the addon is loaded
-local ConfigurationWindow;
+local SettingsWindow;
 
 local _partyFrame;
 local _raidFrame;
@@ -47,13 +47,13 @@ function Addon.ToggleAnchors(override)
 end
 
 function Addon.Loaded()
-    ConfigurationWindow = _p.ConfigurationWindow;
+    SettingsWindow = _p.SettingsWindow;
 end
 
 function Addon.EnteringCombat()
     Addon.ToggleTestMode(Addon.TestMode.Disabled);
     Addon.ToggleAnchors(false);
-    ConfigurationWindow.Close();
+    SettingsWindow.Close();
 end
 
 function Addon.UpdatePlayerInfo()

@@ -1,15 +1,15 @@
 local ADDON_NAME, _p = ...;
 local Addon = _p.Addon;
 local FrameUtil = _p.FrameUtil;
-local ConfigurationFrameTab = _p.ConfigurationFrameTab;
+local SettingsFrameTab = _p.SettingsFrameTab;
 local Constants = _p.Constants;
 
-_p.ConfigurationFrame = {};
-local ConfigurationFrame = _p.ConfigurationFrame;
-local ConfigurationOptions = _p.ConfigurationOptions;
+_p.SettingsFrame = {};
+local SettingsFrame = _p.SettingsFrame;
+local Settings = _p.Settings;
 
 local _borderClearance = Constants.TooltipBorderClearance;
-local _frameName = "MacFramesConfigurationFrame";
+local _frameName = "MacFramesSettingsFrame";
 local _frame;
 local _activeTab;
 
@@ -34,11 +34,6 @@ local function CreateBottomBar(self)
     return frame;
 end
 
-local function CreateTabSelector(parent)
-    local frame = CreateFrame("Frame", nil, parent);
-    
-end
-
 local function LayoutBottomBar(self)
     local bar = self.bottomBar;
     local lastFrame = bar.children[1];
@@ -61,8 +56,8 @@ local function CreateTabSelector(self)
     self.tabs = {};
     local count = 1;
     local lastButton = nil;
-    for _, category in ipairs(ConfigurationOptions.Categories) do
-        local tab = ConfigurationFrameTab.Create(frame, category);
+    for _, category in ipairs(Settings.Categories) do
+        local tab = SettingsFrameTab.Create(frame, category);
         local selectButton = CreateFrame("CheckButton", frameName .. "TabSelector" .. count, frame, "OptionsListButtonTemplate");
         self.tabs[selectButton] = tab;
         selectButton.highlight = selectButton:GetHighlightTexture();
@@ -72,18 +67,18 @@ local function CreateTabSelector(self)
         if (lastButton == nil) then
             selectButton:SetPoint("TOPLEFT", frame, "TOPLEFT", _borderClearance, -_borderClearance);
             selectButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -_borderClearance, -_borderClearance);
-            ConfigurationFrame.SetActiveTab(self, selectButton);
+            SettingsFrame.SetActiveTab(self, selectButton);
         else
             selectButton:SetPoint("TOPLEFT", lastButton, "BOTTOMLEFT", 0, -1);
             selectButton:SetPoint("TOPRIGHT", lastButton, "BOTTOMRIGHT", 0, -1);
         end
-        selectButton:SetScript("OnClick", function(thisTab) ConfigurationFrame.SetActiveTab(self, thisTab) end);
+        selectButton:SetScript("OnClick", function(thisTab) SettingsFrame.SetActiveTab(self, thisTab) end);
         lastButton = selectButton;
     end
     return frame;
 end
 
-function ConfigurationFrame.SetActiveTab(self, tabButton)
+function SettingsFrame.SetActiveTab(self, tabButton)
     if (_frame.tabHost.content ~= nil) then
         _frame.tabHost.content:Hide();
         _frame.tabHost.content:ClearAllPoints();
@@ -99,10 +94,9 @@ function ConfigurationFrame.SetActiveTab(self, tabButton)
     tabButton:LockHighlight()
     tab:SetAllPoints(_frame.tabHost);
     tab:Show();
-    ConfigurationFrameTab.Layout(tab);
 end
 
-function ConfigurationFrame.Show(parent)
+function SettingsFrame.Show(parent)
     if _frame == nil then
         _frame = CreateFrame("Frame", _frameName, parent, BackdropTemplateMixin and "BackdropTemplate");
 
@@ -123,11 +117,11 @@ function ConfigurationFrame.Show(parent)
     else
         _frame:SetParent(parent);
     end
-    _frame:SetScript("OnSizeChanged", ConfigurationFrame.Layout);
-    ConfigurationFrame.Layout(_frame, _frame:GetSize());
+    _frame:SetScript("OnSizeChanged", SettingsFrame.Layout);
+    SettingsFrame.Layout(_frame, _frame:GetSize());
     return _frame;
 end
 
-function ConfigurationFrame.Layout(self, width, height)
+function SettingsFrame.Layout(self, width, height)
     LayoutBottomBar(self);
 end

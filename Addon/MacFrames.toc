@@ -17,10 +17,10 @@ SavedVariables\DefaultProfileSettings.lua
 SavedVariables\Profile.lua
 SavedVariables\ProfileManager.lua
 
-Settings\Settings.lua
 Settings\DebuffBlacklist.lua
 Settings\CastBindings.lua
 Settings\Defensives.lua
+Settings\Settings.lua
 
 Util\FramePool.lua
 Util\PixelUtil.lua
@@ -41,9 +41,8 @@ PopupDisplays.lua
 
 MacFrames.lua
 
-Frames\ConfigurationOptions.lua
-Frames\ConfigurationFrameTab.lua
-Frames\ConfigurationFrame.lua
-Frames\ConfigurationWindow.lua
+Frames\SettingsFrameTab.lua
+Frames\SettingsFrame.lua
+Frames\SettingsWindow.lua
 Api.lua
 SlashCommands.lua

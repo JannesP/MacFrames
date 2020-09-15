@@ -1,5 +1,4 @@
 local ADDON_NAME, _p = ...; 
-local Settings = _p.Settings;
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
 

@@ -4,7 +4,6 @@ local ADDON_NAME, _p = ...;
 MacFrames = {
     tprint = _p.tprint,
     UnitFrames = _p.UnitFrames,
-    Settings = _p.Settings,
 };
 
 if (_p.isDebugMode) then

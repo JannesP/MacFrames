@@ -23,10 +23,6 @@ _p.UnitFrames = _unitFrames;
 local UnitFrame = {};
 _p.UnitFrame = UnitFrame;
 
-function UnitFrame.GetMinimumSize()
-    return 70, 32;
-end
-
 function UnitFrame.OnSettingChanged(self, key)
     if (self == nil or self.isChangingSettings == true) then return; end
     if (key == "HealthBarTextureName") then
