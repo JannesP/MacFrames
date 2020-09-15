@@ -89,11 +89,7 @@ do
             local lastSection = nil;
             for i, childSection in ipairs(section.Sections) do
                 local sFrame = nil;
-                --if (depth > 1) then
-                --    sFrame = CreateSection(parent, childSection, depth + 1);
-                --else
-                    sFrame = CreateSection(s, childSection, depth + 1);
-                --end
+                sFrame = CreateSection(s, childSection, depth + 1);
                 sFrame:ClearAllPoints();
                 if (lastSection == nil) then
                     if (s.optionsContainer) then
@@ -141,16 +137,6 @@ do
             end
             self:SetHeight(height);
         end
-        --s:SetScript("OnShow", function (...) 
-        --    s.Layout(...);
-        --end);
-        --s.optionsContainer:SetScript("OnSizeChanged", function (self, width, height) 
-        --    FrameUtil.FlowChildren(self, self.optionEditors, 6, 6);
-        --end);
-        --s:SetScript("OnSizeChanged", function (self, width, height) 
-        --    if (self.isUpdating or self:GetWidth() == width) then return; end
-        --    s.Layout(self, width, height);
-        --end);
         return s;
     end
     function SettingsFrameTab.Create(parent, category)
@@ -220,18 +206,19 @@ do
                     SettingsFrameTab.SectionSelected(frame);
                 end);
 
-                uiSection.content = CreateSection(frame.contentHost, section, 1);
-                uiSection.content:ClearAllPoints();
-                uiSection.content:SetAllPoints(frame.contentHost);
+                uiSection.content = CreateSection(nil, section, 1);
+                uiSection.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, uiSection.content);
+                uiSection.content:SetParent(uiSection.scrollFrame);
+                uiSection.scrollFrame:ClearAllPoints();
+                uiSection.scrollFrame:SetPoint("TOPLEFT", frame.contentHost, "TOPLEFT");
+                uiSection.scrollFrame:SetPoint("BOTTOMRIGHT", frame.contentHost, "BOTTOMRIGHT", 0, 0);
                 uiSection.content:SetScript("OnSizeChanged", function(self, width, height)
-                    self:ClearAllPoints();
-                    self:SetAllPoints(frame.contentHost);
                     self:Layout(width, height);
+                    uiSection.scrollFrame:RefreshScrollBarVisibility();
                 end);
                 uiSection.content:SetScript("OnShow", function(self, width, height)
-                    self:ClearAllPoints();
-                    self:SetAllPoints(frame.contentHost);
                     self:Layout(width, height);
+                    uiSection.scrollFrame:RefreshScrollBarVisibility();
                 end);
                 frame.optionSections[n] = uiSection;
             end
@@ -251,12 +238,11 @@ function SettingsFrameTab.SectionSelected(self)
     local tabIndex = PanelTemplates_GetSelectedTab(self.tabPanelSectionSelector);
     for i, section in ipairs(self.optionSections) do
         if (i == tabIndex) then
-            --section.content:SetAllPoints();
-            section.content:Show();
             section.content:Layout();
+            section.scrollFrame:Show();
+            section.scrollFrame:RefreshScrollBarVisibility();
         else
-            section.content:Hide();
-            --section.content:ClearAllPoints();
+            section.scrollFrame:Hide();
         end
     end
 end

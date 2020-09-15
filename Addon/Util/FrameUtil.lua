@@ -287,3 +287,44 @@ do
         frame:SetHeight(rowYOffset + padding);
     end
 end
+
+do
+    local function ScrollBarVisibility(self)
+        if (self.content:GetHeight() > self:GetHeight()) then
+            self.ScrollBar:Show();
+            self.content:SetWidth(self:GetWidth() - self.ScrollBar:GetWidth());
+        else
+            self.content:SetWidth(self:GetWidth());
+            self.ScrollBar:Hide();
+        end
+    end
+    local function ScrollFrameOnSizeChanged(self, width, height)
+        self.content:SetWidth(width or self:GetWidth());
+        ScrollBarVisibility(self);
+    end
+    local counter = 1;
+    function FrameUtil.CreateVerticalScrollFrame(parent, child)
+        local scroll = CreateFrame("ScrollFrame", ADDON_NAME.."_ScrollFrame"..counter, parent, "UIPanelScrollFrameTemplate");
+		scroll:EnableMouse(true);
+        local sbWidth = scroll.ScrollBar:GetWidth();
+
+        scroll.content = child;
+        scroll.content:SetParent(scroll);
+        scroll.content:SetWidth(scroll:GetWidth() - sbWidth);
+        
+        scroll.ScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", -sbWidth, -sbWidth);
+        scroll.ScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", -sbWidth, sbWidth);
+        scroll.ScrollBar.background = scroll.ScrollBar:CreateTexture(nil, "BACKGROUND");
+        scroll.ScrollBar.background:SetColorTexture(.4, .4, .4, .4);
+        scroll.ScrollBar.background:SetAllPoints();
+        scroll.RefreshScrollBarVisibility = function(self)
+            ScrollBarVisibility(self);
+        end
+
+        scroll:SetScrollChild(scroll.content);
+        scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);
+
+        counter = counter + 1;
+        return scroll;
+    end
+end
