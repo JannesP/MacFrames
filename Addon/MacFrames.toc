@@ -6,9 +6,9 @@
 ## DefaultState: enabled
 ## SavedVariables: MacFramesSavedVariables
 
-Constants.lua
-
 Embeds.xml
+
+Constants.lua
 Resources.lua
 
 Init.lua
@@ -17,11 +17,12 @@ SavedVariables\DefaultProfileSettings.lua
 SavedVariables\Profile.lua
 SavedVariables\ProfileManager.lua
 
-Settings\DebuffBlacklist.lua
+Settings\AuraBlacklist.lua
 Settings\CastBindings.lua
 Settings\Defensives.lua
 Settings\Settings.lua
 
+Util\TablePool.lua
 Util\FramePool.lua
 Util\PixelUtil.lua
 Util\SettingsUtil.lua

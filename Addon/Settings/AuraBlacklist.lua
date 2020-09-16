@@ -1,8 +1,8 @@
 local ADDON_NAME, _p = ...;
 
-_p.DebuffBlacklist = {
+_p.AuraBlacklist = {
     [600] = true,       --Exhaustion (Hero/BL/Drums Debuff)
-    --[6788] = true,      --Weakened Soul
+    [6788] = true,      --Weakened Soul
     [206151] = true,    --Challenger's Burden
     [319346] = true,    --Infinity's Toll
 

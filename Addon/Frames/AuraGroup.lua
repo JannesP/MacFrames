@@ -2,6 +2,10 @@ local ADDON_NAME, _p = ...;
 local AuraFrame = _p.AuraFrame;
 local MyAuraUtil = _p.MyAuraUtil;
 local AuraManager = _p.AuraManager;
+local AuraBlacklist = _p.AuraBlacklist;
+local TablePool = _p.TablePool;
+
+local math_min, table_sort = math.min, table.sort;
 
 local _framePool = _p.FramePool.new();
 
@@ -29,6 +33,8 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
     frame.auraGroupType = auraGroupType;
 
     frame.reverse = false;
+    frame.ignoreBlacklist = false;
+    frame.allowDisplayed = false;
 
     if (frame.auraFrames == nil) then
         frame.auraFrames = {};
@@ -78,6 +84,14 @@ end
 
 function AuraGroup.SetUnit(self, unit)
     self.unit = unit;
+end
+
+function AuraGroup.SetIgnoreBlacklist(self, ignoreBlacklist)
+    self.ignoreBlacklist = ignoreBlacklist;
+end
+
+function AuraGroup.SetAllowDisplayedAuras(self, allowDisplayed)
+    self.allowDisplayed = allowDisplayed;
 end
 
 function AuraGroup.SetReverseOrder(self, reverse)
@@ -130,40 +144,95 @@ function AuraGroup.SetTestMode(self, enabled)
         AuraGroup.Update(self);
     end
 end
-
-function AuraGroup.Update(self)
-    local auraList;
-    local types = AuraGroup.Type;
-    if self.auraGroupType == types.DispellableDebuff then
-        auraList = AuraManager.GetDispellableDebuffs(self.unit, #self.auraFrames);
-    elseif self.auraGroupType == types.UndispellableDebuff then
-        auraList = AuraManager.GetUndispellableDebuffs(self.unit, #self.auraFrames);
-    elseif self.auraGroupType == types.BossAura then
-        auraList = AuraManager.GetBossAuras(self.unit, #self.auraFrames);
-    elseif self.auraGroupType == types.DefensiveBuff then
-        auraList = AuraManager.GetDefensiveBuffs(self.unit, #self.auraFrames);
-    else
-        error("invalid AuraGroup.Type: " .. self.auraGroupType);
-    end
-
-    if (self.reverse == true) then
-        for i=#self.auraFrames, 1, -1 do
-            local frame = self.auraFrames[i];
-            local aura = auraList[#self.auraFrames - i + 1];
-            if (aura == nil) then
-                AuraFrame.Hide(frame);
-            else
-                AuraFrame.DisplayAura(frame, aura);
-            end
+do
+    local function IsAllowedBySettings(self, slot, info, ...)
+        local result = true;
+        if (not self.ignoreBlacklist and AuraBlacklist[select(10, ...)] == true) then
+            result = false;
+        elseif (not self.allowDisplayed and info.displayed) then
+            result = false;
         end
-    else
-        for i=1, #self.auraFrames do
-            local frame = self.auraFrames[i];
-            local aura = auraList[i];
-            if (aura == nil) then
-                AuraFrame.Hide(frame);
+        return result;
+    end
+    local function DisplayInFrame(self, displayedCount, ...)
+        local frameCount = #self.auraFrames;
+        local frameIndex;
+        if (self.reverse == true) then
+            frameIndex = frameCount - displayedCount;
+        else
+            frameIndex = displayedCount + 1;
+        end
+        local frame = self.auraFrames[frameIndex];
+        AuraFrame.DisplayAura(frame, ...);
+    end
+    local _auraTablePool = TablePool.Create(function(table)
+        wipe(table);
+    end);
+    local _auraList = {};
+    local function ClearAuraList()
+        for _, aura in pairs(_auraList) do
+            _auraTablePool:Put(aura);
+        end
+        wipe(_auraList);
+    end
+    function AuraGroup.Update(self)
+        local displayedCount = 0;
+        local frameCount = #self.auraFrames;
+
+        local function NormalDisplayAuraFunc(slot, info, ...)
+            if (IsAllowedBySettings(self, slot, info, ...)) then
+                --info.displayed = true;
+                DisplayInFrame(self, displayedCount, ...);
+                displayedCount = displayedCount + 1;
+                if (frameCount <= displayedCount) then
+                    return true;
+                end
+            end
+            return false;
+        end
+        local types = AuraGroup.Type;
+        if self.auraGroupType == types.DispellableDebuff then
+            AuraManager.ForAllDispellableDebuffs(self.unit, NormalDisplayAuraFunc);
+        elseif self.auraGroupType == types.UndispellableDebuff then
+            AuraManager.ForAllUndispellableDebuffs(self.unit, NormalDisplayAuraFunc);
+        elseif self.auraGroupType == types.BossAura then
+            AuraManager.ForAllBossAuras(self.unit, NormalDisplayAuraFunc);
+        elseif self.auraGroupType == types.DefensiveBuff then
+            ClearAuraList();
+            AuraManager.ForAllDefensiveBuffs(self.unit, function(slot, info, priority, ...)
+                if (IsAllowedBySettings(self, slot, info, ...)) then
+                    local holder = _auraTablePool:Take();
+                    local auraLength = select('#', ...);
+                    for i=1,auraLength do
+                        holder[i] = select(i, ...);
+                    end
+                    holder.n = auraLength;
+                    holder.priority = priority;
+                    holder.info = info;
+                    _auraList[#_auraList + 1] = holder;
+                end
+                return false;
+            end);
+            table_sort(_auraList, function(a, b) return a.priority > b.priority end);
+            for i=1, math_min(#_auraList, frameCount) do
+                local aura = _auraList[i];
+                aura.info.displayed = true;
+                DisplayInFrame(self, displayedCount, unpack(aura));
+                displayedCount = displayedCount + 1;
+            end
+        else
+            error("invalid AuraGroup.Type: " .. self.auraGroupType);
+        end
+        --hide frames that aren't in use
+        if (displayedCount < frameCount) then
+            if (self.reverse == true) then
+                for i=frameCount - displayedCount, 1, -1 do
+                    self.auraFrames[i]:Hide();
+                end
             else
-                AuraFrame.DisplayAura(frame, aura);
+                for i=displayedCount + 1, frameCount do
+                    self.auraFrames[i]:Hide();
+                end
             end
         end
     end

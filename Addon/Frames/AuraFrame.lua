@@ -103,35 +103,42 @@ function AuraFrame.SetPinnedAuraWithId(self, unit, auraId, debuff, onlyByPlayer)
 end
 
 function AuraFrame.UpdateFromPinnedAura(self)
-    local aura;
-    if self.pinnedAura.debuff == true then
-        aura = AuraManager.GetPlayerDebuffByAuraId(self.pinnedAura.unit, self.pinnedAura.id, self.pinnedAura.onlyByPlayer);
-    else
-        aura = AuraManager.GetPlayerBuffByAuraId(self.pinnedAura.unit, self.pinnedAura.id, self.pinnedAura.onlyByPlayer);
+    local pinnedAura = self.pinnedAura;
+    local displayed = false;
+
+    local function ProcessAuraFunc(slot, info, ...)
+        if (not pinnedAura.onlyByPlayer or info.byPlayer) then
+            info.displayed = true;
+            displayed = true;
+            AuraFrame.DisplayAura(self, ...);
+            return true;
+        end
+        return false;
     end
-    AuraFrame.DisplayAura(self, aura);
+
+    if pinnedAura.debuff == true then
+        AuraManager.ForAllDebuffsByAuraId(pinnedAura.unit, pinnedAura.id, ProcessAuraFunc);
+    else
+        AuraManager.ForAllBuffsByAuraId(pinnedAura.unit, pinnedAura.id, ProcessAuraFunc);
+    end
+    if (not displayed) then
+        self:Hide();
+    end
 end
 
-function AuraFrame.SetBackgroundColor(self, aura)
+function AuraFrame.SetBackgroundColor(self, debuffType)
     if (self.coloringMode == ColoringMode.Debuff) then
-        local color = DebuffTypeColor[aura[4]] or DebuffTypeColor["none"];
+        local color = DebuffTypeColor[debuffType] or DebuffTypeColor["none"];
         self.background:SetColorTexture(color.r, color.g, color.b);
     end
 end
 
-function AuraFrame.DisplayAura(self, aura)
-    if (aura == nil) then
-        self:Hide();
-        return;
-    end
-    local icon = aura[2];
-    local stacks = aura[3];
-    local duration = aura[5];
-    local expirationTime = aura[6];
+function AuraFrame.DisplayAura(self, ...)
+    local _, icon, stacks, debuffType, duration, expirationTime = ...;
     if (icon == nil or duration == nil or expirationTime == nil) then
         self:Hide();
     else
-        AuraFrame.SetBackgroundColor(self, aura);
+        AuraFrame.SetBackgroundColor(self, debuffType);
         self.icon:SetTexture(icon);
         self.cooldown:SetCooldown(expirationTime - duration, duration);
         self.cooldown:Resume();

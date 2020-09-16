@@ -360,44 +360,47 @@ function UnitFrame.UpdateTestDisplay(self)
     UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
     UnitFrame.SetHealth(self, data.health);
 end
-
-function UnitFrame.LayoutStatusIcons(self)
-    local sic = self.statusIconContainer;
-    if (sic.disableLayouting == true) then --mostly for UpdateAll to prevent excessive recalculating
-        return;
-    end
-    local visibleFrames = {};
-
-    PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
-
-    local function ProcessIcon(icon)
-        if (icon:IsShown()) then
-            tinsert(visibleFrames, icon);
+do
+    local _visibleFrames = {};
+    function UnitFrame.LayoutStatusIcons(self)
+        local sic = self.statusIconContainer;
+        if (sic.disableLayouting == true) then --mostly for UpdateAll to prevent excessive recalculating
+            return;
         end
-    end
+        local visibleFrames = _visibleFrames;
+        wipe(visibleFrames);
 
-    ProcessIcon(sic.readyCheckIcon);
-    ProcessIcon(sic.summonIcon);
-    ProcessIcon(sic.resurrectIcon);
-    ProcessIcon(sic.phasingIcon);
-    ProcessIcon(sic.lfgIcon);
+        PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
 
-    if (#visibleFrames == 0) then
-        --no frames visible, we just move the status text in the middle
-        sic.statusText:ClearAllPoints();
-        PixelUtil.SetPoint(sic.statusText, "CENTER", sic, "CENTER", 0, 0);
-    else
-        local iconSize = self.settings.Frames.StatusIconSize;
-        local totalWidth = #visibleFrames * iconSize;
-        PixelUtil.SetPoint(visibleFrames[1], "BOTTOMLEFT", sic, "BOTTOMLEFT", (sic:GetWidth() / 2) - (totalWidth / 2), 0);
-        PixelUtil.SetSize(visibleFrames[1], iconSize, iconSize);
-        for i=2,#visibleFrames do
-            PixelUtil.SetPoint(visibleFrames[i], "TOPLEFT", visibleFrames[i - 1], "TOPRIGHT", 0, 0);
-            PixelUtil.SetSize(visibleFrames[i], iconSize, iconSize);
+        local function ProcessIcon(icon)
+            if (icon:IsShown()) then
+                tinsert(visibleFrames, icon);
+            end
         end
-        --since we displayed an icon we need to move the statusText up
-        sic.statusText:ClearAllPoints();
-        PixelUtil.SetPoint(sic.statusText, "TOP", sic, "TOP", 0, 0);
+
+        ProcessIcon(sic.readyCheckIcon);
+        ProcessIcon(sic.summonIcon);
+        ProcessIcon(sic.resurrectIcon);
+        ProcessIcon(sic.phasingIcon);
+        ProcessIcon(sic.lfgIcon);
+
+        if (#visibleFrames == 0) then
+            --no frames visible, we just move the status text in the middle
+            sic.statusText:ClearAllPoints();
+            PixelUtil.SetPoint(sic.statusText, "CENTER", sic, "CENTER", 0, 0);
+        else
+            local iconSize = self.settings.Frames.StatusIconSize;
+            local totalWidth = #visibleFrames * iconSize;
+            PixelUtil.SetPoint(visibleFrames[1], "BOTTOMLEFT", sic, "BOTTOMLEFT", (sic:GetWidth() / 2) - (totalWidth / 2), 0);
+            PixelUtil.SetSize(visibleFrames[1], iconSize, iconSize);
+            for i=2,#visibleFrames do
+                PixelUtil.SetPoint(visibleFrames[i], "TOPLEFT", visibleFrames[i - 1], "TOPRIGHT", 0, 0);
+                PixelUtil.SetSize(visibleFrames[i], iconSize, iconSize);
+            end
+            --since we displayed an icon we need to move the statusText up
+            sic.statusText:ClearAllPoints();
+            PixelUtil.SetPoint(sic.statusText, "TOP", sic, "TOP", 0, 0);
+        end
     end
 end
 

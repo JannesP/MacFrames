@@ -1,16 +1,59 @@
 local ADDON_NAME, _p = ...;
 
 local MyAuraUtil = _p.MyAuraUtil;
-local DebuffBlacklist = _p.DebuffBlacklist;
+local AuraBlacklist = _p.AuraBlacklist;
 local Defensives = _p.Defensives;
+local TablePool = _p.TablePool;
+
+local MyAuraUtil_IsBossAura = MyAuraUtil.IsBossAura;
 
 local AuraManager = {};
 _p.AuraManager = AuraManager;
 
+local _auraInfoCache = TablePool.Create(function (table)
+    table.dispellable = false;
+    table.displayed = false;
+    table.byPlayer = false;
+end);
+--[[
+    _buffCache = {
+        "player" = {
+            [slot1] = {
+                dispellable = false;
+                displayed = false;
+                byPlayer = false;
+            },
+            [slot2] = {
+                dispellable = false;
+                displayed = false;
+                byPlayer = false;
+            },
+        },
+        "party1" = {
+
+        },
+    }
+]]
 local _buffCache = {};
 AuraManager._buffCache = _buffCache;
 local _debuffCache = {};
 AuraManager._debuffCache = _debuffCache;
+
+local function GetClearedUnitCache(unit, cache)
+    local result = cache[unit];
+    if (result == nil) then
+        result = {};
+        cache[unit] = result;
+    else
+        for k, auraInfo in pairs(result) do
+            _auraInfoCache:Put(auraInfo);
+            result[k] = nil;
+        end
+    end
+    return result;
+end
+
+local _slotCache = {};
 
 function AuraManager.LoadUnitAuras(unit)
     AuraManager.LoadUnitBuffs(unit);
@@ -18,166 +61,129 @@ function AuraManager.LoadUnitAuras(unit)
 end
 
 function AuraManager.LoadUnitBuffs(unit)
-    local buffCache = _buffCache[unit];
-    if (buffCache == nil) then
-        buffCache = {};
-        _buffCache[unit] = buffCache;
-    else
-        wipe(buffCache);
+    local buffCache = GetClearedUnitCache(unit, _buffCache);
+    
+    MyAuraUtil.AllUnitAuraSlots(unit, "HELPFUL", _slotCache);
+    for i=1, #_slotCache do
+        buffCache[_slotCache[i]] = _auraInfoCache:Take();
     end
-    local buffSlots = MyAuraUtil.AllUnitAuraSlots(unit, "HELPFUL");
-    local playerBuffs = MyAuraUtil.AllUnitAuraSlots(unit, "HELPFUL|PLAYER");
-    for _, slot in ipairs(buffSlots) do
-        buffCache[slot] = {
-            displayed = false,
-            byPlayer = false,
-        };
-    end
-    for _, slot in ipairs(playerBuffs) do
-        buffCache[slot].byPlayer = true;
+
+    MyAuraUtil.AllUnitAuraSlots(unit, "HELPFUL|PLAYER", _slotCache);
+    for i=1, #_slotCache do
+        buffCache[_slotCache[i]].byPlayer = true;
     end
 end
 
 function AuraManager.LoadUnitDebuffs(unit)
-    local debuffCache = _debuffCache[unit];
-    if (debuffCache == nil) then
-        debuffCache = {};
-        _debuffCache[unit] = debuffCache;
-    else
-        wipe(debuffCache);
+    local debuffCache = GetClearedUnitCache(unit, _debuffCache);
+
+    MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL", _slotCache);
+    for i=1, #_slotCache do
+        debuffCache[_slotCache[i]] = _auraInfoCache:Take();
     end
 
-    local slots = MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL");
-    local dispellableSlots = MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL|RAID");
-    local playerSlots = MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL|PLAYER");
-    
-    for _, slot in ipairs(slots) do
-        debuffCache[slot] = {
-            dispellable = false;
-            displayed = false;
-            byPlayer = false;
-        };
+    MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL|RAID", _slotCache);
+    for i=1, #_slotCache do
+        debuffCache[_slotCache[i]].dispellable = true;
     end
-    for _, slot in ipairs(dispellableSlots) do
-        debuffCache[slot].dispellable = true;
-    end
-    for _, slot in ipairs(playerSlots) do
-        debuffCache[slot].byPlayer = true;
+
+    MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL|PLAYER", _slotCache);
+    for i=1, #_slotCache do
+        debuffCache[_slotCache[i]].byPlayer = true;
     end
 end
 
 do
-    local function GetAuraFromInfo(unit, slot, info)
-        if info.aura == nil then
-            info.aura = { UnitAuraBySlot(unit, slot) };
-        end
-        return info.aura;
-    end
-
-    local function GetAurasWithFilter(unit, count, resultList, filterFunc, cache)
-        if (resultList == nil) then
-            resultList = {};
-        end
-        if (cache ~= nil) then
-            for slot, info in pairs(cache) do
-                local aura = GetAuraFromInfo(unit, slot, info);
-                if (DebuffBlacklist[aura[10]] ~= true) then
-                    if filterFunc(slot, info) then
-                        info.displayed = true;
-                        tinsert(resultList, aura);
-                        if (count ~= nil and #resultList == count) then
-                            return resultList;
-                        end
-                    end
+    local function ForEachAura(unit, slotCache, func)
+        if (slotCache ~= nil) then
+            for slot, info in pairs(slotCache) do
+                if (func(slot, info, UnitAuraBySlot(unit, slot))) then
+                    return;
                 end
             end
+        else
+            _p.Log("slotCache was nil!");
         end
-        return resultList;
     end
 
-    local function GetDebuffsWithFilter(unit, count, resultList, filterFunc)
-        return GetAurasWithFilter(unit, count, resultList, filterFunc, _debuffCache[unit]);
+    local function ForAllDebuffs(unit, func)
+        ForEachAura(unit, _debuffCache[unit], func);
     end
 
-    local function GetBuffsWithFilter(unit, count, resultList, filterFunc)
-        return GetAurasWithFilter(unit, count, resultList, filterFunc, _buffCache[unit]);
+    local function ForAllBuffs(unit, func)
+        ForEachAura(unit, _buffCache[unit], func);
     end
     
-    function AuraManager.GetDispellableDebuffs(unit, count, resultList)
-        return GetDebuffsWithFilter(unit, count, resultList, function(slot, info)
-            return info.dispellable and not info.displayed;
+    function AuraManager.ForAllDispellableDebuffs(unit, func)
+        ForAllDebuffs(unit, function(slot, info, ...)
+            if (info.dispellable) then
+                return func(slot, info, ...);
+            else
+                return false;
+            end
         end);
     end
 
-    function AuraManager.GetUndispellableDebuffs(unit, count, resultList)
-        return GetDebuffsWithFilter(unit, count, resultList, function(slot, info)
-            return not info.dispellable and not info.displayed;
+    function AuraManager.ForAllUndispellableDebuffs(unit, func)
+        ForAllDebuffs(unit, function(slot, info, ...)
+            if (not info.dispellable) then
+                return func(slot, info, ...);
+            else
+                return false;
+            end
         end);
     end
 
-    do
-        local function BossAuraFilter(unit)
-            return function (slot, info)
-                if not info.displayed then
-                    return MyAuraUtil.IsBossAura(GetAuraFromInfo(unit, slot, info));
+    function AuraManager.ForAllBossAuras(unit, func)
+        local cancelIteration = false;
+        ForAllDebuffs(unit, function(slot, info, ...)
+            if (MyAuraUtil_IsBossAura(...)) then
+                cancelIteration = func(slot, info, ...);
+                return cancelIteration;
+            else
+                return false;
+            end
+        end);
+        if (not cancelIteration) then
+            ForAllBuffs(unit, function(slot, info, ...)
+                if (MyAuraUtil_IsBossAura(...)) then
+                    cancelIteration = func(slot, info, ...);
+                    return cancelIteration;
+                else
+                    return false;
                 end
-                return false;
-            end
-        end
-
-        function AuraManager.GetBossAuras(unit, count, resultList)
-            resultList = GetDebuffsWithFilter(unit, count, resultList, BossAuraFilter(unit));
-            if (#resultList < count) then
-                GetBuffsWithFilter(unit, count, resultList, BossAuraFilter(unit));
-            end
-            return resultList;
+            end);
         end
     end
 
-    local function PlayerAuraIdFilter(unit, auraId, byPlayer)
-        return function(slot, info)
-            if (byPlayer == true and not info.byPlayer) then
+    function AuraManager.ForAllBuffsByAuraId(unit, auraId, func)
+        ForAllBuffs(unit, function(slot, info, ...)
+            if ((select(10, ...)) == auraId) then
+                return func(slot, info, ...);
+            else
                 return false;
             end
-            if (info.displayed) then
-                return false;
-            end
-            local aura = GetAuraFromInfo(unit, slot, info);
-            return aura[10] == auraId;
-        end
-        
-    end
-
-    function AuraManager.GetPlayerBuffByAuraId(unit, auraId, byPlayer)
-        return GetBuffsWithFilter(unit, 1, nil, PlayerAuraIdFilter(unit, auraId, byPlayer))[1];
-    end
-
-    function AuraManager.GetPlayerDebuffByAuraId(unit, auraId, byPlayer)
-        return GetDebuffsWithFilter(unit, 1, nil, PlayerAuraIdFilter(unit, auraId, byPlayer))[1];
-    end
-
-    function AuraManager.GetDefensiveBuffs(unit, count)
-        local buffs = GetBuffsWithFilter(unit, nil, nil, function (slot, info)
-            return not info.displayed;
         end);
-        
-        local foundBuffs = {};
-        for _, aura in ipairs(buffs) do
-            local defensiveEntry = Defensives[aura[10]];
-            if (defensiveEntry ~= nil) then
-                tinsert(foundBuffs, { aura = aura, priority = defensiveEntry });
+    end
+
+    function AuraManager.ForAllDebuffsByAuraId(unit, auraId, func)
+        ForAllDebuffs(unit, function(slot, info, ...)
+            if ((select(10, ...)) == auraId) then
+                return func(slot, info, ...);
+            else
+                return false;
             end
-        end
-        
-        table.sort(foundBuffs, function(a, b) return a.priority > b.priority end);
-        local results = {};
-        for i=1,count do
-            if i > #foundBuffs then
-                return results;
-            else 
-                tinsert(results, foundBuffs[i].aura);
+        end);
+    end
+
+    function AuraManager.ForAllDefensiveBuffs(unit, func)
+        ForAllBuffs(unit, function(slot, info, ...)
+            local priority = Defensives[(select(10, ...))];
+            if (priority ~= nil) then
+                return func(slot, info, priority, ...);
+            else
+                return false;
             end
-        end
-        return results;
+        end);
     end
 end
