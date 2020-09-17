@@ -5,8 +5,25 @@ local ProfileManager = _p.ProfileManager;
 
 _p.PopupDisplays = {};
 local PopupDisplays = _p.PopupDisplays;
+PopupDisplays.GenericMessage = "MACFRAMES_GENERIC_MESSAGE";
 PopupDisplays.ResetSavedVariables = "MACFRAMES_RESET_SAVED_VARIABLES";
 PopupDisplays.CopyProfileEnterName = "MACFRAMES_COPY_PROFILE_ENTER_NAME";
+
+function PopupDisplays.ShowGenericMessage(message, isAlert)
+    StaticPopupDialogs[PopupDisplays.GenericMessage].text = message;
+    StaticPopupDialogs[PopupDisplays.GenericMessage].showAlert = isAlert;
+    StaticPopup_Show(PopupDisplays.GenericMessage);
+end
+StaticPopupDialogs[PopupDisplays.GenericMessage] = {
+    text = L["Do you really want to reset the addon settings? This will reload your UI.\nALL PROFILES WILL BE DELETED!"],
+    button1 = L["Ok"],
+    OnAccept = function(self)
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = false,
+    showAlert = false,
+}
 
 function PopupDisplays.ShowResetSettingsPrompt()
     StaticPopup_Show(PopupDisplays.ResetSavedVariables);
@@ -17,7 +34,6 @@ StaticPopupDialogs[PopupDisplays.ResetSavedVariables] = {
     button2 = NO,
     OnAccept = function(self)
         ProfileManager.ResetAddonSettings();
-        C_UI.Reload();
     end,
     timeout = 0,
     whileDead = true,

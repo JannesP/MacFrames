@@ -9,6 +9,8 @@ local ProfileManager  = _p.ProfileManager;
 
 ProfileManager.AddonDefaults = L["Addon Defaults"];
 
+local _isErrorState = false;
+
 local _profileChangedListeners = {};
 local _characterProfileMapping;
 local _defaultProfileName;
@@ -115,21 +117,16 @@ function ProfileManager.SelectProfileForSpec(specId, profileName)
 end
 
 function ProfileManager.ResetAddonSettings()
-    _characterProfileMapping = nil;
-    _defaultProfileName = nil;
-    _currentProfile = nil;
-    _profiles = nil;
+    if (InCombarLockdown()) then
+        _p.UserChatMessage(L["Cannot reset settings while in combat!"]);
+    end
     MacFramesSavedVariables = nil;
-    ProfileManager.AddonLoaded();
+    C_UI.Reload();
 end
 
 function ProfileManager.LoadSVars(svars)
     _defaultProfileName = svars.DefaultProfileName;
-    if (svars.CharacterProfileMapping) then
-        _characterProfileMapping = svars.CharacterProfileMapping;
-    else
-        _p.UserChatMessage("Error loading profiles")
-    end
+    _characterProfileMapping = svars.CharacterProfileMapping;
     _profiles = {};
     if (svars.Profiles) then
         local profiles = {};
@@ -142,6 +139,10 @@ function ProfileManager.LoadSVars(svars)
 end
 
 function ProfileManager.SaveSVars()
+    if (_isErrorState == true) then
+        _p.UserChatMessage(L["Didn't save config because loading failed. To clear your settings please use '/macframes reset'"]);
+        return;
+    end
     MacFramesSavedVariables = ProfileManager.BuildSavedVariables();
 end
 
@@ -177,6 +178,10 @@ end
 
 function ProfileManager.UnregisterProfileChangedListener(Callback)
     _profileChangedListeners[Callback] = nil;
+end
+
+function ProfileManager.TriggerErrorState()
+    _isErrorState = true;
 end
 
 function ProfileManager.IsNewProfileNameValid(name)

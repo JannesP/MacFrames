@@ -131,8 +131,12 @@ function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
         _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
         local success, result = pcall(ProfileManager.AddonLoaded);
         if (not success) then
-            _p.UserChatMessage("Error loading profiles. Make sure the SavedVariables are correct and restart your game. To clear the settings type '/macframes reset'.");
-            error(result);
+            ProfileManager.TriggerErrorState();
+            PopupDisplays.ShowGenericMessage(
+                [["Error loading profiles. Make sure the SavedVariables are correct and restart your game.
+                As long as this message pops up no profile changes will be saved between reloads!
+                To clear the settings type '/macframes reset'.
+                Alternatively you can report this error on github, please attach your MacFrames.lua as a pastebin."]], true);
         else
             _partyFrame = PartyFrame.create();
             _raidFrame = RaidFrame.create();
