@@ -3,8 +3,9 @@ local ADDON_NAME, _p = ...;
 _p.Profile = {};
 local Profile = _p.Profile;
 
-local function NewWrapper()
-    return setmetatable({ 
+local function NewWrapper(defaults)
+    return setmetatable({
+            _defaults = defaults,
             _settings = {},
             _propertyChangedListeners = {},
             OnPropertyChanged = function(self, key)
@@ -40,7 +41,16 @@ local function NewWrapper()
             end,
         }, {
             __index = function(self, key)
-                return self._settings[key];
+                local result = self._settings[key];
+                if (result == nil) then
+                    local default = self._defaults[key];
+                    if (default ~= nil and type(default) ~= 'table') then
+                        _p.Log("Loading default ("..key.."): "..tostring(default));
+                        self._settings[key] = default;
+                        result = default;
+                    end
+                end
+                return result;
             end,
             __newindex = function(self, key, value)
                 if (type(value) == "table") then
@@ -59,12 +69,11 @@ local function NewWrapper()
     );
 end
 
-local function CreateWrapper(settings)
-    local objType = type(settings);
-    if (objType == 'table') then
-        local wrapper = NewWrapper();
+local function CreateWrapper(settings, defaults)
+    if (type(settings) == 'table') then
+        local wrapper = NewWrapper(defaults);
         for key, value in pairs(settings) do
-            wrapper._settings[key] = CreateWrapper(value);
+            wrapper._settings[key] = CreateWrapper(value, defaults[key]);
         end
         return wrapper;
     else
@@ -89,5 +98,5 @@ function Profile.LoadDefault()
 end
 
 function Profile.Load(svars)
-    return CreateWrapper(svars);
+    return CreateWrapper(svars, _p.DefaultProfileSettings);
 end
