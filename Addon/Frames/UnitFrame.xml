@@ -15,12 +15,6 @@
 				<Texture name="$parentRoleIcon" hidden="true" parentKey="roleIcon"/>
 				<FontString name="$parentName" inherits="GameFontHighlightSmall" parentKey="name" wordwrap="false"/>
 			</Layer>
-			<Layer level="OVERLAY">
-				<Texture name="$parentTargetHighlight" parentKey="targetHighlight" ignoreParentAlpha="true"/>
-			</Layer>
-			<Layer level="OVERLAY" textureSubLevel="1">
-				<Texture name="$parentAggroHighlight" parentKey="aggroHighlight" ignoreParentAlpha="true"/>
-			</Layer>
         </Layers>
         <Frames>
 			<StatusBar name="$parentHealthBar" parentKey="healthBar" useParentLevel="true">

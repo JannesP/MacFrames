@@ -1,6 +1,7 @@
 local ADDON_NAME, _p = ...;
 local MyAuraUtil = _p.MyAuraUtil;
 local AuraManager = _p.AuraManager;
+local FrameUtil = _p.FrameUtil;
 
 local AuraFrame = {};
 _p.AuraFrame = AuraFrame;
@@ -36,6 +37,11 @@ function AuraFrame.new(parent, width, height, zoom)
         frame.icon:SetTexCoord(_p.PixelUtil.GetIconZoomTransform(zoom));
     end
 
+    frame.borderHost = CreateFrame("Frame", nil, frame);
+    frame.borderHost:SetAllPoints();
+    frame.borderHost:Hide();
+    frame.borderHost.api = FrameUtil.CreateSolidBorder(frame.borderHost, 1, 0, 0, 0, 1);
+
     PixelUtil.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1, 1, 1);
     PixelUtil.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1, 1, 1);
 
@@ -58,30 +64,20 @@ end
 function AuraFrame.SetColoringMode(self, coloringMode, ...)
     self.coloringMode = coloringMode;
     if (coloringMode == ColoringMode.None) then
-        PixelUtil.SetPoint(self.icon, "TOPLEFT", self, "TOPLEFT", 0, 0);
-        PixelUtil.SetPoint(self.icon, "BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0);
-
-        PixelUtil.SetPoint(self.cooldown, "TOPLEFT", self, "TOPLEFT", 0, 0);
-        PixelUtil.SetPoint(self.cooldown, "BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0);
-        self.background:Hide();
+        self.borderHost:Hide();
     else
-        PixelUtil.SetPoint(self.icon, "TOPLEFT", self, "TOPLEFT", 1, -1, 1, 1);
-        PixelUtil.SetPoint(self.icon, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1, 1, 1);
-
-        PixelUtil.SetPoint(self.cooldown, "TOPLEFT", self, "TOPLEFT", 1, -1, 1, 1);
-        PixelUtil.SetPoint(self.cooldown, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1, 1, 1);
         if (coloringMode == ColoringMode.Custom) then
-            self.background:SetColorTexture(...);
-            self.background:Show();
+            self.borderHost.api:SetColor(...);
+            self.borderHost:Show();
         elseif (coloringMode == ColoringMode.Debuff) then
-            self.background:SetColorTexture(1, 0, 0, 1);
-            self.background:Show();
+            self.borderHost.api:SetColor(1, 0, 0, 1);
+            self.borderHost:Show();
         elseif (coloringMode == ColoringMode.Buff) then
-            self.background:SetColorTexture(0.2, 0.9, 0.9, 1);
-            self.background:Show();
+            self.borderHost.api:SetColor(0.2, 0.9, 0.9, 1);
+            self.borderHost:Show();
         else
-            self.background:SetColorTexture(0, 1, 1, 1);
-            self.background:Show();
+            self.borderHost.api:SetColor(0, 1, 1, 1);
+            self.borderHost:Show();
         end
     end
 end
@@ -129,7 +125,7 @@ end
 function AuraFrame.SetBackgroundColor(self, debuffType)
     if (self.coloringMode == ColoringMode.Debuff) then
         local color = DebuffTypeColor[debuffType] or DebuffTypeColor["none"];
-        self.background:SetColorTexture(color.r, color.g, color.b);
+        self.borderHost.api:SetColor(color.r, color.g, color.b);
     end
 end
 

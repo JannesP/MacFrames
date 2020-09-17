@@ -11,6 +11,7 @@ local AuraFrame = _p.AuraFrame;
 local AuraGroup = _p.AuraGroup;
 local AuraManager = _p.AuraManager;
 local ProfileManager = _p.ProfileManager;
+local FrameUtil = _p.FrameUtil;
 
 local _classColorsByIndex = {};
 for key, value in pairs(RAID_CLASS_COLORS) do
@@ -27,9 +28,9 @@ function UnitFrame.OnSettingChanged(self, key)
     if (self == nil or self.isChangingSettings == true) then return; end
     if (key == "HealthBarTextureName") then
         UnitFrame.UpdateHealthBarTextureFromSettings(self);
-    elseif (key == "BorderTargetName") then
+    elseif (key == "TargetBorderWidth") then
         UnitFrame.UpdateTargetHighlightTextureFromSettings(self);
-    elseif (key == "BorderAggroName") then
+    elseif (key == "AggroBorderWidth") then
         UnitFrame.UpdateAggroHighlightTextureFromSettings(self);
     elseif (key == "StatusIconSize") then
         UnitFrame.LayoutStatusIcons(self);
@@ -168,11 +169,15 @@ function UnitFrame.Setup(self)
     PixelUtil.SetPoint(self.healthBar, "TOPLEFT", self, "TOPLEFT", 1, -1);
     PixelUtil.SetPoint(self.healthBar, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
     
-    self.targetHighlight:SetAllPoints();
-    self.targetHighlight:Hide();
+    self.targetBorder = CreateFrame("Frame", nil, self);
+    self.targetBorder:SetAllPoints();
+    self.targetBorder:Hide();
+    self.targetBorder.children = FrameUtil.CreateSolidBorder(self.targetBorder, 2, 1, 1, 1, 1);
 
-    self.aggroHighlight:SetAllPoints();
-    self.aggroHighlight:Hide();
+    self.aggroBorder = CreateFrame("Frame", nil, self);
+    self.aggroBorder:SetAllPoints();
+    self.aggroBorder:Hide();
+    self.aggroBorder.children = FrameUtil.CreateSolidBorder(self.aggroBorder, 1, 1, 0, 0, 1);
 
     self.rankIcon:ClearAllPoints();
     PixelUtil.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
@@ -240,23 +245,11 @@ function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
 end
 
 function UnitFrame.UpdateTargetHighlightTextureFromSettings(self)
-    self.isChangingSettings = true;
-    local texturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
-        "border", self.settings.Frames.BorderTargetName, Constants.TargetBorderDefaultTextureName);
-    self.settings.Frames.BorderTargetName = usedLsmName;
-    self.isChangingSettings = false;
-
-    self.targetHighlight:SetTexture(texturePath);
+    self.targetBorder.children:Resize(self.settings.Frames.TargetBorderWidth);
 end
 
 function UnitFrame.UpdateAggroHighlightTextureFromSettings(self)
-    self.isChangingSettings = true;
-    local texturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
-        "border", self.settings.Frames.BorderAggroName, Constants.AggroBorderDefaultTextureName);
-    self.settings.Frames.BorderAggroName = usedLsmName;
-    self.isChangingSettings = false;
-
-    self.aggroHighlight:SetTexture(texturePath);
+    self.aggroBorder.children:Resize(self.settings.Frames.AggroBorderWidth)
 end
 
 function UnitFrame.UpdateHealthBarTextureFromSettings(self)
@@ -794,18 +787,18 @@ end
 function UnitFrame.UpdateAggroHighlight(self)
     local status = UnitThreatSituation(self.displayUnit);
 	if (status and status > 0) then
-		self.aggroHighlight:SetVertexColor(GetThreatStatusColor(status));
-		self.aggroHighlight:Show();
+		self.aggroBorder.children:SetColor(GetThreatStatusColor(status));
+		self.aggroBorder:Show();
 	else
-		self.aggroHighlight:Hide();
+		self.aggroBorder:Hide();
 	end
 end
 
 function UnitFrame.UpdateTargetHighlight(self)
     if (UnitIsUnit(self.unit, "target")) then
-        self.targetHighlight:Show();
+        self.targetBorder:Show();
     else
-        self.targetHighlight:Hide();
+        self.targetBorder:Hide();
     end
 end
 

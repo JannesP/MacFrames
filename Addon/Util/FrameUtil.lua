@@ -28,37 +28,41 @@ function FrameUtil.CreateSolidTexture(frame, ...)
     return tex;
 end
 
-function FrameUtil.CreateSolidBorder(frame, ...)
+function FrameUtil.CreateSolidBorder(frame, width, ...)
     local borderFrames = {
         left = frame:CreateTexture(nil, "OVERLAY"),
         top = frame:CreateTexture(nil, "OVERLAY"),
         right = frame:CreateTexture(nil, "OVERLAY"),
         bottom = frame:CreateTexture(nil, "OVERLAY"),
+        Resize = function(self, width) 
+            local pxWidth = PixelUtil.GetNearestPixelSize(width, frame:GetEffectiveScale(), 1);
+            self.width = width;
+            self.left:SetWidth(pxWidth);
+            self.right:SetWidth(pxWidth);
+            self.top:SetHeight(pxWidth);
+            self.bottom:SetHeight(pxWidth);
+        end,
+        SetColor = function(self, ...)
+            self.left:SetColorTexture(...);
+            self.top:SetColorTexture(...);
+            self.right:SetColorTexture(...);
+            self.bottom:SetColorTexture(...);
+        end,
     };
     borderFrames.left:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-    borderFrames.left:SetPoint("TOPRIGHT", frame, "TOPLEFT", 1, 0);
     borderFrames.left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
-    borderFrames.left:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 1, 0);
 
     borderFrames.top:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
     borderFrames.top:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
-    borderFrames.top:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, -1);
-    borderFrames.top:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, -1);
 
-    borderFrames.right:SetPoint("TOPLEFT", frame, "TOPRIGHT", -1, 0);
     borderFrames.right:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
-    borderFrames.right:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", -1, 0);
     borderFrames.right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
 
-    borderFrames.bottom:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, 1);
-    borderFrames.bottom:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, 1);
     borderFrames.bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
     borderFrames.bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
 
-    for _, border in pairs(borderFrames) do
-        border:SetColorTexture(...);
-    end
-
+    borderFrames:Resize(width);
+    borderFrames:SetColor(...);
     return borderFrames;
 end
 
@@ -67,7 +71,7 @@ function FrameUtil.CreateDragDropOverlay(frame, OnFinishDragDrop)
     dragDropHost:SetAllPoints();
     dragDropHost.texture = FrameUtil.CreateSolidTexture(dragDropHost, 0, 0, 0, 0.8);
     dragDropHost:SetFrameLevel(frame:GetFrameLevel() + 100);
-    dragDropHost.borderFrames = FrameUtil.CreateSolidBorder(dragDropHost, 1, 1, 1, 1);
+    dragDropHost.borderFrames = FrameUtil.CreateSolidBorder(dragDropHost, 1, 1, 1, 1, 1);
     dragDropHost:Hide();
     FrameUtil.ConfigureDragDropHost(dragDropHost, frame, OnFinishDragDrop);
 
