@@ -174,9 +174,14 @@ function UnitFrame.Setup(self)
     self.aggroHighlight:SetAllPoints();
     self.aggroHighlight:Hide();
 
+    self.rankIcon:ClearAllPoints();
+    PixelUtil.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
+    PixelUtil.SetPoint(self.rankIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
+
     self.roleIcon:ClearAllPoints();
     PixelUtil.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
-    PixelUtil.SetPoint(self.roleIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
+    PixelUtil.SetPoint(self.roleIcon, "TOPLEFT", self.rankIcon, "TOPRIGHT", 1, 0);
+    PixelUtil.SetPoint(self.roleIcon, "BOTTOMLEFT", self.rankIcon, "BOTTOMRIGHT", 1, 0);
 
     local nameFontName, nameFontSize, nameFontFlags = self.name:GetFont();
     PixelUtil.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
@@ -328,7 +333,7 @@ function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
         end
         UnitFrame.SetInRange(self, self.testModeData.isInRange);
         self.name:SetText(name);
-        UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
+        UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
         UnitFrame.UpdateTestDisplay(self);
         for _, auraGroup in pairs(self.auraGroups) do
             AuraGroup.SetTestMode(auraGroup, enabled);
@@ -534,7 +539,8 @@ function UnitFrame.RegisterEvents(self)
     self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
     self:RegisterEvent("PLAYER_TARGET_CHANGED");
     self:RegisterEvent("READY_CHECK");
-	self:RegisterEvent("READY_CHECK_FINISHED");
+    self:RegisterEvent("READY_CHECK_FINISHED");
+    self:RegisterEvent("PARTY_LEADER_CHANGED");
 end
 
 function UnitFrame.RegisterUnitEvents(self)
@@ -576,6 +582,8 @@ function UnitFrame.OnEvent(self, event, ...)
         UnitFrame.UpdateName(self);
         UnitFrame.UpdateTargetHighlight(self);
     elseif (event == "PLAYER_ROLES_ASSIGNED") then
+        UnitFrame.UpdateRoleIcon(self);
+    elseif (event == "PARTY_LEADER_CHANGED") then
         UnitFrame.UpdateRoleIcon(self);
     elseif (event == "READY_CHECK") then
         UnitFrame.UpdateReadyCheckStatus(self);
@@ -803,28 +811,48 @@ end
 
 function UnitFrame.UpdateRoleIcon(self)
     local raidID = UnitInRaid(self.unit);
+    local _, rank, _, _, _, _, _, _, _, role;
+    if (raidID) then
+        _, rank, _, _, _, _, _, _, _, role = GetRaidRosterInfo(raidID);
+    end
     if (UnitInVehicle(self.unit) and UnitHasVehicleUI(self.unit)) then
-        UnitFrame.SetRoleIcon(self, "Interface\\Vehicles\\UI-Vehicles-Raid-Icon", 0, 1, 0, 1);
-	elseif (raidID and select(10, GetRaidRosterInfo(raidID))) then
-		local role = select(10, GetRaidRosterInfo(raidID));
-        UnitFrame.SetRoleIcon(self, "Interface\\GroupFrame\\UI-Group-"..role.."Icon", 0, 1, 0, 1);
+        UnitFrame.SetIcon(self, self.roleIcon, "Interface\\Vehicles\\UI-Vehicles-Raid-Icon", 0, 1, 0, 1);
+    elseif (raidID and role) then
+        UnitFrame.SetIcon(self, self.roleIcon, "Interface\\GroupFrame\\UI-Group-"..role.."Icon", 0, 1, 0, 1);
 	else
 		local role = UnitGroupRolesAssigned(self.unit);
 		if (role == "TANK" or role == "HEALER" or role == "DAMAGER") then
-            UnitFrame.SetRoleIcon(self, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
+            UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
 		else
 			self.roleIcon:Hide();
 			PixelUtil.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
 		end
-	end
+    end
+    if (raidID and rank > 0) then
+        if (rank == 1) then
+            UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-AssistantIcon", 0, 1, 0, 1);
+        elseif (rank == 2) then
+            UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
+        else
+            print(raidID, ": ", rank)
+            error("Rank evaluated 'true' but not 1 or 2!");
+        end
+    else
+        if (UnitIsGroupLeader(self.unit)) then
+            UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
+        else
+            self.rankIcon:Hide();
+            PixelUtil.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
+        end
+    end
 end
 
-function UnitFrame.SetRoleIcon(self, texture, ...)
+function UnitFrame.SetIcon(self, icon, texture, ...)
     local roleIconSize = self.settings.Frames.RoleIconSize;
-    self.roleIcon:SetTexture(texture);
-    self.roleIcon:SetTexCoord(...);
-    self.roleIcon:Show();
-    PixelUtil.SetSize(self.roleIcon, roleIconSize, roleIconSize);
+    icon:SetTexture(texture);
+    icon:SetTexCoord(...);
+    icon:Show();
+    PixelUtil.SetSize(icon, roleIconSize, roleIconSize);
 end
 
 function UnitFrame.UpdateStatusText(self)

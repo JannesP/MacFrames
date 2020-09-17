@@ -11,8 +11,9 @@
 				<Texture name="$parentTotalAbsorb" parentKey="totalAbsorb"/>
 			</Layer>
 			<Layer level="ARTWORK">
-				<FontString name="$parentName" inherits="GameFontHighlightSmall" parentKey="name" wordwrap="false"/>
+				<Texture name="$parentRankIcon" hidden="true" parentKey="rankIcon"/>
 				<Texture name="$parentRoleIcon" hidden="true" parentKey="roleIcon"/>
+				<FontString name="$parentName" inherits="GameFontHighlightSmall" parentKey="name" wordwrap="false"/>
 			</Layer>
 			<Layer level="OVERLAY">
 				<Texture name="$parentTargetHighlight" parentKey="targetHighlight" ignoreParentAlpha="true"/>
