@@ -21,7 +21,8 @@ local _refreshingSettingsFromProfile = false;
 local _changingSetting = false;
 local function RefreshFromProfile()
     _refreshingSettingsFromProfile = true;
-    for _, frame in ipairs(_frames) do
+    for i=1, #_frames do
+        local frame = _frames[i];
         SettingsFrameTab.RefreshFromProfile(frame);
     end
     _refreshingSettingsFromProfile = false;
@@ -79,17 +80,19 @@ do
                 s.optionsContainer:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
             end
             s.optionsContainer.optionEditors = {};
-            for i, option in ipairs(section.Options) do
-                local editor = CreateEditor(s.optionsContainer, option);
+            local options = section.Options;
+            for i=1, #options do
+                local editor = CreateEditor(s.optionsContainer, options[i]);
                 s.optionsContainer.optionEditors[i] = editor;
             end
         end
-        if (section.Sections and #section.Sections > 0) then
+        local sections = section.Sections;
+        if (sections and #sections > 0) then
             s.sections = {};
             local lastSection = nil;
-            for i, childSection in ipairs(section.Sections) do
+            for i=1, #sections do
                 local sFrame = nil;
-                sFrame = CreateSection(s, childSection, depth + 1);
+                sFrame = CreateSection(s, sections[i], depth + 1);
                 sFrame:ClearAllPoints();
                 if (lastSection == nil) then
                     if (s.optionsContainer) then
@@ -128,8 +131,10 @@ do
                 height = height + self.optionsContainer:GetHeight();
                 ReAnchor(self.optionsContainer);
             end
-            if (self.sections) then
-                for _, section in ipairs(self.sections) do
+            local sections = self.sections;
+            if (sections) then
+                for i=1, #sections do
+                    local section = sections[i];
                     section:Layout(width, height);
                     height = height + section:GetHeight();
                     ReAnchor(section);
@@ -168,16 +173,18 @@ do
             frame.tabPanelSectionSelector:SetHeight(22);
             frame.tabPanelSectionSelector.Tabs = {};
             frame.tabPanelSectionSelector:SetScript("OnSizeChanged", function (self)
-                for _, tab in ipairs(self.Tabs) do
-                    PanelTemplates_TabResize(tab, 4);
+                local tabs = self.Tabs;
+                for i=1, #tabs do
+                    PanelTemplates_TabResize(tabs[i], 4);
                 end
-                PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#self.Tabs - 1) * 16));
+                PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#tabs - 1) * 16));
             end);
             frame.tabPanelSectionSelector:SetScript("OnShow", function (self)
-                for _, tab in ipairs(self.Tabs) do
-                    PanelTemplates_TabResize(tab, 4);
+                local tabs = self.Tabs;
+                for i=1, #tabs do
+                    PanelTemplates_TabResize(tabs[i], 4);
                 end
-                PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#self.Tabs - 1) * 16));
+                PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#tabs - 1) * 16));
             end);
 
             frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "BackdropTemplate");
@@ -190,7 +197,8 @@ do
             frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -borderPadding, borderPadding);
 
             local lastTabButton = nil;
-            for n, section in ipairs(category.Sections) do
+            for n=1, #category.Sections do
+                local section = category.Sections[n];
                 local uiSection = {};
                 uiSection.tabButton = CreateTabSectionSelector(frame.tabPanelSectionSelector, n, section.Name);
                 if (lastTabButton == nil) then
@@ -236,7 +244,8 @@ end
 
 function SettingsFrameTab.SectionSelected(self)
     local tabIndex = PanelTemplates_GetSelectedTab(self.tabPanelSectionSelector);
-    for i, section in ipairs(self.optionSections) do
+    for i=1, #self.optionSections do
+        local section = self.optionSections[i];
         if (i == tabIndex) then
             section.content:Layout();
             section.scrollFrame:Show();
@@ -249,19 +258,21 @@ end
 
 function SettingsFrameTab.RefreshFromProfile(self)
     local function Refresh(section)
-        if (section.optionsContainer and section.optionsContainer.optionEditors) then
-            for _, option in ipairs(section.optionsContainer.optionEditors) do
-                option:RefreshFromProfile();
+        local editors = section.optionsContainer and section.optionsContainer.optionEditors;
+        if (editors) then
+            for i=1, #editors do
+                editors[i]:RefreshFromProfile();
             end
         end
-        if (section.sections) then
-            for _, s in ipairs(section.sections) do
-                Refresh(s);
+        local sections = section.sections;
+        if (sections) then
+            for i=1, #sections do
+                Refresh(sections[i]);
             end
         end
     end
-    for _, section in ipairs(self.optionSections) do
-        Refresh(section.content);
+    for i=1, #self.optionSections do
+        Refresh(self.optionSections[i].content);
     end
 end
 
@@ -389,8 +400,9 @@ do
         local biggestWidth = 0;
         frame.content.profileSelectors = {};
         local lastFrame = nil;
-        for _, spec in ipairs(PlayerInfo.ClassSpecializations) do
-            local profileSelector = CreateProfileSelectForSpec(frame.content, spec);
+        local specs = PlayerInfo.ClassSpecializations;
+        for i=1, #specs do
+            local profileSelector = CreateProfileSelectForSpec(frame.content, specs[i]);
             if (lastFrame == nil) then
                 profileSelector:SetPoint("TOP", frame, "TOP", 0, -100);
             else
@@ -403,9 +415,9 @@ do
             tinsert(frame.content.profileSelectors, profileSelector);
             lastFrame = profileSelector;
         end
-
-        for _, profileSelector in ipairs(frame.content.profileSelectors) do
-            profileSelector:SetWidth(biggestWidth);
+        local profileSelectors = frame.content.profileSelectors;
+        for i=1, #profileSelectors do
+            profileSelectors[i]:SetWidth(biggestWidth);
         end
 
         frame.RefreshFromProfile = function(self) end

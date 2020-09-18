@@ -40,6 +40,7 @@ function Addon.ToggleAnchors(override)
         end
     end
     if (newValue ~= Addon.framesMovable) then
+        Addon.ToggleTestMode(Addon.TestMode.Disabled);
         Addon.framesMovable = newValue;
         PartyFrame.SetMovable(newValue);
         RaidFrame.SetMovable(newValue);
@@ -102,6 +103,7 @@ function Addon.ToggleTestMode(type)
         newValue = type;
     end
     if Addon.testMode ~= newValue then
+        Addon.ToggleAnchors(false);
         Addon.testMode = newValue;
         _p.Log("Setting test mode to: " .. Addon.testMode);
         if (Addon.testMode == Addon.TestMode.Disabled) then
@@ -111,6 +113,7 @@ function Addon.ToggleTestMode(type)
             RaidFrame.SetDisabled(true);
             PartyFrame.SetTestMode(true);
         elseif (Addon.testMode == Addon.TestMode.Raid) then
+            Addon.ToggleAnchors(false);
             RaidFrame.SetTestMode(true);
             PartyFrame.SetDisabled(true);
         end

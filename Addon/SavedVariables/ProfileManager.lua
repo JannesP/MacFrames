@@ -45,8 +45,9 @@ local function GetProfileForCurrentCharacter()
         local defaultProfileName, _ = ProfileManager.GetDefaultProfile();
         if (characterProfileNames == nil) then
             characterProfileNames = {};
-            for _, spec in ipairs(PlayerInfo.ClassSpecializations) do
-                characterProfileNames[spec.SpecId] = defaultProfileName;
+            local classSpecs = PlayerInfo.ClassSpecializations;
+            for i=1, #classSpecs do
+                characterProfileNames[classSpecs[i].SpecId] = defaultProfileName;
             end
             _characterProfileMapping[characterKey] = characterProfileNames;
         end

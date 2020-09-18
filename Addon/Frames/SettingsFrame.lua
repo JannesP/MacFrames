@@ -56,7 +56,9 @@ local function CreateTabSelector(self)
     self.tabs = {};
     local count = 1;
     local lastButton = nil;
-    for _, category in ipairs(Settings.Categories) do
+    local categories = Settings.Categories;
+    for i=1, #categories do
+        local category = categories[i];
         local tab = SettingsFrameTab.Create(frame, category);
         local selectButton = CreateFrame("CheckButton", frameName .. "TabSelector" .. count, frame, "OptionsListButtonTemplate");
         self.tabs[selectButton] = tab;

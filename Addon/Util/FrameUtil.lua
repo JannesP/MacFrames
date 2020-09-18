@@ -237,8 +237,8 @@ do
     end
     local function CalcRowSize(row)
         local w, h = 0, 0;
-        for _, e in ipairs(row) do
-            local eW, eH = e:GetSize();
+        for i=1, #row do
+            local eW, eH = row[i]:GetSize();
             w = w + eW;
             if (h < eH) then
                 h = eH;
@@ -249,7 +249,8 @@ do
     local function AssignFramesToRows(horizontalSpace, children, minSpacing)
         local rowWidth, elementsInRow, rowIndex = 0, 0, 1;
         AddRow();
-        for i, child in ipairs(children) do
+        for i=1, #children do
+            local child = children[i];
             local cWidth = child:GetWidth();
                 local rowUsedSpace = math.max(0, elementsInRow - 1) * minSpacing + rowWidth;
                 if (rowUsedSpace + cWidth >= horizontalSpace) then
@@ -279,7 +280,8 @@ do
             local rowWidth, rowHeight = CalcRowSize(row);
             local spacing = (horizontalSpace - rowWidth) / (#row + 1);
             local usedRowWidth = 0;
-            for i, child in ipairs(row) do
+            for i=1, #row do
+                local child = row[i];
                 local xOffset = padding + usedRowWidth + (i * spacing);
                 local yOffset = rowYOffset + (rowHeight  / 2) - (child:GetHeight() / 2);
                 child:SetPoint("TOPLEFT", frame, "TOPLEFT", xOffset, -yOffset);

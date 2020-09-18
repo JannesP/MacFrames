@@ -75,8 +75,9 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
 end
 
 function AuraGroup.Recycle(self)
-    for _, frame in ipairs(self.auraFrames) do
-        AuraFrame.Recycle(frame);
+    local af = self.auraFrames;
+    for i=1, #af do
+        AuraFrame.Recycle(af[i]);
     end
     wipe(self.auraFrames);
     _framePool:Put(self);
@@ -98,50 +99,61 @@ function AuraGroup.SetReverseOrder(self, reverse)
     self.reverse = reverse;
 end
 
-function AuraGroup.SetTestMode(self, enabled)
-    if (enabled == true) then
-        local types = AuraGroup.Type;
-        local aura;
-        if self.auraGroupType == types.DispellableDebuff then
-            aura = { 
-                [2] = 136118,
-                [3] = 3,
-                [4] = "Magic",
-                [5] = 10000,
-                [6] = GetTime() - 3500,
-            };
-        elseif self.auraGroupType == types.UndispellableDebuff then
-            aura = { 
-                [2] = 136113,
-                [3] = 3,
-                [4] = "none",
-                [5] = 10000,
-                [6] = GetTime() - 3500,
-            };
-        elseif self.auraGroupType == types.BossAura then
-            aura = { 
-                [2] = 1769069,
-                [3] = 3,
-                [4] = "none",
-                [5] = 10000,
-                [6] = GetTime() - 3500,
-            };
-        elseif self.auraGroupType == types.DefensiveBuff then
-            aura = { 
-                [2] = 135936,
-                [3] = 3,
-                [4] = "none",
-                [5] = 10000,
-                [6] = GetTime() - 3500,
-            };
+do
+    local testDispellable = { 
+        nil,
+        136118,
+        3,
+        "Magic",
+        10000,
+        GetTime() - 3500,
+    };
+    local testUndispellable = { 
+        nil,
+        136113,
+        3,
+        "none",
+        10000,
+        GetTime() - 3500,
+    };
+    local testBoss = { 
+        nil,
+        1769069,
+        3,
+        "none",
+        10000,
+        GetTime() - 3500,
+    };
+    local testDefensive = { 
+        nil,
+        135936,
+        3,
+        "none",
+        10000,
+        GetTime() - 3500,
+    };
+    function AuraGroup.SetTestMode(self, enabled)
+        if (enabled == true) then
+            local types = AuraGroup.Type;
+            local aura;
+            if self.auraGroupType == types.DispellableDebuff then
+                aura = testDispellable;
+            elseif self.auraGroupType == types.UndispellableDebuff then
+                aura = testUndispellable;
+            elseif self.auraGroupType == types.BossAura then
+                aura = testBoss;
+            elseif self.auraGroupType == types.DefensiveBuff then
+                aura = testDefensive;
+            else
+                error("invalid AuraGroup.Type: " .. self.auraGroupType);
+            end
+            local auraFrames = self.auraFrames;
+            for i=1, #auraFrames do
+                AuraFrame.SetTestAura(auraFrames[i], unpack(aura));
+            end
         else
-            error("invalid AuraGroup.Type: " .. self.auraGroupType);
+            AuraGroup.Update(self);
         end
-        for _, frame in ipairs(self.auraFrames) do
-            AuraFrame.SetTestAura(frame, aura);
-        end
-    else
-        AuraGroup.Update(self);
     end
 end
 do

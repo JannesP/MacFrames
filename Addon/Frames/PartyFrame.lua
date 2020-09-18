@@ -45,8 +45,8 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
 
     if (_frame ~= nil) then
         PartyFrame.ProcessLayout(_frame, true);
-        for _, frame in ipairs(_unitFrames) do
-            UnitFrame.SetSettings(frame, _partySettings);
+        for i=1, #_unitFrames do
+            UnitFrame.SetSettings(_unitFrames[i], _partySettings);
         end
     end
 end);
@@ -64,8 +64,8 @@ function PartyFrame.create()
         _partySettings.AnchorInfo.OffsetX = xOfs;
         _partySettings.AnchorInfo.OffsetY = yOfs;
         _partySettings.AnchorInfo.AnchorPoint = point;
-        for _, frame in ipairs(_unitFrames) do
-            UnitFrame.SnapToPixels(frame);
+        for i=1, #_unitFrames do
+            UnitFrame.SnapToPixels(_unitFrames[i]);
         end
         _changingSettings = false;
     end);
@@ -127,8 +127,8 @@ function PartyFrame.SetMovable(movable)
 end
 
 function PartyFrame.SetChildTestModes(enabled)
-    for _, frame in ipairs(_unitFrames) do
-        UnitFrame.SetTestMode(frame, enabled);
+    for i=1, #_unitFrames do
+        UnitFrame.SetTestMode(_unitFrames[i], enabled);
     end
 end
 
@@ -164,7 +164,8 @@ function PartyFrame.ProcessLayout(self, reanchor)
 
             PixelUtil.SetSize(self, totalWidth, totalHeight);
 
-            for i, frame in ipairs(_unitFrames) do
+            for i=1, #_unitFrames do
+                local frame = _unitFrames[i];
                 local x = margin;
                 local y = margin + ((i - 1) * (frameHeight + spacing));
                 
@@ -180,7 +181,8 @@ function PartyFrame.ProcessLayout(self, reanchor)
             
             PixelUtil.SetSize(self, totalWidth, totalHeight);
             
-            for i, frame in ipairs(_unitFrames) do
+            for i=1, #_unitFrames do
+                local frame = _unitFrames[i];
                 local x = margin + ((i - 1) * (frameWidth + spacing));
                 local y = margin;
                 frame:ClearAllPoints();

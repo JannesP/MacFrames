@@ -45,8 +45,8 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     if (_frame ~= nil) then
         RaidFrame.UpdateRect(_frame);
         RaidFrame.ProcessLayout(_frame);
-        for _, frame in ipairs(_unitFrames) do
-            UnitFrame.SetSettings(frame, _raidSettings);
+        for i=1, #_unitFrames do
+            UnitFrame.SetSettings(_unitFrames[i], _raidSettings);
         end
     end
 end);
@@ -114,8 +114,8 @@ function RaidFrame.SetTestMode(enabled)
     if (enabled == true) then
         UnregisterAttributeDriver(_frame, "state-visibility");
         _frame:Show();
-        for _, frame in ipairs(_groupFrames) do
-            frame:Show();
+        for i=1, #_groupFrames do
+            _groupFrames[i]:Show();
         end
     else
         RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
@@ -145,8 +145,8 @@ function RaidFrame.SetDisabled(disabled)
 end
 
 function RaidFrame.SetChildTestModes(enabled)
-    for _, frame in ipairs(_unitFrames) do
-        UnitFrame.SetTestMode(frame, enabled);
+    for i=1, #_unitFrames do
+        UnitFrame.SetTestMode(_unitFrames[i], enabled);
     end
 end
 
@@ -204,8 +204,8 @@ function RaidFrame.HideGroupsForContent(self)
 end
 
 function RaidFrame.ShowAllGroups(self)
-    for _, group in ipairs(_groupFrames) do
-        group:Show();
+    for i=1, #_groupFrames do
+        _groupFrames[i]:Show();
     end
 end
 
@@ -240,14 +240,16 @@ function RaidFrame.ProcessLayout(self)
     local margin = _raidSettings.Margin;
     local totalWidth, totalHeight = self:GetSize();
     
-    for _, group in ipairs(_groupFrames) do
-        for _, frame in ipairs(group.attachedFrames) do
-            frame:ClearAllPoints();
+    for i=1, #_groupFrames do
+        local attachedFrames = _groupFrames[i].attachedFrames;
+        for n=1, #attachedFrames do
+            attachedFrames[n]:ClearAllPoints();
         end
-        wipe(group.attachedFrames);
+        wipe(attachedFrames);
     end
 
-    for raidIndex, frame in ipairs(_unitFrames) do
+    for raidIndex=1, #_unitFrames do
+        local frame = _unitFrames[raidIndex];
         local name, _, group = GetRaidRosterInfo(raidIndex);
         if (name ~= nil) then
             tinsert(_groupFrames[group].attachedFrames, frame);
@@ -257,9 +259,11 @@ function RaidFrame.ProcessLayout(self)
         end
     end
 
-    for raidIndex, frame in ipairs(_unitFrames) do
+    for raidIndex=1, #_unitFrames do
+        local frame = _unitFrames[raidIndex];
         if frame.isGrouped == false then
-            for _, group in ipairs(_groupFrames) do
+            for i=1, #_groupFrames do
+                local group = _groupFrames[i];
                 if #group.attachedFrames < Constants.GroupSize then
                     tinsert(group.attachedFrames, frame);
                     break;
@@ -268,13 +272,15 @@ function RaidFrame.ProcessLayout(self)
         end
     end
 
-    for group, groupFrame in ipairs(_groupFrames) do
-        local y = margin + ((group - 1) * (frameHeight + spacing));
+    for groupIndex=1, #_groupFrames do
+        local groupFrame = _groupFrames[groupIndex];
+        local y = margin + ((groupIndex - 1) * (frameHeight + spacing));
         groupFrame:ClearAllPoints();
         PixelUtil.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", margin, -y);
         PixelUtil.SetSize(groupFrame, totalWidth - (2 * margin), frameHeight);
-        --PixelUtil.SetPoint(groupFrame, "BOTTOMRIGHT", self, "TOPRIGHT", -margin, -y - frameHeight)
-        for i,frame in ipairs(groupFrame.attachedFrames) do
+        local attachedFrames = groupFrame.attachedFrames;
+        for i=1, #attachedFrames do
+            local frame = attachedFrames[i];
             local x = (i - 1) * (frameWidth + spacing);
             frame:ClearAllPoints();
             frame:SetParent(groupFrame);

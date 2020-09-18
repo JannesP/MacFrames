@@ -52,12 +52,12 @@ function AuraFrame.new(parent, width, height, zoom)
     return frame;
 end
 
-function AuraFrame.SetTestAura(self, aura)
-    if (aura ~= nil) then
-        AuraFrame.DisplayAura(self, aura);
+function AuraFrame.SetTestAura(self, ...)
+    if (select('#', ...) > 0) then
+        AuraFrame.DisplayAura(self, ...);
         self.cooldown:Pause();
     else
-        AuraFrame.DisplayAura(self, nil);
+        AuraFrame.DisplayAura(self);
     end
 end
 

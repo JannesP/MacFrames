@@ -109,8 +109,8 @@ local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
         end,
     });
         
-    for _, option in ipairs(auraGroupSettings) do
-        tinsert(targetOptions, option);
+    for i=1, #auraGroupSettings do
+        tinsert(targetOptions, auraGroupSettings[i]);
     end
 end
 
@@ -252,8 +252,8 @@ local function AddUnitFrameOptions(targetSections, PS)
     tinsert(unitFrameOptions, CreateAuraGroupOptions("Undispellable Debuffs", function() return PS().OtherDebuffs; end));
     tinsert(unitFrameOptions, CreateAuraGroupOptions("Dispellable Debuffs", function() return PS().DispellableDebuffs; end));
 
-    for _, section in ipairs(unitFrameOptions) do
-        tinsert(targetSections, section);
+    for i=1, #unitFrameOptions do
+        tinsert(targetSections, unitFrameOptions[i]);
     end
 end
 

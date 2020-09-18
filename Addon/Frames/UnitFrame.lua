@@ -295,63 +295,64 @@ function UnitFrame.UpdateAllSettings(self)
 
     UnitFrame.CreateAuraDisplays(self);
 end
+do
+    local testAura = {
+        nil,
+        458720,
+        3,
+        "Magic",
+        10000,
+        GetTime() - 3500,
+    };
+    function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
+        if (enabled == true) then
+            UnregisterUnitWatch(self);
+            self:SetScript("OnEvent", nil);
+            self:SetScript("OnUpdate", nil);
+            self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
 
-function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
-    if (enabled == true) then
-        UnregisterUnitWatch(self);
-        self:SetScript("OnEvent", nil);
-        self:SetScript("OnUpdate", nil);
-        self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
+            self.isTestMode = true;
+            if (self.testModeData == nil) then
+                self.testModeData = {};
+            end
+            if (not preserveTestModeData) then
+                self.testModeData.health = math.random(1, 1000);
+                self.testModeData.maxHealth = 1000;
+                self.testModeData.incomingHeal = math.random(0, 200);
+                self.testModeData.absorb = math.random(0, 300);
+                self.testModeData.healAbsorb = math.random(0, 100);
+                self.testModeData.classColor = _classColorsByIndex[math.random(1, #_classColorsByIndex)];
+                self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
+                self.testModeData.isInRange = (math.random(0, 3) > 0);
+            end
+            self:Show();
+            local color = self.testModeData.classColor;
+            UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
+            local name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
+            if (self.testModeData.displayServerPlaceholder) then
+                name = name .. "-(*)";
+            end
+            UnitFrame.SetInRange(self, self.testModeData.isInRange);
+            self.name:SetText(name);
+            UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
+            UnitFrame.UpdateTestDisplay(self);
+            for _, group in pairs(self.auraGroups) do
+                AuraGroup.SetTestMode(group, enabled);
+            end
+            for i=1, #self.specialClassDisplays do
+                AuraFrame.SetTestAura(self.specialClassDisplays[i], unpack(testAura));
+            end
+        else
+            RegisterUnitWatch(self);
+            self:SetScript("OnEvent", UnitFrame.OnEvent);
+            self:SetScript("OnUpdate", UnitFrame.OnUpdate);
+            self:SetScript("OnSizeChanged", nil);
 
-        self.isTestMode = true;
-        if (self.testModeData == nil) then
-            self.testModeData = {};
+            self.isTestMode = false;
+            UnitFrame.UpdateAll(self);
         end
-        if (not preserveTestModeData) then
-            self.testModeData.health = math.random(1, 1000);
-            self.testModeData.maxHealth = 1000;
-            self.testModeData.incomingHeal = math.random(0, 200);
-            self.testModeData.absorb = math.random(0, 300);
-            self.testModeData.healAbsorb = math.random(0, 100);
-            self.testModeData.classColor = _classColorsByIndex[math.random(1, #_classColorsByIndex)];
-            self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
-            self.testModeData.isInRange = (math.random(0, 3) > 0);
-        end
-        self:Show();
-        local color = self.testModeData.classColor;
-        UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
-        local name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
-        if (self.testModeData.displayServerPlaceholder) then
-            name = name .. "-(*)";
-        end
-        UnitFrame.SetInRange(self, self.testModeData.isInRange);
-        self.name:SetText(name);
-        UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
-        UnitFrame.UpdateTestDisplay(self);
-        for _, auraGroup in pairs(self.auraGroups) do
-            AuraGroup.SetTestMode(auraGroup, enabled);
-        end
-        local testAura = { 
-            [2] = 458720,
-            [3] = 3,
-            [4] = "Magic",
-            [5] = 10000,
-            [6] = GetTime() - 3500,
-        };
-        for _, frame in ipairs(self.specialClassDisplays) do
-            AuraFrame.SetTestAura(frame, testAura);
-        end
-    else
-        RegisterUnitWatch(self);
-        self:SetScript("OnEvent", UnitFrame.OnEvent);
-        self:SetScript("OnUpdate", UnitFrame.OnUpdate);
-        self:SetScript("OnSizeChanged", nil);
-
-        self.isTestMode = false;
-        UnitFrame.UpdateAll(self);
     end
 end
-
 function UnitFrame.UpdateTestDisplay(self)
     local data = self.testModeData;
     self.healthBar:SetMinMaxValues(0, data.maxHealth);
@@ -489,19 +490,20 @@ end
 
 function UnitFrame.SetupCastBindings(self)
     local bindings = _p.CastBindings.GetBindingsForSpec();
-    for i, v in ipairs(bindings) do
+    for i=1, #bindings do
+        local binding = bindings[i];
         local prefix = "";
-        if (v.alt) then prefix = prefix .. "alt-"; end
-        if (v.ctrl) then prefix = prefix .. "ctrl-"; end
-        if (v.shift) then prefix = prefix .. "shift-" end
+        if (binding.alt) then prefix = prefix .. "alt-"; end
+        if (binding.ctrl) then prefix = prefix .. "ctrl-"; end
+        if (binding.shift) then prefix = prefix .. "shift-" end
 
-        local suffix = v.button;
-        if (v.type == "spell") then
-            UnitFrame.SetAttribute(self, prefix .. v.type .. suffix, v.value);
-        elseif (v.type == "target") then
-        elseif (v.type == "togglemenu") then
+        local suffix = binding.button;
+        if (binding.type == "spell") then
+            UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.value);
+        elseif (binding.type == "target") then
+        elseif (binding.type == "togglemenu") then
         end
-        UnitFrame.SetAttribute(self, prefix .. "type" .. suffix, v.type);
+        UnitFrame.SetAttribute(self, prefix .. "type" .. suffix, binding.type);
     end
 end
 
@@ -1069,9 +1071,10 @@ function UnitFrame.UpdateAuras(self)
 end
 
 function UnitFrame.UpdateSpecialClassDisplay(self)
-    if (self.specialClassDisplays == nil) then return; end
-    for _, frame in ipairs(self.specialClassDisplays) do
-        AuraFrame.UpdateFromPinnedAura(frame);
+    local specialClassDisplays = self.specialClassDisplays;
+    if (specialClassDisplays == nil) then return; end
+    for i=1, #specialClassDisplays do
+        AuraFrame.UpdateFromPinnedAura(specialClassDisplays[i]);
     end
 end
 
@@ -1081,13 +1084,15 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
     end
     if (requiredDisplays == nil) then return; end
 
-    if (self.specialClassDisplays == nil) then
-        self.specialClassDisplays = {};
+    local specialClassDisplays = self.specialClassDisplays;
+    if (specialClassDisplays == nil) then
+        specialClassDisplays = {};
+        self.specialClassDisplays = specialClassDisplays;
     else
-        for _, frame in ipairs(self.specialClassDisplays) do
-            AuraFrame.Recycle(frame);
+        for i=1, #specialClassDisplays do
+            AuraFrame.Recycle(specialClassDisplays[i]);
         end
-        wipe(self.specialClassDisplays);
+        wipe(specialClassDisplays);
     end
     local lastFrame = nil;
     for spellId, details in pairs(requiredDisplays) do
@@ -1103,7 +1108,7 @@ function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
             else
                 PixelUtil.SetPoint(newFrame, "TOPRIGHT", lastFrame, "TOPLEFT", -1, 0);
             end
-            tinsert(self.specialClassDisplays, newFrame);
+            tinsert(specialClassDisplays, newFrame);
             lastFrame = newFrame;
         end
     end
