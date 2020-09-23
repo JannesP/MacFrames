@@ -37,10 +37,12 @@ function AuraFrame.new(parent, width, height, zoom)
         frame.icon:SetTexCoord(_p.PixelUtil.GetIconZoomTransform(zoom));
     end
 
-    frame.borderHost = CreateFrame("Frame", nil, frame);
-    frame.borderHost:SetAllPoints();
-    frame.borderHost:Hide();
-    frame.borderHost.api = FrameUtil.CreateSolidBorder(frame.borderHost, 1, 0, 0, 0, 1);
+    if (frame.borderHost == nil) then
+        frame.borderHost = CreateFrame("Frame", nil, frame);
+        frame.borderHost:SetAllPoints();
+        frame.borderHost:Hide();
+        frame.borderHost.api = FrameUtil.CreateSolidBorder(frame.borderHost, 1, 0, 0, 0, 1);
+    end    
 
     PixelUtil.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1, 1, 1);
     PixelUtil.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1, 1, 1);

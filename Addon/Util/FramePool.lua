@@ -6,10 +6,19 @@ function _p.FramePool:Put(frame)
     frame:Hide();
     frame:SetParent(nil);
     frame:ClearAllPoints();
-    tinsert(self.pool, frame);
+    self.pool[#self.pool + 1] = frame;
 end
 function _p.FramePool:Take()
-    return tremove(self.pool);
+    local pool, count = self.pool, #self.pool;
+    if (count > 0) then
+        local frame = pool[count];
+        pool[count] = nil;
+        return frame;
+    end
+    return nil;
+end
+function _p.FramePool:GetCount()
+    return #self.pool;
 end
 _p.FramePool.new = function()
     local result = {

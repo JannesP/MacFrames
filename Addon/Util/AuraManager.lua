@@ -101,8 +101,6 @@ do
                     return;
                 end
             end
-        else
-            _p.Log("slotCache was nil!");
         end
     end
 

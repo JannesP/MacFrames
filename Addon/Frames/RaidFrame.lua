@@ -24,6 +24,7 @@ local function RaidSettings_PropertyChanged(key)
     elseif (key == "FrameLevel") then
         _frame:SetFrameLevel(_raidSettings.FrameLevel);
     else
+        RaidFrame.UpdateRect(_frame);
         RaidFrame.ProcessLayout(_frame);
     end
 end
@@ -69,8 +70,10 @@ function RaidFrame.create()
             local spacing = _raidSettings.FrameSpacing;
             local margin = _raidSettings.Margin;
             _frame:SetScript("OnSizeChanged", function(frame, width, height)
+                _changingSettings = true;
                 _raidSettings.FrameWidth = (width - ((Constants.GroupSize - 1) * spacing) - (2 * margin)) / Constants.GroupSize;
                 _raidSettings.FrameHeight = (height - ((Constants.RaidGroupCount - 1) * spacing) - (2 * margin)) / Constants.RaidGroupCount;
+                _changingSettings = false;
                 RaidFrame.ProcessLayout(frame);
             end);
         end, 

@@ -36,6 +36,8 @@ function UnitFrame.OnSettingChanged(self, key)
         UnitFrame.LayoutStatusIcons(self);
     elseif (key == "Padding") then
         UnitFrame.CreateAuraDisplays(self);
+    elseif (key == "RangeCheckThrottleSeconds") then
+        UnitFrame.UpdateRangeCheckTicker(self);
     else    --settings that affect test mode data
         if self.isTestMode then
             UnitFrame.SetTestMode(self, true, true);
@@ -307,8 +309,7 @@ do
     function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
         if (enabled == true) then
             UnregisterUnitWatch(self);
-            self:SetScript("OnEvent", nil);
-            self:SetScript("OnUpdate", nil);
+            UnitFrame.DisableScripts(self);
             self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
 
             self.isTestMode = true;
@@ -344,8 +345,7 @@ do
             end
         else
             RegisterUnitWatch(self);
-            self:SetScript("OnEvent", UnitFrame.OnEvent);
-            self:SetScript("OnUpdate", UnitFrame.OnUpdate);
+            UnitFrame.EnableScripts(self);
             self:SetScript("OnSizeChanged", nil);
 
             self.isTestMode = false;
@@ -510,8 +510,6 @@ end
 function UnitFrame.SetUnit(self, unit)
     if InCombatLockdown() then error("Cannot call this in combat. You need to delay triggered updates til combat ends.") end;
     UnitFrame.RemoveMyAttributes(self);
-    self.statusIconContainer.readyCheckIcon.readyCheckStatus = nil;
-    self.statusIconContainer.readyCheckIcon.readyCheckDecay = nil;
     self.displayUnit = unit;
     self.unit = unit;
     UnitFrame.SetAttribute(self, "unit", unit);
@@ -521,12 +519,53 @@ function UnitFrame.SetUnit(self, unit)
         AuraGroup.SetUnit(group, unit);
     end
     RegisterUnitWatch(self);
+    UnitFrame.ResetReadyCheck(self);
     UnitFrame.UpdateAll(self);
 end
 
-function UnitFrame.RegisterEvents(self)
+function UnitFrame.EnableScripts(self)
     self:SetScript("OnEvent", UnitFrame.OnEvent);
-    self:SetScript("OnUpdate", UnitFrame.OnUpdate);
+    --self:SetScript("OnUpdate", UnitFrame.OnUpdate); --currently not required, just left here for quick reimplementation
+    UnitFrame.CreateRangeCheckTicker(self);
+    local readyCheckIcon = self.statusIconContainer.readyCheckIcon;
+    if (readyCheckIcon.timerDecay ~= nil) then
+        readyCheckIcon.timerDecay:Cancel();
+        readyCheckIcon.timerDecay = nil;
+    end
+    UnitFrame.UpdateReadyCheckStatus(self);
+end
+
+function UnitFrame.DisableScripts(self)
+    self:SetScript("OnEvent", UnitFrame.OnEvent);
+    --self:SetScript("OnUpdate", UnitFrame.OnUpdate); --currently not required, just left here for quick reimplementation
+    if (self.rangeCheckTicker ~= nil) then
+        self.rangeCheckTicker:Cancel();
+        self.rangeCheckTicker = nil;
+    end
+    local readyCheckIcon = self.statusIconContainer.readyCheckIcon;
+    if (readyCheckIcon.timerDecay ~= nil) then
+        readyCheckIcon.timerDecay:Cancel();
+        readyCheckIcon.timerDecay = nil;
+    end
+    UnitFrame.UpdateReadyCheckStatus(self);
+end
+
+function UnitFrame.CreateRangeCheckTicker(self)
+    self.rangeCheckTicker = C_Timer.NewTicker(self.settings.Frames.RangeCheckThrottleSeconds, function() local self = self; UnitFrame.UpdateInRange(self); end);
+end
+
+function UnitFrame.UpdateRangeCheckTicker(self)
+    if (self.rangeCheckTicker ~= nil) then
+        self.rangeCheckTicker:Cancel();
+        self.rangeCheckTicker = nil;
+        UnitFrame.CreateRangeCheckTicker(self);
+    end
+end
+
+function UnitFrame.RegisterEvents(self)
+    UnitFrame.EnableScripts(self);
+    self:SetScript("OnShow", function(self) if (not self.isTestMode) then UnitFrame.EnableScripts(self) end end);
+    self:SetScript("OnHide", function(self) if (not self.isTestMode) then UnitFrame.DisableScripts(self) end end);
 
     self:RegisterForClicks("AnyDown");
     self:RegisterEvent("PLAYER_ENTERING_WORLD");
@@ -726,23 +765,32 @@ function UnitFrame.UpdateRezStatus(self)
     end
 end
 
+function UnitFrame.ResetReadyCheck(self)
+    local icon = self.statusIconContainer.readyCheckIcon;
+    icon.readyCheckStatus = nil;
+    if (icon.timerDecay ~= nil) then
+        icon.timerDecay:Cancel();
+        icon.timerDecay = nil;
+    end
+    UnitFrame.UpdateReadyCheckStatus(self);
+end
+
 function UnitFrame.UpdateReadyCheckStatus(self)
     local icon = self.statusIconContainer.readyCheckIcon;
-    if icon.readyCheckDecay and GetReadyCheckTimeLeft() <= 0 then
-        return;
-    end
-    local readyCheckStatus = GetReadyCheckStatus(self.unit);
-    icon.readyCheckStatus = readyCheckStatus;
     local show = false;
-    if (readyCheckStatus == "ready") then
-		icon:SetTexture(READY_CHECK_READY_TEXTURE);
-		show = true;
-	elseif (readyCheckStatus == "notready") then
-		icon:SetTexture(READY_CHECK_NOT_READY_TEXTURE);
-		show = true;
-	elseif (readyCheckStatus == "waiting") then
-		icon:SetTexture(READY_CHECK_WAITING_TEXTURE);
-		show = true;
+    if GetReadyCheckTimeLeft() > 0 then
+        local readyCheckStatus = GetReadyCheckStatus(self.unit);
+        icon.readyCheckStatus = readyCheckStatus;
+        if (readyCheckStatus == "ready") then
+            icon:SetTexture(READY_CHECK_READY_TEXTURE);
+            show = true;
+        elseif (readyCheckStatus == "notready") then
+            icon:SetTexture(READY_CHECK_NOT_READY_TEXTURE);
+            show = true;
+        elseif (readyCheckStatus == "waiting") then
+            icon:SetTexture(READY_CHECK_WAITING_TEXTURE);
+            show = true;
+        end
     end
     if (show) then
         if (not icon:IsVisible()) then
@@ -757,33 +805,23 @@ function UnitFrame.UpdateReadyCheckStatus(self)
     end
 end
 
-function UnitFrame.FinishReadyCheck(self)
-    if (self:IsVisible()) then
+do
+    local function HideReadyCheckIcon(self)
         local icon = self.statusIconContainer.readyCheckIcon;
-		icon.readyCheckDecay = CUF_READY_CHECK_DECAY_TIME;
-
-		if (icon.readyCheckStatus == "waiting") then	--If you haven't responded, you are not ready.
+        icon.timerDecay = nil;
+        UnitFrame.UpdateReadyCheckStatus(self);
+    end
+    function UnitFrame.FinishReadyCheck(self)
+        local icon = self.statusIconContainer.readyCheckIcon;
+        if (icon.readyCheckStatus == "waiting") then	--If you haven't responded, you are not ready.
             icon:SetTexture(READY_CHECK_NOT_READY_TEXTURE);
             if (not icon:IsVisible()) then
                 icon:Show();
                 UnitFrame.LayoutStatusIcons(self);
             end
-		end
-	else
-		UnitFrame.UpdateReadyCheckStatus(self);
-	end
-end
-
-function UnitFrame.CheckReadyCheckDecay(self, elapsed)
-    local icon = self.statusIconContainer.readyCheckIcon;
-	if (icon.readyCheckDecay) then
-		if (icon.readyCheckDecay > 0) then
-			icon.readyCheckDecay = icon.readyCheckDecay - elapsed;
-		else
-			icon.readyCheckDecay = nil;
-			UnitFrame.UpdateReadyCheckStatus(self);
-		end
-	end
+        end
+        icon.timerDecay = C_Timer.NewTimer(CUF_READY_CHECK_DECAY_TIME, function() HideReadyCheckIcon(self); end);
+    end
 end
 
 function UnitFrame.UpdateAggroHighlight(self)
@@ -829,7 +867,6 @@ function UnitFrame.UpdateRoleIcon(self)
         elseif (rank == 2) then
             UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
         else
-            print(raidID, ": ", rank)
             error("Rank evaluated 'true' but not 1 or 2!");
         end
     else
@@ -1032,7 +1069,16 @@ function UnitFrame.SetHealthColor(self, r, g, b)
 	end
 end
 
+local rangeCheckThrottle = 0.1;
 function UnitFrame.UpdateInRange(self)
+    local inRange, checkedRange = UnitInRange(self.displayUnit);
+    if (checkedRange and not inRange) then
+        UnitFrame.SetInRange(self, false);
+    else
+        UnitFrame.SetInRange(self, true);
+    end
+    
+    if true then return end;
     local time = GetTime();
     if (self.lastRangeCheckAt == nil or time - self.lastRangeCheckAt > self.settings.Frames.RangeCheckThrottleSeconds) then
         self.lastRangeCheckAt = time;
@@ -1055,11 +1101,6 @@ function UnitFrame.SetInRange(self, isInRange)
     else
         self:SetAlpha(self.settings.Frames.OutOfRangeAlpha);
     end
-end
-
-function UnitFrame.OnUpdate(self, elapsed)
-    UnitFrame.UpdateInRange(self);
-    UnitFrame.CheckReadyCheckDecay(self, elapsed);
 end
 
 function UnitFrame.UpdateAuras(self)
