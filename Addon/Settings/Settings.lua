@@ -170,6 +170,18 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
     });
     tinsert(frameLayoutOptions.Options, {
+        Name = L["Aura Padding"],
+        Type = OptionType.SliderValue,
+        Min = 0,
+        SoftMax = 10,
+        Set = function(value)
+            PS().Frames.Padding = value;
+        end,
+        Get = function()
+            return PS().Frames.Padding;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
         Name = L["Show Server Names"],
         Type = OptionType.CheckBox,
         Set = function(value)

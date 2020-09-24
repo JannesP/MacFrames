@@ -453,6 +453,9 @@ do
 
     CreateSliderValueEditor = function(parent, option)
         local value = option.Get();
+        if (value == nil) then
+            error("Value for " .. option.Name .. " was nil!");
+        end
         local frame = CreateFrameWithHeading(parent, option.Name);
         frame.option = option;
 
