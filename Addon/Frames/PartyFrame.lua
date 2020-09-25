@@ -51,59 +51,62 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     end
 end);
 
-function PartyFrame.create()
-    if _frame ~= nil then error("You can only create a single PartyFrame.") end
-    local frameName = Constants.PartyFrameGlobalName;
-    _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
-    _frame:SetFrameStrata(_partySettings.FrameStrata);
-    _frame:SetFrameLevel(_partySettings.FrameLevel);
-
-    _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frameToMove)
+do
+    local onSizeChangedSpacing, onSizeChangedMargin;
+    local function Frame_OnSizeChanged(self, width, height)
         _changingSettings = true;
-        local point, relativeTo, relativePoint, xOfs, yOfs = frameToMove:GetPoint(1);
-        _partySettings.AnchorInfo.OffsetX = xOfs;
-        _partySettings.AnchorInfo.OffsetY = yOfs;
-        _partySettings.AnchorInfo.AnchorPoint = point;
-        for i=1, #_unitFrames do
-            UnitFrame.SnapToPixels(_unitFrames[i]);
+        if (_partySettings.Vertical) then
+            _partySettings.FrameWidth = width - (2 * onSizeChangedMargin);
+            _partySettings.FrameHeight = (height - ((#_unitFrames - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / #_unitFrames;
+        else
+            _partySettings.FrameWidth = (width - ((#_unitFrames - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / #_unitFrames;
+            _partySettings.FrameHeight = height - (2 * onSizeChangedMargin);
         end
         _changingSettings = false;
-    end);
-    
-    FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
-        function(dragDropHost, frame)   --resizeStart
-            local spacing = _partySettings.FrameSpacing;
-            local margin = _partySettings.Margin;
-            _frame:SetScript("OnSizeChanged", function(frame, width, height)
-                _changingSettings = true;
-                if (_partySettings.Vertical) then
-                    _partySettings.FrameWidth = width - (2 * margin);
-                    _partySettings.FrameHeight = (height - ((#_unitFrames - 1) * spacing) - (2 * margin)) / #_unitFrames;
-                else
-                    _partySettings.FrameWidth = (width - ((#_unitFrames - 1) * spacing) - (2 * margin)) / #_unitFrames;
-                    _partySettings.FrameHeight = height - (2 * margin);
-                end
-                _changingSettings = false;
-                PartyFrame.ProcessLayout(frame);
-            end);
-        end, 
-        function(dragDropHost, frame)   --resizeEnd
-            _frame:SetScript("OnSizeChanged", nil);
-        end
-    );
-
-    _unitFrames = {};
-    _frame.unitFrames = _unitFrames;
-    tinsert(_unitFrames, UnitFrame.new("player", _frame, nil, _partySettings));
-    for i=1,4 do
-        tinsert(_unitFrames, UnitFrame.new("party" .. i, _frame, nil, _partySettings));
+        PartyFrame.ProcessLayout(self);
     end
+    function PartyFrame.create()
+        if _frame ~= nil then error("You can only create a single PartyFrame.") end
+        local frameName = Constants.PartyFrameGlobalName;
+        _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
+        _frame:SetFrameStrata(_partySettings.FrameStrata);
+        _frame:SetFrameLevel(_partySettings.FrameLevel);
 
-    PartyFrame.ProcessLayout(_frame, true);
-    RegisterAttributeDriver(_frame, "state-visibility", _partySettings.StateDriverVisibility);
-    return _frame;
+        _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frameToMove)
+            _changingSettings = true;
+            local point, relativeTo, relativePoint, xOfs, yOfs = frameToMove:GetPoint(1);
+            _partySettings.AnchorInfo.OffsetX = xOfs;
+            _partySettings.AnchorInfo.OffsetY = yOfs;
+            _partySettings.AnchorInfo.AnchorPoint = point;
+            for i=1, #_unitFrames do
+                UnitFrame.SnapToPixels(_unitFrames[i]);
+            end
+            _changingSettings = false;
+        end);
+        
+        FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
+            function(dragDropHost, frame)   --resizeStart
+                onSizeChangedSpacing = _partySettings.FrameSpacing;
+                onSizeChangedMargin = _partySettings.Margin;
+                _frame:SetScript("OnSizeChanged", Frame_OnSizeChanged);
+            end, 
+            function(dragDropHost, frame)   --resizeEnd
+                _frame:SetScript("OnSizeChanged", nil);
+            end
+        );
+
+        _unitFrames = {};
+        _frame.unitFrames = _unitFrames;
+        tinsert(_unitFrames, UnitFrame.new("player", _frame, nil, _partySettings));
+        for i=1,4 do
+            tinsert(_unitFrames, UnitFrame.new("party" .. i, _frame, nil, _partySettings));
+        end
+
+        PartyFrame.ProcessLayout(_frame, true);
+        RegisterAttributeDriver(_frame, "state-visibility", _partySettings.StateDriverVisibility);
+        return _frame;
+    end
 end
-
 function PartyFrame.SetTestMode(enabled)
     if (enabled == true) then
         UnregisterAttributeDriver(_frame, "state-visibility");

@@ -1,9 +1,9 @@
 local ADDON_NAME, _p = ...;
 
 _p.Defensives = {   --priority is the number to the right (higher is a higher priority)
-    [111759] = 1,   --Levitate
-    [121557] = 2,   --Angelic Feather
-    [17] = 3,       --PW: S
+    --[111759] = 1,   --Levitate
+    --[121557] = 2,   --Angelic Feather
+    --[17] = 3,       --PW: S
 
     --###### Externals #######
     [33206] = 1000,     --Pain Suppression

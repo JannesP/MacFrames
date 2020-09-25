@@ -28,7 +28,7 @@ do
         closeButton:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight");
         closeButton:RegisterForClicks("LeftButtonUp");
         closeButton:SetPoint("CENTER", closeButtonFrame, "CENTER");
-        closeButton:SetScript("OnClick", function() SettingsWindow.Close() end);
+        closeButton:SetScript("OnClick", SettingsWindow.Close);
         return closeButtonFrame;
     end
     local function CreateHeading(parent)
@@ -62,7 +62,7 @@ do
                 FrameUtil.ConfigureDragDropHost(_window.heading, _window);
 
                 FrameUtil.AddResizer(_window, _window);
-                _window:SetMinResize(600, 450);
+                _window:SetMinResize(462, 300);
                 _window:SetMaxResize(1000, 800);
 
                 _window:SetSize(600, 450);

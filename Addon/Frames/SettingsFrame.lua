@@ -34,19 +34,9 @@ local function CreateBottomBar(self)
     return frame;
 end
 
-local function LayoutBottomBar(self)
+local function LayoutBottomBar(self, width, height)
     local bar = self.bottomBar;
-    local lastFrame = bar.children[1];
-    bar:SetHeight(lastFrame:GetHeight() + _borderClearance * 2);
-    lastFrame:ClearAllPoints();
-    lastFrame:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", _borderClearance, _borderClearance);
-    for i=2, #bar.children do
-        local curr = bar.children[i];
-        curr:ClearAllPoints();
-        curr:SetPoint("BOTTOMLEFT", lastFrame, "BOTTOMRIGHT", 0, 0);
-        lastFrame = curr;
-    end
-    
+    FrameUtil.FlowChildren(bar, bar.children, _borderClearance, 0, width);
 end
 
 local function CreateTabSelector(self)
@@ -125,5 +115,5 @@ function SettingsFrame.Show(parent)
 end
 
 function SettingsFrame.Layout(self, width, height)
-    LayoutBottomBar(self);
+    LayoutBottomBar(self, width, height);
 end

@@ -52,56 +52,59 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     end
 end);
 
-function RaidFrame.create()
-    if _frame ~= nil then error("You can only create a single RaidFrame.") end
-    local frameName = Constants.RaidFrameGlobalName;
-    _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
-    _frame:SetFrameStrata(_raidSettings.FrameStrata);
-    _frame:SetFrameLevel(_raidSettings.FrameLevel);
+do
+    local onSizeChangedSpacing, onSizeChangedMargin;
+    local function Frame_OnSizeChanged(self, width, height)
+        _changingSettings = true;
+        _raidSettings.FrameWidth = (width - ((Constants.GroupSize - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.GroupSize;
+        _raidSettings.FrameHeight = (height - ((Constants.RaidGroupCount - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.RaidGroupCount;
+        _changingSettings = false;
+        RaidFrame.ProcessLayout(self);
+    end
+    function RaidFrame.create()
+        if _frame ~= nil then error("You can only create a single RaidFrame.") end
+        local frameName = Constants.RaidFrameGlobalName;
+        _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
+        _frame:SetFrameStrata(_raidSettings.FrameStrata);
+        _frame:SetFrameLevel(_raidSettings.FrameLevel);
 
-    _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frame)
-        RaidFrame.UpdateAnchorFromCurrentPosition(frame);
-        RaidFrame.UpdateRect(frame);
-        RaidFrame.ProcessLayout(frame);
-    end);
-
-    FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
-        function(dragDropHost, frame)   --resizeStart
-            local spacing = _raidSettings.FrameSpacing;
-            local margin = _raidSettings.Margin;
-            _frame:SetScript("OnSizeChanged", function(frame, width, height)
-                _changingSettings = true;
-                _raidSettings.FrameWidth = (width - ((Constants.GroupSize - 1) * spacing) - (2 * margin)) / Constants.GroupSize;
-                _raidSettings.FrameHeight = (height - ((Constants.RaidGroupCount - 1) * spacing) - (2 * margin)) / Constants.RaidGroupCount;
-                _changingSettings = false;
-                RaidFrame.ProcessLayout(frame);
-            end);
-        end, 
-        function(dragDropHost, frame)   --resizeEnd
-            _frame:SetScript("OnSizeChanged", nil);
+        _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frame)
             RaidFrame.UpdateAnchorFromCurrentPosition(frame);
             RaidFrame.UpdateRect(frame);
             RaidFrame.ProcessLayout(frame);
+        end);
+
+        FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
+            function(dragDropHost, frame)   --resizeStart
+                onSizeChangedSpacing = _raidSettings.FrameSpacing;
+                onSizeChangedMargin = _raidSettings.Margin;
+                _frame:SetScript("OnSizeChanged", Frame_OnSizeChanged);
+            end, 
+            function(dragDropHost, frame)   --resizeEnd
+                _frame:SetScript("OnSizeChanged", nil);
+                RaidFrame.UpdateAnchorFromCurrentPosition(frame);
+                RaidFrame.UpdateRect(frame);
+                RaidFrame.ProcessLayout(frame);
+            end
+        );
+
+        _groupFrames = {};
+        for i=1,8 do
+            _groupFrames[i] = CreateFrame("Frame", frameName .. "Group" .. i, _frame);
+            _groupFrames[i].attachedFrames = {};
         end
-    );
-    
+        _frame.groups = _groupFrames;
+        _unitFrames = {};
+        for i=1,40 do
+            tinsert(_unitFrames, UnitFrame.new("raid" .. i, _frame, nil, _raidSettings));
+        end
 
-    _groupFrames = {};
-    for i=1,8 do
-        _groupFrames[i] = CreateFrame("Frame", frameName .. "Group" .. i, _frame);
-        _groupFrames[i].attachedFrames = {};
+        RaidFrame.UpdateRect(_frame);
+        RaidFrame.ProcessLayout(_frame);
+        RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
+        RaidFrame.SetupEvents(_frame);
+        return _frame;
     end
-    _frame.groups = _groupFrames;
-    _unitFrames = {};
-    for i=1,40 do
-        tinsert(_unitFrames, UnitFrame.new("raid" .. i, _frame, nil, _raidSettings));
-    end
-
-    RaidFrame.UpdateRect(_frame);
-    RaidFrame.ProcessLayout(_frame);
-    RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
-    RaidFrame.SetupEvents(_frame);
-    return _frame;
 end
 
 function RaidFrame.UpdateAnchorFromCurrentPosition(self)

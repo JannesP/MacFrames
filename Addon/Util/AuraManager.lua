@@ -112,76 +112,99 @@ do
         ForEachAura(unit, _buffCache[unit], func);
     end
     
-    function AuraManager.ForAllDispellableDebuffs(unit, func)
-        ForAllDebuffs(unit, function(slot, info, ...)
+    do
+        local p_unit, p_func;
+        local function ForAllDispellableDebuffsIterator(slot, info, ...)
             if (info.dispellable) then
-                return func(slot, info, ...);
+                return p_func(slot, info, ...);
             else
                 return false;
             end
-        end);
+        end
+        function AuraManager.ForAllDispellableDebuffs(unit, func)
+            p_unit, p_func = unit, func;
+            ForAllDebuffs(unit, ForAllDispellableDebuffsIterator);
+        end
     end
 
-    function AuraManager.ForAllUndispellableDebuffs(unit, func)
-        ForAllDebuffs(unit, function(slot, info, ...)
+    do
+        local p_unit, p_func;
+        local function ForAllUndispellableDebuffsIterator(slot, info, ...)
             if (not info.dispellable) then
-                return func(slot, info, ...);
+                return p_func(slot, info, ...);
             else
                 return false;
             end
-        end);
+        end
+        function AuraManager.ForAllUndispellableDebuffs(unit, func)
+            p_unit, p_func = unit, func;
+            ForAllDebuffs(unit, ForAllUndispellableDebuffsIterator);
+        end
     end
 
-    function AuraManager.ForAllBossAuras(unit, func)
-        local cancelIteration = false;
-        ForAllDebuffs(unit, function(slot, info, ...)
+    do
+        local p_unit, p_func;
+        local cancelIteration;
+        local function ForAllBossAuraIterator(slot, info, ...)
             if (MyAuraUtil_IsBossAura(...)) then
-                cancelIteration = func(slot, info, ...);
+                cancelIteration = p_func(slot, info, ...);
                 return cancelIteration;
             else
                 return false;
             end
-        end);
-        if (not cancelIteration) then
-            ForAllBuffs(unit, function(slot, info, ...)
-                if (MyAuraUtil_IsBossAura(...)) then
-                    cancelIteration = func(slot, info, ...);
-                    return cancelIteration;
-                else
-                    return false;
-                end
-            end);
+        end
+        function AuraManager.ForAllBossAuras(unit, func)
+            p_unit, p_func = unit, func;
+            cancelIteration = false;
+            ForAllDebuffs(unit, ForAllBossAuraIterator);
+            if (not cancelIteration) then
+                ForAllBuffs(unit, ForAllBossAuraIterator);
+            end
         end
     end
 
-    function AuraManager.ForAllBuffsByAuraId(unit, auraId, func)
-        ForAllBuffs(unit, function(slot, info, ...)
-            if ((select(10, ...)) == auraId) then
-                return func(slot, info, ...);
+    do
+        local p_unit, p_auraId, p_func;
+        local function ForAllBuffsIterator(slot, info, ...)
+            if ((select(10, ...)) == p_auraId) then
+                return p_func(slot, info, ...);
             else
                 return false;
             end
-        end);
+        end
+        function AuraManager.ForAllBuffsByAuraId(unit, auraId, func)
+            p_unit, p_auraId, p_func = unit, auraId, func;
+            ForAllBuffs(unit, ForAllBuffsIterator);
+        end
     end
 
-    function AuraManager.ForAllDebuffsByAuraId(unit, auraId, func)
-        ForAllDebuffs(unit, function(slot, info, ...)
-            if ((select(10, ...)) == auraId) then
-                return func(slot, info, ...);
+    do
+        local p_unit, p_auraId, p_func;
+        local function ForAllDebuffsIterator(slot, info, ...)
+            if ((select(10, ...)) == p_auraId) then
+                return p_func(slot, info, ...);
             else
                 return false;
             end
-        end);
+        end
+        function AuraManager.ForAllDebuffsByAuraId(unit, auraId, func)
+            p_unit, p_auraId, p_func = unit, auraId, func;
+            ForAllDebuffs(unit, ForAllDebuffsIterator);
+        end
     end
-
-    function AuraManager.ForAllDefensiveBuffs(unit, func)
-        ForAllBuffs(unit, function(slot, info, ...)
+    do
+        local p_unit, p_func;
+        local function ForAllDefensiveBuffsIterator(slot, info, ...)
             local priority = Defensives[(select(10, ...))];
             if (priority ~= nil) then
-                return func(slot, info, priority, ...);
+                return p_func(slot, info, priority, ...);
             else
                 return false;
             end
-        end);
+        end
+        function AuraManager.ForAllDefensiveBuffs(unit, func)
+            p_unit, p_func = unit, func;
+            ForAllBuffs(unit, ForAllDefensiveBuffsIterator);
+        end
     end
 end

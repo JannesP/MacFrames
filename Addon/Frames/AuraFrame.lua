@@ -100,27 +100,30 @@ function AuraFrame.SetPinnedAuraWithId(self, unit, auraId, debuff, onlyByPlayer)
     self:Hide();
 end
 
-function AuraFrame.UpdateFromPinnedAura(self)
-    local pinnedAura = self.pinnedAura;
-    local displayed = false;
-
+do
+    local frame, pinnedAura, displayed;
     local function ProcessAuraFunc(slot, info, ...)
         if (not pinnedAura.onlyByPlayer or info.byPlayer) then
             info.displayed = true;
             displayed = true;
-            AuraFrame.DisplayAura(self, ...);
+            AuraFrame.DisplayAura(frame, ...);
             return true;
         end
         return false;
     end
+    function AuraFrame.UpdateFromPinnedAura(self)
+        frame = self;
+        pinnedAura = self.pinnedAura;
+        displayed = false;
 
-    if pinnedAura.debuff == true then
-        AuraManager.ForAllDebuffsByAuraId(pinnedAura.unit, pinnedAura.id, ProcessAuraFunc);
-    else
-        AuraManager.ForAllBuffsByAuraId(pinnedAura.unit, pinnedAura.id, ProcessAuraFunc);
-    end
-    if (not displayed) then
-        self:Hide();
+        if pinnedAura.debuff == true then
+            AuraManager.ForAllDebuffsByAuraId(pinnedAura.unit, pinnedAura.id, ProcessAuraFunc);
+        else
+            AuraManager.ForAllBuffsByAuraId(pinnedAura.unit, pinnedAura.id, ProcessAuraFunc);
+        end
+        if (not displayed) then
+            self:Hide();
+        end
     end
 end
 

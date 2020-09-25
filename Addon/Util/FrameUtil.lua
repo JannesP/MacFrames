@@ -28,78 +28,98 @@ function FrameUtil.CreateSolidTexture(frame, ...)
     return tex;
 end
 
-function FrameUtil.CreateSolidBorder(frame, width, ...)
-    local borderFrames = {
-        left = frame:CreateTexture(nil, "OVERLAY"),
-        top = frame:CreateTexture(nil, "OVERLAY"),
-        right = frame:CreateTexture(nil, "OVERLAY"),
-        bottom = frame:CreateTexture(nil, "OVERLAY"),
-        Resize = function(self, width) 
-            local pxWidth = PixelUtil.GetNearestPixelSize(width, frame:GetEffectiveScale(), 1);
-            self.width = width;
-            self.left:SetWidth(pxWidth);
-            self.right:SetWidth(pxWidth);
-            self.top:SetHeight(pxWidth);
-            self.bottom:SetHeight(pxWidth);
-        end,
-        SetColor = function(self, ...)
-            self.left:SetColorTexture(...);
-            self.top:SetColorTexture(...);
-            self.right:SetColorTexture(...);
-            self.bottom:SetColorTexture(...);
-        end,
-    };
-    borderFrames.left:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-    borderFrames.left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
+do
+    local FramePixelBorder = {};
+    FramePixelBorder.__index = FramePixelBorder;
+    function FramePixelBorder:Resize(width)
+        local pxWidth = PixelUtil.GetNearestPixelSize(width, self.parent:GetEffectiveScale(), 1);
+        self.width = width;
+        self.left:SetWidth(pxWidth);
+        self.right:SetWidth(pxWidth);
+        self.top:SetHeight(pxWidth);
+        self.bottom:SetHeight(pxWidth);
+    end
+    function FramePixelBorder:SetColor(...)
+        self.left:SetColorTexture(...);
+        self.top:SetColorTexture(...);
+        self.right:SetColorTexture(...);
+        self.bottom:SetColorTexture(...);
+    end
 
-    borderFrames.top:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-    borderFrames.top:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
+    function FrameUtil.CreateSolidBorder(frame, width, ...)
+        local borderFrames = setmetatable({
+            parent = frame,
+            left = frame:CreateTexture(nil, "OVERLAY"),
+            top = frame:CreateTexture(nil, "OVERLAY"),
+            right = frame:CreateTexture(nil, "OVERLAY"),
+            bottom = frame:CreateTexture(nil, "OVERLAY"),
+        }, FramePixelBorder);
+        borderFrames.left:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
+        borderFrames.left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
 
-    borderFrames.right:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
-    borderFrames.right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
+        borderFrames.top:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
+        borderFrames.top:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
 
-    borderFrames.bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
-    borderFrames.bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
+        borderFrames.right:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
+        borderFrames.right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
 
-    borderFrames:Resize(width);
-    borderFrames:SetColor(...);
-    return borderFrames;
+        borderFrames.bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
+        borderFrames.bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
+
+        borderFrames:Resize(width);
+        borderFrames:SetColor(...);
+        return borderFrames;
+    end
 end
 
-function FrameUtil.CreateDragDropOverlay(frame, OnFinishDragDrop)
-    local dragDropHost = FrameUtil.CreateFrameWithText(frame, frame:GetName() .. "DragDropOverlay", L["Drag Me!"]);
-    dragDropHost:SetAllPoints();
-    dragDropHost.texture = FrameUtil.CreateSolidTexture(dragDropHost, 0, 0, 0, 0.8);
-    dragDropHost:SetFrameLevel(frame:GetFrameLevel() + 100);
-    dragDropHost.borderFrames = FrameUtil.CreateSolidBorder(dragDropHost, 1, 1, 1, 1, 1);
-    dragDropHost:Hide();
-    FrameUtil.ConfigureDragDropHost(dragDropHost, frame, OnFinishDragDrop);
+do
+    local function Frame_MoveUp(self)
+        FrameUtil.MoveFrame(self:GetParent():GetParent(), 0, 1)
+    end
+    local function Frame_MoveLeft(self)
+        FrameUtil.MoveFrame(self:GetParent():GetParent(), -1, 0)
+    end
+    local function Frame_MoveRigght(self)
+        FrameUtil.MoveFrame(self:GetParent():GetParent(), 1, 0)
+    end
+    local function Frame_MoveDown(self)
+        FrameUtil.MoveFrame(self:GetParent():GetParent(), 0, -1)
+    end
+    function FrameUtil.CreateDragDropOverlay(frame, OnFinishDragDrop)
+        local dragDropHost = FrameUtil.CreateFrameWithText(frame, frame:GetName() .. "DragDropOverlay", L["Drag Me!"]);
+        dragDropHost:SetAllPoints();
+        dragDropHost.texture = FrameUtil.CreateSolidTexture(dragDropHost, 0, 0, 0, 0.8);
+        dragDropHost:SetFrameLevel(frame:GetFrameLevel() + 100);
+        dragDropHost.borderFrames = FrameUtil.CreateSolidBorder(dragDropHost, 1, 1, 1, 1, 1);
+        dragDropHost:Hide();
+        FrameUtil.ConfigureDragDropHost(dragDropHost, frame, OnFinishDragDrop);
 
-    local bUp = FrameUtil.CreateArrowButton(dragDropHost, "up");
-    bUp:ClearAllPoints();
-    bUp:SetPoint("BOTTOM", dragDropHost.text, "TOP", 0, 0);
-    bUp:SetSize(24, 24);
-    bUp:SetScript("OnClick", function(self) FrameUtil.MoveFrame(frame, 0, 1) end);
+        local bUp = FrameUtil.CreateArrowButton(dragDropHost, "up");
+        bUp:ClearAllPoints();
+        bUp:SetPoint("BOTTOM", dragDropHost.text, "TOP", 0, 0);
+        bUp:SetSize(24, 24);
+        bUp:SetScript("OnClick", Frame_MoveUp);
 
-    local bLeft = FrameUtil.CreateArrowButton(dragDropHost, "left");
-    bLeft:ClearAllPoints();
-    bLeft:SetPoint("RIGHT", dragDropHost.text, "LEFT", 0, 0);
-    bLeft:SetSize(24, 24);
-    bLeft:SetScript("OnClick", function(self) FrameUtil.MoveFrame(frame, -1, 0) end);
+        local bLeft = FrameUtil.CreateArrowButton(dragDropHost, "left");
+        bLeft:ClearAllPoints();
+        bLeft:SetPoint("RIGHT", dragDropHost.text, "LEFT", 0, 0);
+        bLeft:SetSize(24, 24);
+        bLeft:SetScript("OnClick", Frame_MoveLeft);
 
-    local bRight = FrameUtil.CreateArrowButton(dragDropHost, "right");
-    bRight:ClearAllPoints();
-    bRight:SetPoint("LEFT", dragDropHost.text, "RIGHT", 0, 0);
-    bRight:SetSize(24, 24);
-    bRight:SetScript("OnClick", function(self) FrameUtil.MoveFrame(frame, 1, 0) end);
+        local bRight = FrameUtil.CreateArrowButton(dragDropHost, "right");
+        bRight:ClearAllPoints();
+        bRight:SetPoint("LEFT", dragDropHost.text, "RIGHT", 0, 0);
+        bRight:SetSize(24, 24);
+        bRight:SetScript("OnClick", Frame_MoveRigght);
 
-    local bDown = FrameUtil.CreateArrowButton(dragDropHost, "down");
-    bDown:ClearAllPoints();
-    bDown:SetPoint("TOP", dragDropHost.text, "BOTTOM", 0, 0);
-    bDown:SetSize(24, 24);
-    bDown:SetScript("OnClick", function(self) FrameUtil.MoveFrame(frame, 0, -1) end);
-    
-    return dragDropHost;
+        local bDown = FrameUtil.CreateArrowButton(dragDropHost, "down");
+        bDown:ClearAllPoints();
+        bDown:SetPoint("TOP", dragDropHost.text, "BOTTOM", 0, 0);
+        bDown:SetSize(24, 24);
+        bDown:SetScript("OnClick", Frame_MoveDown);
+        
+        return dragDropHost;
+    end
 end
 
 function FrameUtil.MoveFrame(frame, x, y)
@@ -107,8 +127,9 @@ function FrameUtil.MoveFrame(frame, x, y)
         error("This function only works with a single Anchor from SetPoint!");
     end
     local pixelScale = PixelUtil.GetPixelToUIUnitFactor();
-    x = x / pixelScale;
-    y = y / pixelScale;
+    local frameScale = frame:GetEffectiveScale();
+    x = x * frameScale * pixelScale;
+    y = y * frameScale * pixelScale;
     local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint(1);
     frame:SetPoint(point, relativeTo, relativePoint, xOfs + x, yOfs + y);
 end
@@ -141,61 +162,77 @@ function FrameUtil.WidthByText(frame, text)
     frame:SetWidth(text:GetWidth() + 20);
 end
 
-function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDragDrop)
-    frameToMove:SetClampedToScreen(true);
-    dragDropHost:SetClampedToScreen(true);
-    dragDropHost:EnableMouse(true);
-    dragDropHost:SetScript("OnMouseDown", function(self, button)
-        if (button == "LeftButton" and not dragDropHost.isMoving) then
+do
+    local function DragDropHost_OnMouseDown(self, button)
+        if (button == "LeftButton" and not self.isMoving) then
+            local frameToMove = self.frameToMove;
             frameToMove:SetMovable(true);
-            dragDropHost:SetMovable(true);
+            self:SetMovable(true);
             frameToMove:StartMoving();
-            dragDropHost.isMoving = true;
+            self.isMoving = true;
         end
-    end);
-    dragDropHost:SetScript("OnMouseUp", function(self, button)
+    end
+    local function DragDropHost_OnMouseUp(self, button)
         if (self.isMoving) then
+            local frameToMove = self.frameToMove;
             frameToMove:StopMovingOrSizing();
             self.isMoving = false;
-            dragDropHost:SetMovable(false);
+            self:SetMovable(false);
             frameToMove:SetMovable(false);
             if (OnFinishDragDrop ~= nil) then
-                OnFinishDragDrop(dragDropHost, frameToMove);
+                OnFinishDragDrop(self, frameToMove);
             end
         end
-    end);
+    end
+    function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDragDrop)
+        frameToMove:SetClampedToScreen(true);
+        dragDropHost.frameToMove = frameToMove;
+        dragDropHost:SetClampedToScreen(true);
+        dragDropHost:EnableMouse(true);
+        dragDropHost:SetScript("OnMouseDown", DragDropHost_OnMouseDown);
+        dragDropHost:SetScript("OnMouseUp", DragDropHost_OnMouseUp);
+    end
 end
-
-function FrameUtil.AddResizer(frameToAttach, frameToResize, OnStartResize, OnFinishResize)
-    frameToAttach.resizer = CreateFrame("Button", nil, frameToAttach);
-    frameToAttach.resizer:SetSize(15, 15);
-    frameToAttach.resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up");
-    frameToAttach.resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down");
-    frameToAttach.resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight");
-    frameToAttach.resizer:ClearAllPoints();
-    frameToAttach.resizer:SetPoint("BOTTOMRIGHT", frameToAttach, "BOTTOMRIGHT", -5, 5);
-    frameToAttach.resizer:SetIgnoreParentAlpha(true);
-    frameToAttach.resizer:SetAlpha(1);
-    frameToAttach.resizer:SetScript("OnMouseDown", function(self, button) 
+do
+    local function Resizer_OnMouseDown(self, button)
+        local frameToResize = self.frameToResize;
         if (button == "LeftButton" and not frameToResize.isResizing) then
             frameToResize:SetResizable(true);
             frameToResize:StartSizing();
             frameToResize.isResizing = true;
-            if (OnStartResize ~= nil) then
-                OnStartResize(frameToAttach, frameToResize);
+            if (self.onStartResize ~= nil) then
+                self.onStartResize(self:GetParent(), frameToResize);
             end
         end
-    end);
-    frameToAttach.resizer:SetScript("OnMouseUp", function(self, button)
+    end
+    local function Resizer_OnMouseUp(self, button)
+        local frameToResize = self.frameToResize;
         if (frameToResize.isResizing) then
             frameToResize:StopMovingOrSizing();
             frameToResize.isResizing = false;
             frameToResize:SetResizable(false);
-            if (OnFinishResize ~= nil) then
-                OnFinishResize(frameToAttach, frameToResize);
+            if (self.onFinishResize ~= nil) then
+                self.onFinishResize(self:GetParent(), frameToResize);
             end
         end
-    end);
+    end
+    function FrameUtil.AddResizer(frameToAttach, frameToResize, OnStartResize, OnFinishResize)
+        local resizer = CreateFrame("Button", nil, frameToAttach);
+        frameToAttach.resizer = resizer
+        resizer:SetSize(15, 15);
+        resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up");
+        resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down");
+        resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight");
+        resizer:ClearAllPoints();
+        resizer:SetPoint("BOTTOMRIGHT", frameToAttach, "BOTTOMRIGHT", -5, 5);
+        resizer:SetIgnoreParentAlpha(true);
+        resizer:SetAlpha(1);
+        resizer.frameToResize = frameToResize;
+        resizer.onStartResize = OnStartResize;
+        resizer.onFinishResize = OnFinishResize;
+        resizer:SetScript("OnMouseDown", Resizer_OnMouseDown);
+        resizer:SetScript("OnMouseUp", Resizer_OnMouseUp);
+    end
 end
 
 function FrameUtil.CreateTextButton(parent, nameSuffix, text, onClickHandler)
@@ -296,6 +333,8 @@ end
 
 do
     local function ScrollBarVisibility(self)
+        if (self.isChangingScrollBarVisibility) then return end;
+        self.isChangingScrollBarVisibility = true;
         if (self.content:GetHeight() > self:GetHeight()) then
             self.ScrollBar:Show();
             self.content:SetWidth(self:GetWidth() - self.ScrollBar:GetWidth());
@@ -303,6 +342,7 @@ do
             self.content:SetWidth(self:GetWidth());
             self.ScrollBar:Hide();
         end
+        self.isChangingScrollBarVisibility = false;
     end
     local function ScrollFrameOnSizeChanged(self, width, height)
         self.content:SetWidth(width or self:GetWidth());
@@ -323,9 +363,7 @@ do
         scroll.ScrollBar.background = scroll.ScrollBar:CreateTexture(nil, "BACKGROUND");
         scroll.ScrollBar.background:SetColorTexture(.4, .4, .4, .4);
         scroll.ScrollBar.background:SetAllPoints();
-        scroll.RefreshScrollBarVisibility = function(self)
-            ScrollBarVisibility(self);
-        end
+        scroll.RefreshScrollBarVisibility = ScrollBarVisibility;
 
         scroll:SetScrollChild(scroll.content);
         scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);

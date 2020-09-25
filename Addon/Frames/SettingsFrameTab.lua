@@ -60,6 +60,25 @@ local _tabPanelCount = 0;
 local _configFramesCount = 0;
 
 do
+    local function Section_Layout(self, width, height)
+        local height = 0;
+        if (self.seperator) then
+            height = height + self.seperator:GetHeight();
+        end
+        if (self.optionsContainer) then
+            FrameUtil.FlowChildren(self.optionsContainer, self.optionsContainer.optionEditors, 6, 6, width);
+            height = height + self.optionsContainer:GetHeight();
+        end
+        local sections = self.sections;
+        if (sections) then
+            for i=1, #sections do
+                local section = sections[i];
+                section:Layout(width, height);
+                height = height + section:GetHeight();
+            end
+        end
+        self:SetHeight(height);
+    end
     local function CreateSection(parent, section, depth)
         local s = CreateFrame("Frame", nil, parent);
         local seperator;
@@ -110,39 +129,22 @@ do
                 s.sections[i] = sFrame;
             end
         end
-        s.Layout = function(self, width, height)
-            local height = 0;
-            local lastElement = self;
-            local anchorTo = "TOP";
-            local function ReAnchor(frame, target)
-                frame:ClearAllPoints();
-                frame:SetPoint("TOPLEFT", lastElement, anchorTo.."LEFT");
-                frame:SetPoint("TOPRIGHT", lastElement, anchorTo.."RIGHT");
-                lastElement = frame;
-                anchorTo = "BOTTOM";
-            end
-
-            if (self.seperator) then
-                height = height + self.seperator:GetHeight();
-                ReAnchor(self.seperator);
-            end
-            if (self.optionsContainer) then
-                FrameUtil.FlowChildren(self.optionsContainer, self.optionsContainer.optionEditors, 6, 6, width);
-                height = height + self.optionsContainer:GetHeight();
-                ReAnchor(self.optionsContainer);
-            end
-            local sections = self.sections;
-            if (sections) then
-                for i=1, #sections do
-                    local section = sections[i];
-                    section:Layout(width, height);
-                    height = height + section:GetHeight();
-                    ReAnchor(section);
-                end
-            end
-            self:SetHeight(height);
-        end
+        s.Layout = Section_Layout;
         return s;
+    end
+    local function TabPanel_Reflow(self)
+        local tabs = self.Tabs;
+        for i=1, #tabs do
+            PanelTemplates_TabResize(tabs[i], 4);
+        end
+        PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#tabs - 1) * 16));
+    end
+    local function TabButton_OnClick(self)
+        local parent = self:GetParent();
+        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB);
+        PanelTemplates_Tab_OnClick(self, parent);
+        SettingsFrameTab.SectionSelected(self.settingsFrameTab);
+        TabPanel_Reflow(parent);
     end
     function SettingsFrameTab.Create(parent, category)
         _configFramesCount = _configFramesCount + 1;
@@ -172,20 +174,8 @@ do
             frame.tabPanelSectionSelector:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
             frame.tabPanelSectionSelector:SetHeight(22);
             frame.tabPanelSectionSelector.Tabs = {};
-            frame.tabPanelSectionSelector:SetScript("OnSizeChanged", function (self)
-                local tabs = self.Tabs;
-                for i=1, #tabs do
-                    PanelTemplates_TabResize(tabs[i], 4);
-                end
-                PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#tabs - 1) * 16));
-            end);
-            frame.tabPanelSectionSelector:SetScript("OnShow", function (self)
-                local tabs = self.Tabs;
-                for i=1, #tabs do
-                    PanelTemplates_TabResize(tabs[i], 4);
-                end
-                PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#tabs - 1) * 16));
-            end);
+            frame.tabPanelSectionSelector:SetScript("OnSizeChanged", TabPanel_Reflow);
+            frame.tabPanelSectionSelector:SetScript("OnShow", TabPanel_Reflow);
 
             frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "BackdropTemplate");
             frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
@@ -201,6 +191,7 @@ do
                 local section = category.Sections[n];
                 local uiSection = {};
                 uiSection.tabButton = CreateTabSectionSelector(frame.tabPanelSectionSelector, n, section.Name);
+                uiSection.tabButton.settingsFrameTab = frame;
                 if (lastTabButton == nil) then
                     uiSection.tabButton:SetPoint("BOTTOMLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
                 else
@@ -208,11 +199,7 @@ do
                 end
                 tinsert(frame.tabPanelSectionSelector.Tabs, uiSection.tabButton);
                 lastTabButton = uiSection.tabButton;
-                uiSection.tabButton:SetScript("OnClick", function(self)
-                    PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB);
-                    PanelTemplates_Tab_OnClick(self, self:GetParent());
-                    SettingsFrameTab.SectionSelected(frame);
-                end);
+                uiSection.tabButton:SetScript("OnClick", TabButton_OnClick);
 
                 uiSection.content = CreateSection(nil, section, 1);
                 uiSection.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, uiSection.content);
@@ -256,7 +243,7 @@ function SettingsFrameTab.SectionSelected(self)
     end
 end
 
-function SettingsFrameTab.RefreshFromProfile(self)
+do
     local function Refresh(section)
         local editors = section.optionsContainer and section.optionsContainer.optionEditors;
         if (editors) then
@@ -271,8 +258,11 @@ function SettingsFrameTab.RefreshFromProfile(self)
             end
         end
     end
-    for i=1, #self.optionSections do
-        Refresh(self.optionSections[i].content);
+    function SettingsFrameTab.RefreshFromProfile(self)
+        
+        for i=1, #self.optionSections do
+            Refresh(self.optionSections[i].content);
+        end
     end
 end
 
@@ -320,11 +310,12 @@ CreateEditor = function(parent, option)
 end
 
 do
+    local function DropDownCreateProfileOnSelect(self, profileNameArg1, arg2, checked)
+        PopupDisplays.ShowCopyProfileEnterName(profileNameArg1);
+    end
     local function InitializeDropDownCreateProfile(frame, level, menuList)
         local info = UIDropDownMenu_CreateInfo();
-        info.func = function(self, profileNameArg1, arg2, checked)
-            PopupDisplays.ShowCopyProfileEnterName(profileNameArg1);
-        end
+        info.func = DropDownCreateProfileOnSelect;
         info.notCheckable = true;
 
         info.text = ProfileManager.AddonDefaults;
@@ -338,22 +329,26 @@ do
             UIDropDownMenu_AddButton(info);
         end
     end
+    local dropDownSelectProfileFrame;
+    local function DropDownSelectProfileOnSelect(self, arg1, arg2, checked)
+        local profileName = arg1;
+        local spec = arg2;
+        ProfileManager.SelectProfileForSpec(spec.SpecId, profileName);
+        UIDropDownMenu_SetText(dropDownSelectProfileFrame, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
+    end
     local function GetInitDropDownSelectProfile(dropdown, spec)
         return function(frame, level, menuList)
             local currentProfileNameForSpec = ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId);
             local profiles = ProfileManager.GetProfileList();
 
             local info = UIDropDownMenu_CreateInfo();
-            info.func = function(self, arg1, arg2, checked)
-                local profileName = arg1;
-                ProfileManager.SelectProfileForSpec(spec.SpecId, profileName);
-                UIDropDownMenu_SetText(dropdown, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
-            end
+            info.func = DropDownSelectProfileOnSelect;
             local _, currentName = ProfileManager.GetCurrent();
             local profiles = ProfileManager.GetProfileList();
             for name, profile in pairs(profiles) do
                 info.text = name;
                 info.arg1 = name;
+                info.arg2 = spec;
                 info.checked = name == currentProfileNameForSpec;
                 UIDropDownMenu_AddButton(info);
             end
@@ -374,6 +369,7 @@ do
 
         frame.dropDownSelectProfile = CreateFrame("Frame", "MacFramesDropdownSelectProfile" .. spec.SpecId, frame, "UIDropDownMenuTemplate");
         frame.dropDownSelectProfile:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
+        dropDownSelectProfileFrame = frame.dropDownSelectProfile;
         UIDropDownMenu_SetWidth(frame.dropDownSelectProfile, 120);
         UIDropDownMenu_Initialize(frame.dropDownSelectProfile, GetInitDropDownSelectProfile(frame.dropDownSelectProfile, spec));
         UIDropDownMenu_SetText(frame.dropDownSelectProfile, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
@@ -420,7 +416,7 @@ do
             profileSelectors[i]:SetWidth(biggestWidth);
         end
 
-        frame.RefreshFromProfile = function(self) end
+        frame.RefreshFromProfile = function() end
         return frame;
     end
 end
@@ -451,6 +447,46 @@ do
         return frame;
     end
 
+    local function EditBox_Unfocus(self)
+        self:ClearFocus();
+    end
+
+    local function SliderEditBox_EditorOnChange(self)
+        if (self.isUpdating) then return end;
+        self.isUpdating = true;
+
+        local optionFrame = self.optionFrame;
+        local option = optionFrame.option;
+
+        local value = self:GetNumber();
+        if (option.Min and option.Min > value) or (option.Max and option.Max < value) then
+            --out of bounds value
+            self:SetNumber(option.Get());
+        else
+            optionFrame.slider:SetValue(value);
+            Set(option, value);
+        end
+        self:HighlightText(0, 0);
+        self:SetCursorPosition(0);
+        self.isUpdating = false;
+    end
+
+    local function Slider_EditorOnChange(self, value)
+        if (self.isUpdating) then return end;
+            self.isUpdating = true;
+            local optionFrame = self.optionFrame;
+            optionFrame.editBox:SetNumber(value);
+            Set(optionFrame.option, value);
+            self.isUpdating = false;
+    end
+
+    local function SliderEditor_RefreshFromProfile(self)
+        local value = self.option.Get();
+        self.slider:SetValue(value);
+        self.editBox:SetNumber(Round(value));
+        self.editBox:SetCursorPosition(0);
+    end
+
     CreateSliderValueEditor = function(parent, option)
         local value = option.Get();
         if (value == nil) then
@@ -461,6 +497,7 @@ do
 
         local slider = CreateFrame("Slider", nil, frame, "OptionsSliderTemplate");
         frame.slider = slider;
+        slider.optionFrame = frame;
         slider:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
         slider:SetPoint("LEFT", frame, "LEFT", 0, 0);
         slider:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
@@ -475,6 +512,7 @@ do
 
         local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
         frame.editBox = editBox;
+        editBox.optionFrame = frame;
         editBox:SetAutoFocus(false);
         editBox:SetNumeric(true);
         editBox:SetMaxLetters(3);
@@ -485,41 +523,12 @@ do
         editBox:SetHeight(select(2, slider.Low:GetFont()));
         editBox:SetFrameLevel(slider:GetFrameLevel() + 1);
         
-        local function Unfocus()
-            editBox:ClearFocus();
-        end
-        editBox:SetScript("OnEnterPressed", Unfocus);
-        editBox:SetScript("OnTabPressed", Unfocus);
+        editBox:SetScript("OnEnterPressed", EditBox_Unfocus);
+        editBox:SetScript("OnTabPressed", EditBox_Unfocus);
+        editBox:SetScript("OnEditFocusLost", EditorOnChange(SliderEditBox_EditorOnChange));
 
-        editBox:SetScript("OnEditFocusLost", EditorOnChange(function(self)
-            if (self.isUpdating) then return end;
-            self.isUpdating = true;
-            local value = self:GetNumber();
-            if (option.Min and option.Min > value) or (option.Max and option.Max < value) then
-                --out of bounds value
-                editBox:SetNumber(option.Get());
-            else
-                slider:SetValue(value);
-                Set(option, value);
-            end
-            editBox:HighlightText(0, 0);
-            editBox:SetCursorPosition(0);
-            self.isUpdating = false;
-        end));
-
-        slider:SetScript("OnValueChanged", EditorOnChange(function(self, value) 
-            if (self.isUpdating) then return end;
-            self.isUpdating = true;
-            editBox:SetNumber(value);
-            Set(option, value);
-            self.isUpdating = false;
-        end));
-        frame.RefreshFromProfile = function(self) 
-            local value = option.Get();
-            slider:SetValue(value);
-            editBox:SetNumber(floor(value));
-            editBox:SetCursorPosition(0);
-        end
+        slider:SetScript("OnValueChanged", EditorOnChange(Slider_EditorOnChange));
+        frame.RefreshFromProfile = SliderEditor_RefreshFromProfile;
         return frame;
     end
 

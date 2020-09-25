@@ -16,9 +16,9 @@ local Addon = {};
 _p.Addon = Addon;
 
 Addon.TestMode = {
-    Disabled = "disabled",
-    Party = "party",
-    Raid = "raid",
+    Disabled = 0,
+    Party = 1,
+    Raid = 2,
 }
 
 Addon.testMode = Addon.TestMode.Disabled;
@@ -97,6 +97,7 @@ function Addon.ToggleTestMode(type)
         _p.UserChatMessage("Cannot change test mode in combat.");
         return;
     end
+    local newValue;
     if (Addon.testMode == type) then
         newValue = Addon.TestMode.Disabled;
     else
@@ -105,7 +106,6 @@ function Addon.ToggleTestMode(type)
     if Addon.testMode ~= newValue then
         Addon.ToggleAnchors(false);
         Addon.testMode = newValue;
-        _p.Log("Setting test mode to: " .. Addon.testMode);
         if (Addon.testMode == Addon.TestMode.Disabled) then
             RaidFrame.SetTestMode(false);
             PartyFrame.SetTestMode(false);
@@ -113,7 +113,6 @@ function Addon.ToggleTestMode(type)
             RaidFrame.SetDisabled(true);
             PartyFrame.SetTestMode(true);
         elseif (Addon.testMode == Addon.TestMode.Raid) then
-            Addon.ToggleAnchors(false);
             RaidFrame.SetTestMode(true);
             PartyFrame.SetDisabled(true);
         end

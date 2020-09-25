@@ -3,70 +3,79 @@ local ADDON_NAME, _p = ...;
 _p.Profile = {};
 local Profile = _p.Profile;
 
-local function NewWrapper(defaults)
-    return setmetatable({
-            _defaults = defaults,
-            _settings = {},
-            _propertyChangedListeners = {},
-            OnPropertyChanged = function(self, key)
-                for callback, _ in pairs(self._propertyChangedListeners) do
-                    callback(key);
-                end
-            end,
-            RegisterPropertyChanged = function(self, callback)
-                self._propertyChangedListeners[callback] = true;
-            end,
-            UnregisterPropertyChanged = function(self, callback)
-                _p.Log(callback);
-                self._propertyChangedListeners[callback] = nil;
-            end,
-            RegisterAllPropertyChanged = function(self, callback)
-                self:RegisterPropertyChanged(callback);
-                for _, setting in pairs(self._settings) do
-                    if (type(setting) == "table") then
-                        setting:RegisterAllPropertyChanged(callback);
-                    end
-                end
-            end,
-            UnregisterAllPropertyChanged = function(self, callback)
-                self:UnregisterPropertyChanged(callback);
-                for _, setting in pairs(self._settings) do
-                    if (type(setting) == "table") then
-                        setting:UnregisterAllPropertyChanged(callback);
-                    end
-                end
-            end,
-            GetRawEntries = function(self)
-                return self._settings;
-            end,
-        }, {
-            __index = function(self, key)
-                local result = self._settings[key];
-                if (result == nil) then
-                    local default = self._defaults[key];
-                    if (default ~= nil and type(default) ~= 'table') then
-                        _p.Log("Loading default ("..key.."): "..tostring(default));
-                        self._settings[key] = default;
-                        result = default;
-                    end
-                end
-                return result;
-            end,
-            __newindex = function(self, key, value)
-                if (type(value) == "table") then
-                    error("Cannot assign tables to settings!");
-                end
-                if (InCombatLockdown()) then
-                    error("Cannot change settings in combat!");
-                end
-                if (self._settings[key] ~= value) then
-                    self._settings[key] = value;
-                    _p.Log("Changing Setting: " .. key .. " - " .. tostring(value));
-                    self:OnPropertyChanged(key);
-                end
-            end,
-        }
-    );
+local NewWrapper;
+do
+    local function Wrapper_OnPropertyChanged(self, key)
+        for callback, _ in pairs(self._propertyChangedListeners) do
+            callback(key);
+        end
+    end
+    local function Wrapper_RegisterPropertyChanged(self, callback)
+        self._propertyChangedListeners[callback] = true;
+    end
+    local function Wrapper_UnregisterPropertyChanged(self, callback)
+        self._propertyChangedListeners[callback] = nil;
+    end
+    local function Wrapper_RegisterAllPropertyChanged(self, callback)
+        self:RegisterPropertyChanged(callback);
+        for _, setting in pairs(self._settings) do
+            if (type(setting) == "table") then
+                setting:RegisterAllPropertyChanged(callback);
+            end
+        end
+    end
+    local function Wrapper_UnregisterAllPropertyChanged(self, callback)
+        self:UnregisterPropertyChanged(callback);
+        for _, setting in pairs(self._settings) do
+            if (type(setting) == "table") then
+                setting:UnregisterAllPropertyChanged(callback);
+            end
+        end
+    end
+    local function Wrapper_GetRawEntries(self)
+        return self._settings;
+    end
+    local function Wrapper_Metatable__index(self, key)
+        local result = self._settings[key];
+        if (result == nil) then
+            local default = self._defaults[key];
+            if (default ~= nil and type(default) ~= 'table') then
+                _p.Log("Loading default ("..key.."): "..tostring(default));
+                self._settings[key] = default;
+                result = default;
+            end
+        end
+        return result;
+    end
+    local function Wrapper_Metatable__newindex(self, key, value)
+        if (type(value) == "table") then
+            error("Cannot assign tables to settings!");
+        end
+        if (InCombatLockdown()) then
+            error("Cannot change settings in combat!");
+        end
+        if (self._settings[key] ~= value) then
+            self._settings[key] = value;
+            self:OnPropertyChanged(key);
+        end
+    end
+    NewWrapper = function(defaults)
+        return setmetatable({
+                _defaults = defaults,
+                _settings = {},
+                _propertyChangedListeners = {},
+                OnPropertyChanged = Wrapper_OnPropertyChanged,
+                RegisterPropertyChanged = Wrapper_RegisterPropertyChanged,
+                UnregisterPropertyChanged = Wrapper_UnregisterPropertyChanged,
+                RegisterAllPropertyChanged = Wrapper_RegisterAllPropertyChanged,
+                UnregisterAllPropertyChanged = Wrapper_UnregisterAllPropertyChanged,
+                GetRawEntries = Wrapper_GetRawEntries,
+            }, {
+                __index = Wrapper_Metatable__index,
+                __newindex = Wrapper_Metatable__newindex,
+            }
+        );
+    end
 end
 
 local function CreateWrapper(settings, defaults)

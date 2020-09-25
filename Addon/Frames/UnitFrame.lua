@@ -34,10 +34,13 @@ function UnitFrame.OnSettingChanged(self, key)
         UnitFrame.UpdateAggroHighlightTextureFromSettings(self);
     elseif (key == "StatusIconSize") then
         UnitFrame.LayoutStatusIcons(self);
-    elseif (key == "Padding") then
-        UnitFrame.CreateAuraDisplays(self);
     elseif (key == "RangeCheckThrottleSeconds") then
         UnitFrame.UpdateRangeCheckTicker(self);
+    elseif (key == "Padding") then
+        UnitFrame.CreateAuraDisplays(self);
+        if self.isTestMode then
+            UnitFrame.SetTestMode(self, true, true);
+        end
     else    --settings that affect test mode data
         if self.isTestMode then
             UnitFrame.SetTestMode(self, true, true);
@@ -103,7 +106,6 @@ do
 
         if (self.settings ~= nil) then
             local oldSettings = self.settings;
-            _p.Log(handlers);
             oldSettings.Frames:UnregisterPropertyChanged(handlers.Frames);
             oldSettings.DispellableDebuffs:UnregisterPropertyChanged(handlers.DispellableDebuffs);
             oldSettings.OtherDebuffs:UnregisterPropertyChanged(handlers.OtherDebuffs);
@@ -308,8 +310,12 @@ do
     };
     function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
         if (enabled == true) then
-            UnregisterUnitWatch(self);
+            self:SetScript("OnShow", nil);
+            self:SetScript("OnHide", nil);
             UnitFrame.DisableScripts(self);
+            UnregisterUnitWatch(self);
+            self:Show();
+            
             self:SetScript("OnSizeChanged", UnitFrame.UpdateTestDisplay);
 
             self.isTestMode = true;
@@ -325,16 +331,9 @@ do
                 self.testModeData.classColor = _classColorsByIndex[math.random(1, #_classColorsByIndex)];
                 self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
                 self.testModeData.isInRange = (math.random(0, 3) > 0);
+                self.testModeData.name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
             end
-            self:Show();
-            local color = self.testModeData.classColor;
-            UnitFrame.SetHealthColor(self, color.r, color.g, color.b);
-            local name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
-            if (self.testModeData.displayServerPlaceholder) then
-                name = name .. "-(*)";
-            end
-            UnitFrame.SetInRange(self, self.testModeData.isInRange);
-            self.name:SetText(name);
+            
             UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
             UnitFrame.UpdateTestDisplay(self);
             for _, group in pairs(self.auraGroups) do
@@ -344,9 +343,14 @@ do
                 AuraFrame.SetTestAura(self.specialClassDisplays[i], unpack(testAura));
             end
         else
-            RegisterUnitWatch(self);
-            UnitFrame.EnableScripts(self);
             self:SetScript("OnSizeChanged", nil);
+
+            self:SetScript("OnShow", self.onShowScript);
+            self:SetScript("OnHide", self.onHideScript);
+            if (UnitExists(self.unit)) then
+                UnitFrame.EnableScripts(self);
+            end
+            RegisterUnitWatch(self);
 
             self.isTestMode = false;
             UnitFrame.UpdateAll(self);
@@ -355,12 +359,21 @@ do
 end
 function UnitFrame.UpdateTestDisplay(self)
     local data = self.testModeData;
+    local classColor = data.classColor;
+    UnitFrame.SetHealthColor(self, classColor.r, classColor.g, classColor.b);
+    self.name:SetText(data.name);
+    UnitFrame.SetInRange(self, data.isInRange);
     self.healthBar:SetMinMaxValues(0, data.maxHealth);
     UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
     UnitFrame.SetHealth(self, data.health);
 end
 do
     local _visibleFrames = {};
+    local function ProcessIcon(icon)
+        if (icon:IsShown()) then
+            tinsert(visibleFrames, icon);
+        end
+    end
     function UnitFrame.LayoutStatusIcons(self)
         local sic = self.statusIconContainer;
         if (sic.disableLayouting == true) then --mostly for UpdateAll to prevent excessive recalculating
@@ -370,12 +383,6 @@ do
         wipe(visibleFrames);
 
         PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
-
-        local function ProcessIcon(icon)
-            if (icon:IsShown()) then
-                tinsert(visibleFrames, icon);
-            end
-        end
 
         ProcessIcon(sic.readyCheckIcon);
         ProcessIcon(sic.summonIcon);
@@ -536,7 +543,7 @@ function UnitFrame.EnableScripts(self)
 end
 
 function UnitFrame.DisableScripts(self)
-    self:SetScript("OnEvent", UnitFrame.OnEvent);
+    self:SetScript("OnEvent", nil);
     --self:SetScript("OnUpdate", UnitFrame.OnUpdate); --currently not required, just left here for quick reimplementation
     if (self.rangeCheckTicker ~= nil) then
         self.rangeCheckTicker:Cancel();
@@ -551,7 +558,13 @@ function UnitFrame.DisableScripts(self)
 end
 
 function UnitFrame.CreateRangeCheckTicker(self)
-    self.rangeCheckTicker = C_Timer.NewTicker(self.settings.Frames.RangeCheckThrottleSeconds, function() local self = self; UnitFrame.UpdateInRange(self); end);
+    if (self.rangeCheckTicker ~= nil) then
+        return;
+    end
+    if (self.rangeCheckTickerCallback == nil) then
+        self.rangeCheckTickerCallback = function() UnitFrame.UpdateInRange(self); end
+    end
+    self.rangeCheckTicker = C_Timer.NewTicker(self.settings.Frames.RangeCheckThrottleSeconds, self.rangeCheckTickerCallback);
 end
 
 function UnitFrame.UpdateRangeCheckTicker(self)
@@ -561,20 +574,37 @@ function UnitFrame.UpdateRangeCheckTicker(self)
         UnitFrame.CreateRangeCheckTicker(self);
     end
 end
+do
+    local function UnitFrame_OnShow(self)
+        if (not self.isTestMode) then 
+            UnitFrame.EnableScripts(self) 
+        end
+    end
+    local function UnitFrame_OnHide(self)
+        if (not self.isTestMode) then 
+            UnitFrame.DisableScripts(self) 
+        end
+    end
+    function UnitFrame.RegisterEvents(self)
+        UnitFrame.EnableScripts(self);
+        if (self.onShowScript == nil) then
+            self.onShowScript = UnitFrame_OnShow;
+        end
+        self:SetScript("OnShow", self.onShowScript);
+        if (self.onHideScript == nil) then
+            self.onHideScript = UnitFrame_OnHide;
+        end
+        self:SetScript("OnHide", self.onHideScript);
 
-function UnitFrame.RegisterEvents(self)
-    UnitFrame.EnableScripts(self);
-    self:SetScript("OnShow", function(self) if (not self.isTestMode) then UnitFrame.EnableScripts(self) end end);
-    self:SetScript("OnHide", function(self) if (not self.isTestMode) then UnitFrame.DisableScripts(self) end end);
-
-    self:RegisterForClicks("AnyDown");
-    self:RegisterEvent("PLAYER_ENTERING_WORLD");
-    self:RegisterEvent("GROUP_ROSTER_UPDATE");
-    self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
-    self:RegisterEvent("PLAYER_TARGET_CHANGED");
-    self:RegisterEvent("READY_CHECK");
-    self:RegisterEvent("READY_CHECK_FINISHED");
-    self:RegisterEvent("PARTY_LEADER_CHANGED");
+        self:RegisterForClicks("AnyDown");
+        self:RegisterEvent("PLAYER_ENTERING_WORLD");
+        self:RegisterEvent("GROUP_ROSTER_UPDATE");
+        self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
+        self:RegisterEvent("PLAYER_TARGET_CHANGED");
+        self:RegisterEvent("READY_CHECK");
+        self:RegisterEvent("READY_CHECK_FINISHED");
+        self:RegisterEvent("PARTY_LEADER_CHANGED");
+    end
 end
 
 function UnitFrame.RegisterUnitEvents(self)
@@ -655,7 +685,7 @@ function UnitFrame.OnEvent(self, event, ...)
             elseif (event == "UNIT_THREAT_SITUATION_UPDATE") then
                 UnitFrame.UpdateAggroHighlight(self);
             elseif (event == "INCOMING_RESURRECT_CHANGED") then
-                UnitFrame.UpdateRezStatus(self);
+                UnitFrame.UpdateResurrectionStatus(self);
             elseif (event == "INCOMING_SUMMON_CHANGED") then
                 UnitFrame.UpdateSummonStatus(self);
             elseif (event == "READY_CHECK_CONFIRM") then
@@ -684,7 +714,7 @@ function UnitFrame.UpdateAll(self)
         UnitFrame.UpdateLFGStatus(self);
         UnitFrame.UpdatePhasingStatus(self);
         UnitFrame.UpdateReadyCheckStatus(self);
-        UnitFrame.UpdateRezStatus(self);
+        UnitFrame.UpdateResurrectionStatus(self);
         self.statusIconContainer.disableLayouting = false;
         UnitFrame.LayoutStatusIcons(self);
     end
@@ -750,7 +780,7 @@ function UnitFrame.UpdatePhasingStatus(self)
     end
 end
 
-function UnitFrame.UpdateRezStatus(self)
+function UnitFrame.UpdateResurrectionStatus(self)
     local icon = self.statusIconContainer.resurrectIcon;
     if UnitHasIncomingResurrection(self.unit) then
         if (not icon:IsVisible()) then
@@ -820,7 +850,10 @@ do
                 UnitFrame.LayoutStatusIcons(self);
             end
         end
-        icon.timerDecay = C_Timer.NewTimer(CUF_READY_CHECK_DECAY_TIME, function() HideReadyCheckIcon(self); end);
+        if (icon.timerDecayCallback == nil) then
+            icon.timerDecayCallback = function() HideReadyCheckIcon(self); end;
+        end
+        icon.timerDecay = C_Timer.NewTimer(CUF_READY_CHECK_DECAY_TIME, icon.timerDecayCallback);
     end
 end
 
@@ -906,10 +939,6 @@ function UnitFrame.UpdateStatusText(self)
     end
 end
 
-local function ProjectNumberRange(value, oldMin, oldMax, newMin, newMax)
-   return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin; 
-end
-
 function UnitFrame.UpdateHealth(self)
     if (UnitIsDeadOrGhost(self.displayUnit)) then 
         --otherwise looks weird when somebody is a ghost
@@ -919,40 +948,46 @@ function UnitFrame.UpdateHealth(self)
     end
 end
 
-function UnitFrame.SetHealth(self, health)
-    local hb = self.healthBar;
-    hb:SetValue(health);
-    if (self.settings.Frames.BlendToDangerColors) then
-        local blendRatio = self.settings.Frames.BlendToDangerColorsRatio;
-        local blendMinimum = self.settings.Frames.BlendToDangerColorsMinimum;
-        local blendMaximum = self.settings.Frames.BlendToDangerColorsMaximum;
-        local _, maxValue = hb:GetMinMaxValues();
-        if (maxValue == 0) then
+do
+    local function ProjectNumberRange(value, oldMin, oldMax, newMin, newMax)
+        return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin; 
+    end
+    
+    function UnitFrame.SetHealth(self, health)
+        local hb = self.healthBar;
+        hb:SetValue(health);
+        if (self.settings.Frames.BlendToDangerColors) then
+            local blendRatio = self.settings.Frames.BlendToDangerColorsRatio;
+            local blendMinimum = self.settings.Frames.BlendToDangerColorsMinimum;
+            local blendMaximum = self.settings.Frames.BlendToDangerColorsMaximum;
+            local _, maxValue = hb:GetMinMaxValues();
+            if (maxValue == 0) then
+                hb.texture:SetAlpha(1);
+                hb.overlay:SetAlpha(0);
+                return;
+            end
+            local ratio = hb:GetValue() / maxValue;
+            if (ratio >= blendMaximum) then
+                hb.texture:SetAlpha(1);
+                hb.overlay:SetAlpha(0);
+            elseif (ratio >= blendRatio) then
+                local lratio = ProjectNumberRange(ratio, blendRatio, blendMaximum, 0, 1);
+                hb.texture:SetAlpha(lratio);
+                hb.overlay:SetVertexColor(1, 1, 0, 1 - lratio);
+            elseif (ratio <= blendMinimum) then
+                hb.texture:SetAlpha(0);
+                hb.overlay:SetVertexColor(1, 0, 0, 1);
+            elseif (ratio < blendRatio) then
+                local lratio = ProjectNumberRange(ratio, blendMinimum, blendRatio, 0, 1);
+                hb.overlay:SetVertexColor(1, lratio, 0, 1);
+                hb.texture:SetAlpha(0);
+            end
+            
+            hb.overlay:Show();
+        else
             hb.texture:SetAlpha(1);
-            hb.overlay:SetAlpha(0);
-            return;
+            hb.overlay:Hide();
         end
-        local ratio = hb:GetValue() / maxValue;
-        if (ratio >= blendMaximum) then
-            hb.texture:SetAlpha(1);
-            hb.overlay:SetAlpha(0);
-        elseif (ratio >= blendRatio) then
-            local lratio = ProjectNumberRange(ratio, blendRatio, blendMaximum, 0, 1);
-            hb.texture:SetAlpha(lratio);
-            hb.overlay:SetVertexColor(1, 1, 0, 1 - lratio);
-        elseif (ratio <= blendMinimum) then
-            hb.texture:SetAlpha(0);
-            hb.overlay:SetVertexColor(1, 0, 0, 1);
-        elseif (ratio < blendRatio) then
-            local lratio = ProjectNumberRange(ratio, blendMinimum, blendRatio, 0, 1);
-            hb.overlay:SetVertexColor(1, lratio, 0, 1);
-            hb.texture:SetAlpha(0);
-        end
-        
-        hb.overlay:Show();
-    else
-        hb.texture:SetAlpha(1);
-        hb.overlay:Hide();
     end
 end
 
@@ -1069,29 +1104,12 @@ function UnitFrame.SetHealthColor(self, r, g, b)
 	end
 end
 
-local rangeCheckThrottle = 0.1;
 function UnitFrame.UpdateInRange(self)
     local inRange, checkedRange = UnitInRange(self.displayUnit);
     if (checkedRange and not inRange) then
         UnitFrame.SetInRange(self, false);
     else
         UnitFrame.SetInRange(self, true);
-    end
-    
-    if true then return end;
-    local time = GetTime();
-    if (self.lastRangeCheckAt == nil or time - self.lastRangeCheckAt > self.settings.Frames.RangeCheckThrottleSeconds) then
-        self.lastRangeCheckAt = time;
-        if (self.displayUnit == "player") then --UnitInRange always return false, false for the player
-            UnitFrame.SetInRange(self, true);
-        else
-            local inRange, checkedRange = UnitInRange(self.displayUnit);
-            if (checkedRange and not inRange) then
-                UnitFrame.SetInRange(self, false);
-            else
-                UnitFrame.SetInRange(self, true);
-            end
-        end
     end
 end
 
@@ -1106,9 +1124,15 @@ end
 function UnitFrame.UpdateAuras(self)
     AuraManager.LoadUnitAuras(self.displayUnit);
     UnitFrame.UpdateSpecialClassDisplay(self);
-    for _, group in pairs(self.auraGroups) do
+    local groups = self.auraGroups;
+    AuraGroup.Update(groups.defensives);
+    AuraGroup.Update(groups.undispellable);
+    AuraGroup.Update(groups.dispellable);
+    AuraGroup.Update(groups.bossAuras);
+
+    --[[for _, group in pairs(self.auraGroups) do
         AuraGroup.Update(group);
-    end
+    end]]
 end
 
 function UnitFrame.UpdateSpecialClassDisplay(self)
