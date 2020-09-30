@@ -19,6 +19,12 @@
 local ADDON_NAME, _p = ...;
 local Constants = _p.Constants;
 
+_p.ProfileSettingsTypes = {
+    Properties = "properties",
+    Array = "array",
+}
+local ProfileSettingsTypes = _p.ProfileSettingsTypes;
+
 _p.DefaultProfileSettings = {
     Version = 0,
     PartyFrame = {
@@ -152,6 +158,7 @@ _p.DefaultProfileSettings = {
     SpecialClassDisplays = {    --shown in top right in order of appearance here (top right to top left)
         ["PRIEST"] = {
             [256] = {   --discipline
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --Atonement
                     spellId = 194384,   
                     enabled = true,
@@ -172,6 +179,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [257] = {   --holy
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --Weakened Soul
                     spellId = 6788,
                     enabled = true,
@@ -186,6 +194,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [258] = {   --shadow
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --Weakened Soul
                     spellId = 6788,
                     enabled = true,
@@ -202,6 +211,7 @@ _p.DefaultProfileSettings = {
         },
         ["SHAMAN"] = {
             [262] = {   --ele
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --earth shield
                     spellId = 974,
                     enabled = true,
@@ -210,6 +220,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [263] = {   --enh
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --earth shield
                     spellId = 974,
                     enabled = true,
@@ -218,6 +229,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [264] = {   --resto
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --riptide
                     spellId = 61295,
                     enabled = true,
@@ -234,48 +246,65 @@ _p.DefaultProfileSettings = {
         },
         ["PALADIN"] = {
             [65] = {   --holy
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [66] = {   --prot
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [70] = {   --ret
+                _settingsType = ProfileSettingsTypes.Array;
             },
         },
         ["MONK"] = {
             [268] = {   --brewmaster
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [269] = {   --mistweaver
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [270] = {   --windwalker
+                _settingsType = ProfileSettingsTypes.Array;
             },
         },
         ["DRUID"] = {
             [102] = {   --Balance
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [103] = {   --Feral
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [104] = {   --Guardian
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [105] = {   --resto
+                _settingsType = ProfileSettingsTypes.Array;
             },
         },
         ["MAGE"] = {
             [62] = {   --arcane
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [63] = {   --fire
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [64] = {   --frost
+                _settingsType = ProfileSettingsTypes.Array;
             },
         },
         ["HUNTER"] = {
             [253] = {   --bm
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [254] = {   --marksman
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [255] = {   --survival
+                _settingsType = ProfileSettingsTypes.Array;
             },
         },
         ["WARLOCK"] = {
             [265] = {   --affli
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --Soulstone
                     spellId = 20707,
                     enabled = true,
@@ -284,6 +313,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [266] = {   --demo
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --Soulstone
                     spellId = 20707,
                     enabled = true,
@@ -292,6 +322,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [267] = {   --destro
+                _settingsType = ProfileSettingsTypes.Array;
                 [1] = { --Soulstone
                     spellId = 20707,
                     enabled = true,
@@ -302,11 +333,46 @@ _p.DefaultProfileSettings = {
         },
         ["ROGUE"] = {
             [259] = {   --assa
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [260] = {   --outlaw
+                _settingsType = ProfileSettingsTypes.Array;
             },
             [261] = {   --sub
+                _settingsType = ProfileSettingsTypes.Array;
             },
         },
     },
+    ClickBindings = {},         --generated below
 }
+local DefaultClickBindings = _p.DefaultProfileSettings.ClickBindings;
+local _clickBindingDefaults = {
+    _settingsType = ProfileSettingsTypes.Array;
+    [1] = {
+        alt = false,
+        ctrl = false,
+        shift = false,
+        type = "target", 
+        button = "1",
+        helpHarm = "help",
+    },
+    [2] = {
+        alt = false,
+        ctrl = false,
+        shift = false,
+        type = "togglemenu",
+        button = "2",
+        helpHarm = "help",
+    },
+};
+local numClasses = GetNumClasses();
+for i=1,numClasses do
+    local _, _, classID = GetClassInfo(i);
+    local specList = {};
+    DefaultClickBindings[classID] = specList;
+    local numSpecs = GetNumSpecializationsForClassID(classID);
+    for n=1, numSpecs do
+        local specID = GetSpecializationInfoForClassID(classID, n);
+        specList[specID] = _clickBindingDefaults;
+    end
+end

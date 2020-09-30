@@ -389,7 +389,7 @@ do
     local _visibleFrames = {};
     local function ProcessIcon(icon)
         if (icon:IsShown()) then
-            tinsert(visibleFrames, icon);
+            tinsert(_visibleFrames, icon);
         end
     end
     function UnitFrame.LayoutStatusIcons(self)

@@ -57,7 +57,6 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
         _partySettings.AnchorInfo:UnregisterPropertyChanged(PartySettings_AnchorInfo_PropertyChanged);
     end
     _partySettings = newProfile.PartyFrame;
-    PartyFrame._partySettings = _partySettings;
     _partySettings:RegisterPropertyChanged(PartySettings_PropertyChanged);
     _partySettings.AnchorInfo:RegisterPropertyChanged(PartySettings_AnchorInfo_PropertyChanged);
 

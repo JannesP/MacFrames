@@ -61,14 +61,33 @@ _p.UserChatMessage = function(msg)
     DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0, GetChatTypeIndex("SYSTEM"));
 end
 
+_p.CreateError = function(technicalMessage, userMessage, traceback)
+    local err = {};
+    err.TechnicalMessage = technicalMessage;
+    if (userMessage == nil) then
+        err.UserMessage = technicalMessage;
+    else
+        err.UserMessage = userMessage;
+    end
+    if (traceback == true) then
+        err.Traceback = debugstack();
+    end
+    return err;
+end
+
 _p.Log = function(...)
     if (not _p.isLoggingEnabled) then return; end
     local msg = { ... };
-    if (#msg == 1) then
+    if (#msg == 0) then
+        print("nil");
+        return;
+    elseif (#msg == 1) then
         msg = msg[1];
     end
     local msgType = type(msg);
-    if (msgType == "table") then
+    if (msg == nil) then
+        print("nil");
+    elseif (msgType == "table") then
         print(_p.tprint(msg));
     else
         print(msg);

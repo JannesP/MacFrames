@@ -92,16 +92,32 @@ end
 
 do
     local function Frame_MoveUp(self)
-        FrameUtil.MoveFrame(self:GetParent():GetParent(), 0, 1)
+        local parent = self:GetParent();
+        FrameUtil.MoveFrame(parent.frameToMove, 0, 1);
+        if (parent.onFinishDragDrop) then
+            parent.onFinishDragDrop(parent, parent.frameToMove);
+        end
     end
     local function Frame_MoveLeft(self)
-        FrameUtil.MoveFrame(self:GetParent():GetParent(), -1, 0)
+        local parent = self:GetParent();
+        FrameUtil.MoveFrame(parent.frameToMove, -1, 0);
+        if (parent.onFinishDragDrop) then
+            parent.onFinishDragDrop(parent, parent.frameToMove);
+        end
     end
     local function Frame_MoveRigght(self)
-        FrameUtil.MoveFrame(self:GetParent():GetParent(), 1, 0)
+        local parent = self:GetParent();
+        FrameUtil.MoveFrame(parent.frameToMove, 1, 0);
+        if (parent.onFinishDragDrop) then
+            parent.onFinishDragDrop(parent, parent.frameToMove);
+        end
     end
     local function Frame_MoveDown(self)
-        FrameUtil.MoveFrame(self:GetParent():GetParent(), 0, -1)
+        local parent = self:GetParent();
+        FrameUtil.MoveFrame(parent.frameToMove, 0, -1);
+        if (parent.onFinishDragDrop) then
+            parent.onFinishDragDrop(parent, parent.frameToMove);
+        end
     end
     function FrameUtil.CreateDragDropOverlay(frame, OnFinishDragDrop)
         local dragDropHost = FrameUtil.CreateFrameWithText(frame, frame:GetName() .. "DragDropOverlay", L["Drag Me!"]);
@@ -197,14 +213,15 @@ do
             self.isMoving = false;
             self:SetMovable(false);
             frameToMove:SetMovable(false);
-            if (OnFinishDragDrop ~= nil) then
-                OnFinishDragDrop(self, frameToMove);
+            if (self.onFinishDragDrop ~= nil) then
+                self.onFinishDragDrop(self, frameToMove);
             end
         end
     end
     function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDragDrop)
         frameToMove:SetClampedToScreen(true);
         dragDropHost.frameToMove = frameToMove;
+        dragDropHost.onFinishDragDrop = OnFinishDragDrop;
         dragDropHost:SetClampedToScreen(true);
         dragDropHost:EnableMouse(true);
         dragDropHost:SetScript("OnMouseDown", DragDropHost_OnMouseDown);

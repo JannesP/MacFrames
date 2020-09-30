@@ -23,6 +23,7 @@ local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
 local PartyFrame = _p.PartyFrame;
 local RaidFrame = _p.RaidFrame;
+local PopupDisplays = _p.PopupDisplays;
 
 --these can only be loaded after the addon is loaded
 local SettingsWindow;
@@ -145,21 +146,36 @@ function _events:ADDON_LOADED(addonName)
         Addon.Loaded();
     end
 end
-function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
-    Addon.UpdatePlayerInfo();
-    if (isInitialLogin or isReloadingUi) then
-        _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
-        local success, result = pcall(ProfileManager.AddonLoaded);
-        if (not success) then
-            ProfileManager.TriggerErrorState();
-            PopupDisplays.ShowGenericMessage(
-                [["Error loading profiles. Make sure the SavedVariables are correct and restart your game.
-                As long as this message pops up no profile changes will be saved between reloads!
-                To clear the settings type '/macframes reset'.
-                Alternatively you can report this error on github, please attach your MacFrames.lua as a pastebin."]], true);
+do
+    local function ProfileLoadError(err)
+        if (type(err) == "table") then
+            return err;
         else
-            _partyFrame = PartyFrame.create();
-            _raidFrame = RaidFrame.create();
+            return err .. "\n" .. debugstack();
+        end
+    end
+    function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
+        Addon.UpdatePlayerInfo();
+        if (isInitialLogin or isReloadingUi) then
+            _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
+            local success, result = xpcall(ProfileManager.AddonLoaded, ProfileLoadError);
+            if (not success) then
+                ProfileManager.TriggerErrorState();
+                if (type(result) == "table") then
+                    PopupDisplays.ShowGenericMessage(
+[[Error loading profiles: 
+"]]..result.UserMessage..[["
+Make sure the SavedVariables are correct and restart your game.
+As long as this message pops up no profile changes will be saved between reloads!
+To clear the settings type '/macframes reset'.
+Alternatively you can report this error on github, please attach your MacFrames.lua from the WTF folder.]], true);
+                else
+                    error(result);
+                end
+            else
+                _partyFrame = PartyFrame.create();
+                _raidFrame = RaidFrame.create();
+            end
         end
     end
 end

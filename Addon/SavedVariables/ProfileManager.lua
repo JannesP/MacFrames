@@ -29,6 +29,7 @@ ProfileManager.AddonDefaults = L["Addon Defaults"];
 
 local _isErrorState = false;
 
+local _currentSettingsVersion = 0;
 local _profileChangedListeners = {};
 local _characterProfileMapping;
 local _defaultProfileName;
@@ -77,6 +78,21 @@ local function GetProfileForCurrentCharacter()
         resultProfile = _profiles[resultProfileName];
     end
     return resultProfileName, resultProfile;
+end
+
+local function UpdateSavedVarsVersion(svars)
+    if (svars.Version == nil) then
+        error(_p.CreateError("Your settings are too old and cannot be upgraded, sorry :(", nil, true));
+    end
+    while (svars.Version < _currentSettingsVersion) do
+        if (svars.Version == 0) then
+            svars.Version = 1;
+        else
+            if (svars.Version ~= _currentSettingsVersion) then
+                error(_p.CreateError("No upgrade path from settings version " .. tostring(svars.Version) .. " to current version " .. tostring(_currentSettingsVersion) .. " could be found.", nil, true));
+            end
+        end
+    end
 end
 
 function ProfileManager.AddonLoaded()
@@ -136,7 +152,7 @@ function ProfileManager.SelectProfileForSpec(specId, profileName)
 end
 
 function ProfileManager.ResetAddonSettings()
-    if (InCombarLockdown()) then
+    if (InCombatLockdown()) then
         _p.UserChatMessage(L["Cannot reset settings while in combat!"]);
     end
     MacFramesSavedVariables = nil;
@@ -144,6 +160,7 @@ function ProfileManager.ResetAddonSettings()
 end
 
 function ProfileManager.LoadSVars(svars)
+    UpdateSavedVarsVersion(svars);
     _defaultProfileName = svars.DefaultProfileName;
     _characterProfileMapping = svars.CharacterProfileMapping;
     _profiles = {};
@@ -170,6 +187,7 @@ function ProfileManager.BuildSavedVariables()
     svars.DefaultProfileName = _defaultProfileName;
     svars.CharacterProfileMapping = _characterProfileMapping;
     svars.Profiles = {};
+    svars.Version = _currentSettingsVersion;
     for name, profile in pairs(_profiles) do
         svars.Profiles[name] = Profile.GetSVars(profile);
     end
