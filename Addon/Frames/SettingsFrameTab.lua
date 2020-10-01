@@ -347,12 +347,12 @@ do
             UIDropDownMenu_AddButton(info);
         end
     end
-    local dropDownSelectProfileFrame;
+    local dropDownSelectProfileFrames = {};
     local function DropDownSelectProfileOnSelect(self, arg1, arg2, checked)
         local profileName = arg1;
         local spec = arg2;
         ProfileManager.SelectProfileForSpec(spec.SpecId, profileName);
-        UIDropDownMenu_SetText(dropDownSelectProfileFrame, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
+        UIDropDownMenu_SetText(dropDownSelectProfileFrames[spec.SpecId], ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
     end
     local function GetInitDropDownSelectProfile(dropdown, spec)
         return function(frame, level, menuList)
@@ -387,7 +387,7 @@ do
 
         frame.dropDownSelectProfile = CreateFrame("Frame", "MacFramesDropdownSelectProfile" .. spec.SpecId, frame, "UIDropDownMenuTemplate");
         frame.dropDownSelectProfile:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
-        dropDownSelectProfileFrame = frame.dropDownSelectProfile;
+        dropDownSelectProfileFrames[spec.SpecId] = frame.dropDownSelectProfile;
         UIDropDownMenu_SetWidth(frame.dropDownSelectProfile, 120);
         UIDropDownMenu_Initialize(frame.dropDownSelectProfile, GetInitDropDownSelectProfile(frame.dropDownSelectProfile, spec));
         UIDropDownMenu_SetText(frame.dropDownSelectProfile, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));

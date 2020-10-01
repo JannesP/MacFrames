@@ -110,7 +110,6 @@ do
         end
     end
     function UnitFrame.SetSettings(self, settings, suppressUpdate)
-        if (self.unit == "player") then print("UnitFrame.SetSettings") end;
         if (self.propertyChancedHandlers == nil) then
             self.propertyChancedHandlers = {
                 Frames = E(self, UnitFrame.OnSettingChanged, true),
@@ -1163,7 +1162,6 @@ function UnitFrame.UpdateSpecialClassDisplay(self)
 end
 
 function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
-    if (self.unit == "player") then print("Creating class displays.") end;
     if (requiredDisplays == nil) then
         requiredDisplays = SettingsUtil.GetSpecialClassDisplays();
     end
