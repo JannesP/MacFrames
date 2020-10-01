@@ -26,6 +26,8 @@ local PopupDisplays = _p.PopupDisplays;
 PopupDisplays.GenericMessage = "MACFRAMES_GENERIC_MESSAGE";
 PopupDisplays.ResetSavedVariables = "MACFRAMES_RESET_SAVED_VARIABLES";
 PopupDisplays.CopyProfileEnterName = "MACFRAMES_COPY_PROFILE_ENTER_NAME";
+PopupDisplays.RenameProfileEnterName = "MACFRAMES_RENAME_PROFILE_ENTER_NAME";
+PopupDisplays.DeleteProfile = "MACFRAMES_DELETE_PROFILE";
 
 function PopupDisplays.ShowGenericMessage(message, isAlert)
     StaticPopupDialogs[PopupDisplays.GenericMessage].text = message;
@@ -74,9 +76,11 @@ StaticPopupDialogs[PopupDisplays.CopyProfileEnterName] = {
         self.button1:Disable();
     end,
     EditBoxOnTextChanged = function(editBox)
-        if (ProfileManager.IsNewProfileNameValid(editBox:GetText())) then
+        local isValid, reason = ProfileManager.IsNewProfileNameValid(editBox:GetText());
+        if (isValid) then
             editBox:GetParent().button1:Enable();
         else
+            _p.UserChatMessage(L["Profile name invalid: "] .. reason);
             editBox:GetParent().button1:Disable();
         end
     end,
@@ -84,4 +88,60 @@ StaticPopupDialogs[PopupDisplays.CopyProfileEnterName] = {
     timeout = 0,
     whileDead = true,
     hideOnEscape = true,
+}
+
+function PopupDisplays.ShowRenameProfileEnterName(profileToRenameName)
+    StaticPopupDialogs[PopupDisplays.RenameProfileEnterName].text = L["Please enter the new name for the profile \""] .. profileToRenameName .. "\":";
+    local dialog = StaticPopup_Show(PopupDisplays.RenameProfileEnterName);
+    dialog.data = profileToRenameName;
+end
+StaticPopupDialogs[PopupDisplays.RenameProfileEnterName] = {
+    text = "",  --set in the "Show" function
+    button1 = L["Ok"],
+    button2 = L["Cancel"],
+    OnAccept = function(self, data, data2)
+        ProfileManager.RenameProfile(data, self.editBox:GetText());
+    end,
+    OnShow = function(self)
+        self.button1:Disable();
+    end,
+    EditBoxOnTextChanged = function(editBox)
+        local isValid, reason = ProfileManager.IsNewProfileNameValid(editBox:GetText());
+        if (isValid) then
+            editBox:GetParent().button1:Enable();
+        else
+            _p.UserChatMessage(L["Profile name invalid: "] .. reason);
+            editBox:GetParent().button1:Disable();
+        end
+    end,
+    hasEditBox = true,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+}
+
+
+function PopupDisplays.ShowDeleteProfile(profileName)
+    local charactersForProfile = ProfileManager.GetCharacterListForProfileName(profileName);
+    if (#charactersForProfile == 0) then
+        StaticPopupDialogs[PopupDisplays.DeleteProfile].text = L["Do you really want to delete the profile \""] .. profileName .. L["? This cannot be undone."];
+    else
+        local characterListString = table.concat(charactersForProfile, ", ");
+        StaticPopupDialogs[PopupDisplays.DeleteProfile].text = L["This profile is currently in use by "] .. #charactersForProfile ..
+            L["characters. If you delete this profile all usages will be replaced with the default profile.\nCharacters affected: "] .. characterListString;
+    end
+    local dialog = StaticPopup_Show(PopupDisplays.DeleteProfile);
+    dialog.data = profileName;
+end
+StaticPopupDialogs[PopupDisplays.DeleteProfile] = {
+    text = "",  --set in the "Show" function
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function(self, data, data2)
+        ProfileManager.DeleteProfile(data);
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    showAlert = true,
 }

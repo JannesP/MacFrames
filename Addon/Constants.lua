@@ -24,6 +24,7 @@ _p.Constants = {
     AggroBorderDefaultTextureName =  "MacFrames Aggro Border";
     PartyFrameGlobalName = "MacFramesParty",
     RaidFrameGlobalName = "MacFramesRaid",
+    DefaultProfileMarker = "*",
     GroupSize = 5,
     RaidGroupCount = 8,
     TestModeFrameStrata = "MEDIUM",

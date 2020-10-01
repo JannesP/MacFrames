@@ -28,6 +28,8 @@ local PopupDisplays = _p.PopupDisplays;
 _p.SettingsFrameTab = {};
 local SettingsFrameTab = _p.SettingsFrameTab;
 
+local math_max = math.max;
+
 local OptionType = Settings.OptionType;
 local CategoryType = Settings.CategoryType;
 local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateSliderValueEditor, CreateCheckBoxValueEditor;
@@ -169,15 +171,33 @@ do
         local frame = CreateFrame("Frame", parent:GetName() .. "FrameTab" .. _configFramesCount, parent);
         frame.category = category;
         if (category.Type == CategoryType.Profile) then
+            local borderPadding = Constants.TooltipBorderClearance;
+            frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "BackdropTemplate");
+            frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
+            frame.contentContainer:SetAllPoints(frame);
+
+            frame.contentHost = CreateFrame("Frame", frame:GetName() .. "ContentHost", frame.contentContainer);
+            frame.contentHost:SetPoint("TOPLEFT", frame.contentContainer, "TOPLEFT", borderPadding, -borderPadding);
+            frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -borderPadding, borderPadding);
+
             local profileEditor = CreateProfileEditor(frame);
-            profileEditor:SetAllPoints(frame);
+            frame.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, profileEditor);
+            frame.scrollFrame:SetAllPoints();
+            frame.contentHost:SetScript("OnSizeChanged", function(self, width, height)
+                profileEditor:Layout(width, height);
+                frame.scrollFrame:RefreshScrollBarVisibility();
+            end);
+            frame.contentHost:SetScript("OnShow", function(self, width, height)
+                profileEditor:Layout(width, height);
+                frame.scrollFrame:RefreshScrollBarVisibility();
+            end);
             frame.optionSections = {
                 [1] = {
                     options = {
                         [1] = profileEditor,
                     },
                     content = {
-                        Layout = function() end,
+                        Layout = profileEditor.Layout,
                     }
                 },
             };
@@ -221,7 +241,6 @@ do
 
                 uiSection.content = CreateSection(nil, section, 1);
                 uiSection.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, uiSection.content);
-                uiSection.content:SetParent(uiSection.scrollFrame);
                 uiSection.scrollFrame:ClearAllPoints();
                 uiSection.scrollFrame:SetPoint("TOPLEFT", frame.contentHost, "TOPLEFT");
                 uiSection.scrollFrame:SetPoint("BOTTOMRIGHT", frame.contentHost, "BOTTOMRIGHT", 0, 0);
@@ -347,6 +366,39 @@ do
             UIDropDownMenu_AddButton(info);
         end
     end
+
+    local function DropDownRenameProfileOnSelect(self, profileNameArg1, arg2, checked)
+        PopupDisplays.ShowRenameProfileEnterName(profileNameArg1);
+    end
+    local function InitializeDropDownRenameProfile(frame, level, menuList)
+        local info = UIDropDownMenu_CreateInfo();
+        info.func = DropDownRenameProfileOnSelect;
+        info.notCheckable = true;
+
+        local profiles = ProfileManager.GetProfileList();
+        for name, profile in pairs(profiles) do
+            info.text = name;
+            info.arg1 = name;
+            UIDropDownMenu_AddButton(info);
+        end
+    end
+    
+    local function DropDownDeleteProfileOnSelect(self, profileNameArg1, arg2, checked)
+        PopupDisplays.ShowDeleteProfile(profileNameArg1);
+    end
+    local function InitializeDropDownDeleteProfile(frame, level, menuList)
+        local info = UIDropDownMenu_CreateInfo();
+        info.func = DropDownDeleteProfileOnSelect;
+        info.notCheckable = true;
+
+        local profiles = ProfileManager.GetProfileList();
+        for name, profile in pairs(profiles) do
+            info.text = name;
+            info.arg1 = name;
+            UIDropDownMenu_AddButton(info);
+        end
+    end
+
     local dropDownSelectProfileFrames = {};
     local function DropDownSelectProfileOnSelect(self, arg1, arg2, checked)
         local profileName = arg1;
@@ -375,6 +427,7 @@ do
 
     local function CreateProfileSelectForSpec(parent, spec)
         local frame = CreateFrame("Frame", nil, parent);
+        frame.spec = spec;
         frame.textSpecName = FrameUtil.CreateText(frame, spec.Name);
         local textHeight = frame.textSpecName:GetHeight();
         
@@ -386,55 +439,97 @@ do
         frame.textSpecName:SetPoint("LEFT", frame.iconSpec, "RIGHT", textHeight, 0);
 
         frame.dropDownSelectProfile = CreateFrame("Frame", "MacFramesDropdownSelectProfile" .. spec.SpecId, frame, "UIDropDownMenuTemplate");
-        frame.dropDownSelectProfile:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
+        --dropdowns are wider than they actually draw, so the offset of 16 pixels lets it appear in the middle
+        frame.dropDownSelectProfile:SetPoint("RIGHT", frame, "RIGHT", 16, 0);
         dropDownSelectProfileFrames[spec.SpecId] = frame.dropDownSelectProfile;
-        UIDropDownMenu_SetWidth(frame.dropDownSelectProfile, 120);
+        UIDropDownMenu_SetWidth(frame.dropDownSelectProfile, 150);
         UIDropDownMenu_Initialize(frame.dropDownSelectProfile, GetInitDropDownSelectProfile(frame.dropDownSelectProfile, spec));
         UIDropDownMenu_SetText(frame.dropDownSelectProfile, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
 
-        local width = 
-            frame.iconSpec:GetWidth() + frame.textSpecName:GetWidth() + frame.dropDownSelectProfile:GetWidth();
+        local width = frame.iconSpec:GetWidth() + frame.textSpecName:GetWidth() + frame.dropDownSelectProfile:GetWidth();
         frame:SetSize(width, frame.dropDownSelectProfile:GetHeight());
         return frame;
     end
+
+    local function CreateProfileEditorFrame(parent, dropDownNameSuffix, leftText, dropDownText, initFunc)
+        local frame = CreateFrame("Frame", nil, parent);
+        frame.text = FrameUtil.CreateText(frame, leftText);
+        frame.text:SetPoint("LEFT", frame, "LEFT");
+        frame.dropDown = CreateFrame("Frame", "MacFramesDropdown" .. dropDownNameSuffix, frame, "UIDropDownMenuTemplate");
+        frame.dropDown:SetPoint("RIGHT", frame, "RIGHT", 16, 0);
+        UIDropDownMenu_SetWidth(frame.dropDown, 150);
+        UIDropDownMenu_Initialize(frame.dropDown, initFunc);
+        UIDropDownMenu_SetText(frame.dropDown, dropDownText);
+        frame:SetWidth(frame.text:GetWidth() + frame.dropDown:GetWidth());
+        frame:SetHeight(frame.dropDown:GetHeight());
+        return frame;
+    end
+    local _profileEditorFrame;
+    local function RefreshDropDownTexts()
+        local profileSelectors = _profileEditorFrame.profileSelectors;
+        for i=1, #profileSelectors do
+            local selector = profileSelectors[i];
+            UIDropDownMenu_SetText(selector.dropDownSelectProfile, ProfileManager.GetSelectedProfileNameForSpec(selector.spec.SpecId));
+        end
+    end
     CreateProfileEditor = function(parent)
-        local frame = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate");
-        frame:SetBackdrop(BACKDROP_TOOLTIP_0_16);
-        frame.content = CreateFrame("Frame", nil, frame);
-        frame.content:SetPoint("TOPLEFT", frame, "TOPLEFT", Constants.TooltipBorderClearance, -Constants.TooltipBorderClearance);
-        frame.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -Constants.TooltipBorderClearance, Constants.TooltipBorderClearance);
-        frame.content.textCreateNew = FrameUtil.CreateText(frame.content, L["Create new profile from:"]);
-        frame.content.textCreateNew:SetPoint("TOPLEFT", frame.content, "TOPLEFT");
-        frame.content.dropDownCreateNew = CreateFrame("Frame", "MacFramesDropdownCreateProfile", frame.content, "UIDropDownMenuTemplate");
-        frame.content.dropDownCreateNew:SetPoint("TOPLEFT", frame.content.textCreateNew, "TOPRIGHT");
-        UIDropDownMenu_SetWidth(frame.content.dropDownCreateNew, 120);
-        UIDropDownMenu_Initialize(frame.content.dropDownCreateNew, InitializeDropDownCreateProfile);
-        UIDropDownMenu_SetText(frame.content.dropDownCreateNew, L["select profile to copy"]);
+        local frame = CreateFrame("Frame", nil, parent);
+        _profileEditorFrame = frame;
+        local largestWidth = 0;
+        local totalHeight = 0;
+
+        local frameCreateNewProfile = CreateProfileEditorFrame(frame, "CreateProfile", L["Create new profile:"], L["select profile to copy"], InitializeDropDownCreateProfile);
+        frameCreateNewProfile:SetPoint("TOP", frame, "TOP");
+        largestWidth = math_max(largestWidth, frameCreateNewProfile:GetWidth());
+        totalHeight = totalHeight + frameCreateNewProfile:GetHeight();
+
+        local frameRenameProfile = CreateProfileEditorFrame(frame, "RenameProfile", L["Rename a profile:"], L["select profile to rename"], InitializeDropDownRenameProfile);
+        frameRenameProfile:SetPoint("TOP", frameCreateNewProfile, "BOTTOM");
+        largestWidth = math_max(largestWidth, frameRenameProfile:GetWidth());
+        totalHeight = totalHeight + frameRenameProfile:GetHeight();
+
+        local frameDeleteProfile = CreateProfileEditorFrame(frame, "DeleteProfile", L["Delete a profile:"], L["select profile to delete"], InitializeDropDownDeleteProfile);
+        frameDeleteProfile:SetPoint("TOP", frameRenameProfile, "BOTTOM");
+        largestWidth = math_max(largestWidth, frameDeleteProfile:GetWidth());
+        totalHeight = totalHeight + frameDeleteProfile:GetHeight();
+
+        frame.seperatorProfileSelect = CreateSectionSeperator(frame, L["Select Profiles"]);
+        frame.seperatorProfileSelect:SetPoint("TOP", frameDeleteProfile, "BOTTOM");
+        frame.seperatorProfileSelect:SetPoint("LEFT", frame, "LEFT");
+        frame.seperatorProfileSelect:SetPoint("RIGHT", frame, "RIGHT");
+        frame.seperatorProfileSelect:Show();
+        totalHeight = totalHeight + frame.seperatorProfileSelect:GetHeight();
         
-        local biggestWidth = 0;
-        frame.content.profileSelectors = {};
+        frame.profileSelectors = {};
+        local profileSelectors = frame.profileSelectors;
         local lastFrame = nil;
         local specs = PlayerInfo.ClassSpecializations;
         for i=1, #specs do
-            local profileSelector = CreateProfileSelectForSpec(frame.content, specs[i]);
+            local profileSelector = CreateProfileSelectForSpec(frame, specs[i]);
             if (lastFrame == nil) then
-                profileSelector:SetPoint("TOP", frame, "TOP", 0, -100);
+                profileSelector:SetPoint("TOP", frame.seperatorProfileSelect, "BOTTOM", 0, -5);
+                totalHeight = totalHeight + 5;
             else
                 profileSelector:SetPoint("TOP", lastFrame, "BOTTOM", 0, 0);
             end
-            local width = profileSelector:GetWidth();
-            if (biggestWidth < width) then
-                biggestWidth = width;
-            end
-            tinsert(frame.content.profileSelectors, profileSelector);
+            largestWidth = math_max(largestWidth, profileSelector:GetWidth());
+            totalHeight = totalHeight + profileSelector:GetHeight();
+            tinsert(profileSelectors, profileSelector);
             lastFrame = profileSelector;
         end
-        local profileSelectors = frame.content.profileSelectors;
+
+        frameCreateNewProfile:SetWidth(largestWidth);
+        frameRenameProfile:SetWidth(largestWidth);
+        frameDeleteProfile:SetWidth(largestWidth);
         for i=1, #profileSelectors do
-            profileSelectors[i]:SetWidth(biggestWidth);
+            profileSelectors[i]:SetWidth(largestWidth);
         end
 
-        frame.RefreshFromProfile = function() end
+        frame.RefreshFromProfile = function() end;
+        frame.Layout = function() end;
+        frame:SetHeight(totalHeight);
+
+        ProfileManager.RegisterProfileListChangedListener(RefreshDropDownTexts);
         return frame;
     end
 end

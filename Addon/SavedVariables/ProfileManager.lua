@@ -25,12 +25,14 @@ local PlayerInfo = _p.PlayerInfo;
 _p.ProfileManager = {};
 local ProfileManager  = _p.ProfileManager;
 
-ProfileManager.AddonDefaults = L["Addon Defaults"];
+local _defaultProfileMarker = Constants.DefaultProfileMarker;
+ProfileManager.AddonDefaults = _defaultProfileMarker .. L["Addon Defaults"] .. _defaultProfileMarker;
 
 local _isErrorState = false;
 
 local _currentSettingsVersion = 0;
 local _profileChangedListeners = {};
+local _profileListChangedListeners = {};
 local _characterProfileMapping;
 local _defaultProfileName;
 local _currentProfile, _currentProfileName;
@@ -40,6 +42,28 @@ local function OnProfileChanged(newProfile)
     for listener, _ in pairs(_profileChangedListeners) do
         listener(newProfile);
     end
+end
+
+function ProfileManager.RegisterProfileChangedListener(Callback)
+    _profileChangedListeners[Callback] = true;
+end
+
+function ProfileManager.UnregisterProfileChangedListener(Callback)
+    _profileChangedListeners[Callback] = nil;
+end
+
+local function OnProfileListChanged()
+    for listener, _ in pairs(_profileListChangedListeners) do
+        listener();
+    end
+end
+
+function ProfileManager.RegisterProfileListChangedListener(Callback)
+    _profileListChangedListeners[Callback] = true;
+end
+
+function ProfileManager.UnregisterProfileListChangedListener(Callback)
+    _profileListChangedListeners[Callback] = nil;
 end
 
 local function GetCurrentCharacterKey()
@@ -209,14 +233,6 @@ function ProfileManager.SetActiveProfile(name)
     end
 end
 
-function ProfileManager.RegisterProfileChangedListener(Callback)
-    _profileChangedListeners[Callback] = true;
-end
-
-function ProfileManager.UnregisterProfileChangedListener(Callback)
-    _profileChangedListeners[Callback] = nil;
-end
-
 function ProfileManager.TriggerErrorState()
     _isErrorState = true;
 end
@@ -232,6 +248,8 @@ function ProfileManager.IsNewProfileNameValid(name)
         return false, L["This name is already in use!"];
     elseif (#name == 0) then
         return false, L["The name cannot be empty!"];
+    elseif (string.find(name, _defaultProfileMarker) ~= nil) then
+        return false, L["Profile names cannot contain '"] .. _defaultProfileMarker .. "'!";
     else
         return true;
     end
@@ -251,4 +269,68 @@ function ProfileManager.CreateProfileCopy(oldProfileName, newProfileName)
             _profiles[newProfileName] = Profile.Load(Profile.GetSVars(oldProfile));
         end
     end
+    OnProfileListChanged();
+end
+
+function ProfileManager.RenameProfile(oldProfileName, newProfileName)
+    if (oldProfileName == newProfileName) then
+        return; --nothing changed
+    end
+    local isNewNameValid, newNameError = ProfileManager.IsNewProfileNameValid(newProfileName);
+    if (not isNewNameValid) then
+        _p.UserChatMessage(newNameError);
+        return;
+    end
+    _profiles[newProfileName] = _profiles[oldProfileName];
+    _profiles[oldProfileName] = nil;
+    for characterKey, specMapping in pairs(_characterProfileMapping) do
+        for spec, selectedProfile in pairs(specMapping) do
+            if (selectedProfile == oldProfileName) then
+                specMapping[spec] = newProfileName;
+            end
+        end
+    end
+    if (oldProfileName == _currentProfileName) then
+        ProfileManager.SetActiveProfile(newProfileName);
+    end
+    OnProfileListChanged();
+end
+
+do
+    local characterListReturnValue = {};
+    function ProfileManager.GetCharacterListForProfileName(profileName)
+        wipe(characterListReturnValue);
+        for characterKey, specMapping in pairs(_characterProfileMapping) do
+            for spec, selectedProfile in pairs(specMapping) do
+                if (selectedProfile == profileName) then
+                    tinsert(characterListReturnValue, characterKey);
+                    break;
+                end
+            end
+        end
+        return characterListReturnValue;
+    end
+end
+
+function ProfileManager.DeleteProfile(profileName)
+    if (_profiles[profileName] == nil) then
+        return; -- nothing changed
+    end
+    local setDefaultProfile = false;
+    for characterKey, specMapping in pairs(_characterProfileMapping) do
+        for spec, selectedProfile in pairs(specMapping) do
+            if (selectedProfile == profileName) then
+                specMapping[spec] = _defaultProfileName;
+                if (setDefaultProfile == false) then
+                    setDefaultProfile = true;
+                end
+            end
+        end
+    end
+    if (setDefaultProfile == true) then
+        -- create default profile if it doesn't exist
+        ProfileManager.GetDefaultProfile();
+    end
+    _profiles[profileName] = nil;
+    OnProfileListChanged();
 end
