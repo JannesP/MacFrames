@@ -51,12 +51,14 @@ local Settings = _p.Settings;
 Settings.Categories = {}
 Settings.OptionType = {
     SliderValue = "SliderValue",
-    ProfileSelector = "ProfileSelector",
     CheckBox = "CheckBox",
+    NotYetImplemented = "NotYetImplemented",
 }
 Settings.CategoryType = {
-    Profile = "profile",
-    Options = "options",
+    Profile = "Profile",
+    MouseActions = "MouseActions",
+    AuraBlacklist = "AuraBlacklist",
+    Options = "Options",
 }
 
 local OptionType = Settings.OptionType;
@@ -247,11 +249,11 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
     });
     
-    local classDisplayOptions = {
-        Name = L["Class Displays"],
-        Options = {},
-    }
+    local classDisplayOptions = CreateSection(L["Class Displays"]);
     tinsert(unitFrameOptions, classDisplayOptions);
+    local classDisplayCategoryConfigureAuras = CreateSection(L["Displayed Auras"]);
+    tinsert(classDisplayOptions.Sections, classDisplayCategoryConfigureAuras);
+    
     tinsert(classDisplayOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
@@ -276,6 +278,15 @@ local function AddUnitFrameOptions(targetSections, PS)
             return PS().SpecialClassDisplay.iconHeight;
         end,
     });
+
+    tinsert(classDisplayCategoryConfigureAuras.Options, {
+        Name = L["Aura Selector"],
+        Type = OptionType.NotYetImplemented,
+        Set = function(value)
+        end,
+        Get = function()
+        end,
+    })
     
     tinsert(unitFrameOptions, CreateAuraGroupOptions("Defensives", function() return PS().DefensiveBuff; end));
     tinsert(unitFrameOptions, CreateAuraGroupOptions("Boss Auras", function() return PS().BossAuras; end));
@@ -312,6 +323,16 @@ tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
     end,
 });
 tinsert(Settings.Categories, _partyFrames);
+
+tinsert(Settings.Categories, {
+    Name = L["Mouse Actions"],
+    Type = Settings.CategoryType.MouseActions,
+});
+
+tinsert(Settings.Categories, {
+    Name = L["Aura Blacklist"],
+    Type = Settings.CategoryType.AuraBlacklist,
+});
 
 tinsert(Settings.Categories, {
     Name = L["Profiles"],

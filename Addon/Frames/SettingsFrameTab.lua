@@ -32,7 +32,7 @@ local math_max = math.max;
 
 local OptionType = Settings.OptionType;
 local CategoryType = Settings.CategoryType;
-local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateSliderValueEditor, CreateCheckBoxValueEditor;
+local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateMouseActionEditor, CreateSliderValueEditor, CreateCheckBoxValueEditor, CreateNotYetImplementedEditor;
 
 local _innerMargin = 10;
 local _innserSpacing = 5;
@@ -80,6 +80,7 @@ local _tabPanelCount = 0;
 local _configFramesCount = 0;
 
 do
+    local _borderPadding = Constants.TooltipBorderClearance;
     local function Section_Layout(self, width, height)
         local height = 0;
         if (self.seperator) then
@@ -166,31 +167,33 @@ do
         SettingsFrameTab.SectionSelected(self.settingsFrameTab);
         TabPanel_Reflow(parent);
     end
+    local function SetupContentScrollContainer(parent, content)
+        parent.contentContainer = CreateFrame("Frame", parent:GetName() .. "ContentContainer", parent, BackdropTemplateMixin and "BackdropTemplate");
+        parent.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
+        parent.contentContainer:SetAllPoints(parent);
+
+        parent.contentHost = CreateFrame("Frame", parent:GetName() .. "ContentHost", parent.contentContainer);
+        parent.contentHost:SetPoint("TOPLEFT", parent.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
+        parent.contentHost:SetPoint("BOTTOMRIGHT", parent.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
+
+        parent.scrollFrame = FrameUtil.CreateVerticalScrollFrame(parent.contentHost, content);
+        parent.scrollFrame:SetAllPoints();
+        parent.contentHost:SetScript("OnSizeChanged", function(self, width, height)
+            content:Layout(width, height);
+            parent.scrollFrame:RefreshScrollBarVisibility();
+        end);
+        parent.contentHost:SetScript("OnShow", function(self, width, height)
+            content:Layout(width, height);
+            parent.scrollFrame:RefreshScrollBarVisibility();
+        end);
+    end
     function SettingsFrameTab.Create(parent, category)
         _configFramesCount = _configFramesCount + 1;
         local frame = CreateFrame("Frame", parent:GetName() .. "FrameTab" .. _configFramesCount, parent);
         frame.category = category;
         if (category.Type == CategoryType.Profile) then
-            local borderPadding = Constants.TooltipBorderClearance;
-            frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "BackdropTemplate");
-            frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
-            frame.contentContainer:SetAllPoints(frame);
-
-            frame.contentHost = CreateFrame("Frame", frame:GetName() .. "ContentHost", frame.contentContainer);
-            frame.contentHost:SetPoint("TOPLEFT", frame.contentContainer, "TOPLEFT", borderPadding, -borderPadding);
-            frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -borderPadding, borderPadding);
-
             local profileEditor = CreateProfileEditor(frame);
-            frame.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, profileEditor);
-            frame.scrollFrame:SetAllPoints();
-            frame.contentHost:SetScript("OnSizeChanged", function(self, width, height)
-                profileEditor:Layout(width, height);
-                frame.scrollFrame:RefreshScrollBarVisibility();
-            end);
-            frame.contentHost:SetScript("OnShow", function(self, width, height)
-                profileEditor:Layout(width, height);
-                frame.scrollFrame:RefreshScrollBarVisibility();
-            end);
+            SetupContentScrollContainer(frame, profileEditor);
             frame.optionSections = {
                 [1] = {
                     options = {
@@ -201,8 +204,34 @@ do
                     }
                 },
             };
+        elseif (category.Type == CategoryType.MouseActions) then
+            local mouseActionEditor = CreateMouseActionEditor(frame);
+            SetupContentScrollContainer(frame, mouseActionEditor);
+            frame.optionSections = {
+                [1] = {
+                    options = {
+                        [1] = mouseActionEditor,
+                    },
+                    content = {
+                        Layout = mouseActionEditor.Layout,
+                    }
+                },
+            };
+        elseif (category.Type == CategoryType.AuraBlacklist) then
+            local auraBlacklistEditor = CreateAuraBlacklistEditor(frame);
+            SetupContentScrollContainer(frame, auraBlacklistEditor);
+            frame.optionSections = {
+                [1] = {
+                    options = {
+                        [1] = auraBlacklistEditor,
+                    },
+                    content = {
+                        Layout = auraBlacklistEditor.Layout,
+                    }
+                },
+            };
+            
         elseif (category.Type == CategoryType.Options) then
-            local borderPadding = Constants.TooltipBorderClearance;
             frame.type = category.Type;
             frame.optionSections = {};
 
@@ -215,14 +244,14 @@ do
             frame.tabPanelSectionSelector:SetScript("OnSizeChanged", TabPanel_Reflow);
             frame.tabPanelSectionSelector:SetScript("OnShow", TabPanel_Reflow);
 
-            frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "BackdropTemplate");
-            frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
+            frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "TooltipBorderBackdropTemplate");
+            --frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
             frame.contentContainer:SetPoint("TOPLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
             frame.contentContainer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
 
             frame.contentHost = CreateFrame("Frame", frame:GetName() .. "ContentHost", frame.contentContainer);
-            frame.contentHost:SetPoint("TOPLEFT", frame.contentContainer, "TOPLEFT", borderPadding, -borderPadding);
-            frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -borderPadding, borderPadding);
+            frame.contentHost:SetPoint("TOPLEFT", frame.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
+            frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
 
             local lastTabButton = nil;
             for n=1, #category.Sections do
@@ -335,12 +364,12 @@ CreateTabSectionSelector = function(parent, tabIndex, text)
 end
 
 CreateEditor = function(parent, option)
-    if (option.Type == OptionType.ProfileSelector) then
-        return CreateProfileEditor(parent, option);
-    elseif (option.Type == OptionType.SliderValue) then
+    if (option.Type == OptionType.SliderValue) then
         return CreateSliderValueEditor(parent, option);
     elseif (option.Type == OptionType.CheckBox) then
         return CreateCheckBoxValueEditor(parent, option);
+    elseif (option.Type == OptionType.NotYetImplemented) then
+        return CreateNotYetImplementedEditor(parent, option);
     else
         error("Option type '" .. option.Type .. "' not implemented!");
     end
@@ -533,6 +562,33 @@ do
         return frame;
     end
 end
+
+do
+    CreateMouseActionEditor = function(parent)
+        local frame = CreateFrame("Frame", nil, parent);
+        frame.text = FrameUtil.CreateText(frame, "MouseActionEditor not yet implemented :(");
+        frame.text:SetPoint("CENTER", frame, "CENTER");
+
+        frame.RefreshFromProfile = function() end;
+        frame.Layout = function() end;
+        frame:SetHeight(100);
+        return frame;
+    end
+end
+
+do
+    CreateAuraBlacklistEditor = function(parent)
+        local frame = CreateFrame("Frame", nil, parent);
+        frame.text = FrameUtil.CreateText(frame, "AuraBlacklistEditor not yet implemented :(");
+        frame.text:SetPoint("CENTER", frame, "CENTER");
+
+        frame.RefreshFromProfile = function() end;
+        frame.Layout = function() end;
+        frame:SetHeight(100);
+        return frame;
+    end
+end
+
 do
     local function EditorOnChange(handler)
         return function(...)
@@ -658,6 +714,16 @@ do
         end));
         frame.RefreshFromProfile = function(self)
             checkBox:SetChecked(option.Get());
+        end
+        return frame;
+    end
+
+    CreateNotYetImplementedEditor = function(parent, option)
+        local frame = CreateFrameWithHeading(parent, option.Name);
+        local text = FrameUtil.CreateText(frame, "Not yet implemented :(");
+        text:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
+        text:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0);
+        frame.RefreshFromProfile = function(self)
         end
         return frame;
     end
