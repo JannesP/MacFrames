@@ -87,8 +87,12 @@ do
         if (type(key) ~= "number" or key ~= math.floor(key)) then
             error("Only integers can be used on array settings!");
         end
+        print("Changing ", key, " value: ", tostring(value));
         self._settings[key] = value;
         self:OnPropertyChanged(key);
+    end
+    local function ArrayWrapper_Metatable__len(self)
+        return #self._settings;
     end
     local function ArrayWrapper_Add(self, value)
         tinsert(self._settings, value);
@@ -135,10 +139,14 @@ do
                 UnregisterAllPropertyChanged = Wrapper_UnregisterPropertyChanged,
                 GetRawEntries = Wrapper_GetRawEntries,
                 Add = ArrayWrapper_Add,
-                ArrayWrapper_Remove = ArrayWrapper_Remove,
+                Remove = ArrayWrapper_Remove,
+                Length = ArrayWrapper_Metatable__len,
             }, {
                 __index = Wrapper_Metatable__index,
                 __newindex = ArrayWrapper_Metatable__newindex,
+                --this sadly doesn't work since wow is using lua 5.1 and the feature requires lua 5.2+
+                --please use Length() instead
+                __len = ArrayWrapper_Metatable__len,
             }
         );
     end

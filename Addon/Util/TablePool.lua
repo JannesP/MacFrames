@@ -23,25 +23,35 @@ local TablePool = _p.TablePool;
 
 function TablePool.Create(resetFunc)
     local pool = setmetatable({}, { __index = TablePool });
+    pool.canCreate = true;
     pool.resetFunc = resetFunc;
-    pool.tablePool = {};
+    pool.pool = {};
     return pool;
 end
 
 function TablePool:Take()
     local result;
-    local pool = self.tablePool;
+    local pool = self.pool;
     local poolSize = #pool;
     if (poolSize == 0) then
-        result = {};
+        if (self.canCreate == true) then
+            result = {};
+        else
+            result = nil;
+        end
     else
         result = pool[poolSize];
         pool[poolSize] = nil;
     end
-    self.resetFunc(result);
     return result;
 end
 
 function TablePool:Put(table)
-    self.tablePool[#self.tablePool + 1] = table;
+    local pool = self.pool;
+    pool[#pool + 1] = table;
+    self.resetFunc(table);
+end
+
+function TablePool:SetCanCreate(canCreate)
+    self.canCreate = canCreate;
 end

@@ -45,7 +45,33 @@ function FrameUtil.CreateSolidTexture(frame, ...)
     tex:SetAllPoints();
     return tex;
 end
-
+do
+    local function OnEnter(self)
+        if (self.tooltipText ~= nil) then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+            GameTooltip:SetText(self.tooltipText, unpack(self.tooltipColor));
+            GameTooltip:Show();
+        end
+    end
+    local function OnLeave(self)
+        GameTooltip:Hide();
+    end
+    local function OnHide(self)
+        if (GameTooltip:GetOwner() == self) then
+            GameTooltip:Hide();
+        end
+    end
+    function FrameUtil.CreateTextTooltip(frame, text, ...)
+        if (frame.tooltipText == nil) then
+            frame:EnableMouse();
+            frame:HookScript("OnEnter", OnEnter);
+            frame:HookScript("OnLeave", OnLeave);
+            frame:HookScript("OnHide", OnHide);
+        end
+        frame.tooltipColor = { ... };
+        frame.tooltipText = text;
+    end
+end
 do
     local FramePixelBorder = {};
     FramePixelBorder.__index = FramePixelBorder;
@@ -271,7 +297,7 @@ do
 end
 
 function FrameUtil.CreateTextButton(parent, nameSuffix, text, onClickHandler)
-    local b = CreateFrame("Button", parent:GetName() .. "Button" .. nameSuffix, parent, "UIPanelButtonTemplate");
+    local b = CreateFrame("Button", nameSuffix and (parent:GetName() .. "Button" .. nameSuffix), parent, "UIPanelButtonTemplate");
     b:SetText(text);
     b:SetScript("OnClick", onClickHandler);
     FrameUtil.WidthByText(b, b.Text);
@@ -405,5 +431,97 @@ do
 
         counter = counter + 1;
         return scroll;
+    end
+end
+
+function FrameUtil.GetIconZoomTransform(zoom)
+    return 0 + zoom, 0 + zoom, 0 + zoom, 1 - zoom, 1 - zoom, 0 + zoom, 1 - zoom, 1 - zoom;
+end
+
+local _standardIconTransform = { FrameUtil.GetIconZoomTransform(0.1) };
+function FrameUtil.GetStandardIconZoomTransform()
+    return unpack(_standardIconTransform);
+end
+
+function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
+    if (gridFrame.frameUtilGridData == nil) then
+        gridFrame.frameUtilGridData = {
+            descriptor = gridDescriptor,
+            headings = {},
+        };
+    end
+    local gridData = gridFrame.frameUtilGridData;
+
+    local rowItems = gridFrame[gridDescriptor.childListPropertyName];
+    local rowSpacing = gridDescriptor.rowSpacing;
+    local columnSpacing = gridDescriptor.columnSpacing;
+    local currentX = 0;
+    local currentY = 0;
+
+    local flexibleColumns = 0;
+    local totalVisibleColumns = 0;
+    local totalWidth = gridFrame[gridDescriptor.gridFramePropertyName]:GetWidth();
+    local freeWidth = totalWidth;
+    for i=1, #gridDescriptor do
+        local column = gridDescriptor[i];
+        if (column.visible) then
+            totalVisibleColumns = totalVisibleColumns + 1;
+            if (column.width == "*") then
+                flexibleColumns = flexibleColumns + 1;
+            else
+                freeWidth = freeWidth - column.width;
+            end
+        end
+    end
+    local flexibleWidth = (freeWidth - ((totalVisibleColumns - 1) * columnSpacing)) / flexibleColumns;
+    local rowHeight = gridDescriptor.rowHeight;
+    
+    for i=1, #gridDescriptor do
+        local descriptor = gridDescriptor[i];
+        if (descriptor.visible) then
+            if (currentX > 0) then  --add column spacing after the first row
+                currentX = currentX + columnSpacing;
+            end
+            
+            local columnWidth;
+            if (descriptor.width == "*") then
+                columnWidth = flexibleWidth;
+            else
+                columnWidth = descriptor.width;
+            end
+
+            currentY = 0;
+            --create heading
+            local heading = gridData.headings[i];
+            if (gridData.headings[i] == nil) then
+                heading = FrameUtil.CreateFrameWithText(gridFrame[gridDescriptor.gridFramePropertyName], nil, descriptor.heading, nil);
+                gridData.headings[i] = heading;
+            else
+                heading.text:SetText(descriptor.heading);
+            end
+            heading:SetWidth(columnWidth);
+            heading:SetHeight(select(2, heading.text:GetFont()));
+            heading:ClearAllPoints();
+            heading:SetPoint("TOPLEFT", gridFrame[gridDescriptor.gridFramePropertyName], "TOPLEFT", currentX, -currentY);
+            currentY = currentY + heading:GetHeight() + rowSpacing;
+            
+            for i=1, #rowItems do
+                if (currentY > 0) then
+                    currentY = currentY + rowSpacing;
+                end
+                local rowItem = rowItems[i];
+                local cell = rowItem[descriptor.cellFramePropertyName];
+                cell:ClearAllPoints();
+                cell:SetWidth(columnWidth);
+                cell:SetHeight(rowHeight);
+                cell:SetPoint("TOPLEFT", gridFrame[gridDescriptor.gridFramePropertyName], "TOPLEFT", currentX, -currentY);
+                currentY = currentY + rowHeight;
+            end
+            currentX = currentX + columnWidth;
+        end
+    end
+    gridFrame[gridDescriptor.gridFramePropertyName]:SetHeight(currentY);
+    if (gridFrame[gridDescriptor.gridFramePropertyName]:GetWidth() ~= currentX) then
+        print("Unexpected! Actual width: ", gridFrame:GetWidth(), " (filled width ", currentX, ")");
     end
 end

@@ -352,17 +352,22 @@ local _clickBindingDefaults = {
         alt = false,
         ctrl = false,
         shift = false,
-        type = "target", 
-        button = "1",
-        helpHarm = "help",
+        button = "1",       --a mouse button for use with SetAttribute
+        helpHarm = "help",  --unused for now but defaults to 'help' in case I want to make target frames at some point
+        type = "target",    --a type for use with SetAttribute
+        spellId = nil,      --spellId for language changes
+        spellName = nil,    --translated spell name for use with SetAttribute
+        itemSelector = nil, --macro item slot or item name
     },
     [2] = {
         alt = false,
         ctrl = false,
         shift = false,
-        type = "togglemenu",
         button = "2",
         helpHarm = "help",
+        type = "togglemenu",
+        spellName = nil,
+        itemSelector = nil,
     },
 };
 local numClasses = GetNumClasses();

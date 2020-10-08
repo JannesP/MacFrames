@@ -19,19 +19,138 @@
 local ADDON_NAME, _p = ...; 
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
+local Settings = _p.Settings;
+local L = _p.L;
 
-local SettingsUtil = {
-    GetSpecialClassDisplays = function()
-        if (PlayerInfo.class == nil or PlayerInfo.specId == nil) then
-            return nil;
+_p.SettingsUtil = {};
+local SettingsUtil = _p.SettingsUtil;
+function SettingsUtil.GetSpecialClassDisplays()
+    if (PlayerInfo.class == nil or PlayerInfo.specId == nil) then
+        return nil;
+    end
+    local classDisplay = ProfileManager.GetCurrent().SpecialClassDisplays[PlayerInfo.class][PlayerInfo.specId];
+    if (classDisplay ~= nil) then
+        classDisplay = classDisplay:GetRawEntries();
+    else
+        classDisplay = nil;
+    end
+    return classDisplay;
+end
+
+--[[
+{ 
+    alt = false,
+    ctrl = false,
+    shift = false,
+    button = "1",       --a mouse button for use with SetAttribute
+    helpHarm = "help",  --unused for now but defaults to 'help' in case I want to make target frames at some point
+    type = "target",    --a type for use with SetAttribute
+    spellId = nil,      --spellId for language changes (used with GetSpellInfo to fill spellName)
+    spellName = nil,    --translated spell name for use with SetAttribute
+    itemSelector = nil, --macro item slot or anything language agnostic to use with GetItemInfo
+    itemName = nil,     --translated item name/item slot for use with SetAttribute
+}
+]]
+local _checkedBindings = setmetatable({}, { __mode = "k" });    --created with weak key references
+local _bindingTypes = Settings.ValidMouseActionBindingTypes;
+local _bindingButtonAttributeMapping = Settings.MouseActionButtonAttributeMapping;
+local function ProcessType(actionList, indexToCheck, toCheck)
+    local hasValidSelection = false;
+    for i=1, #_bindingTypes do
+        if (_bindingTypes[i].value == toCheck.type) then
+            hasValidSelection = true;
+            break;
         end
-        local classDisplay = ProfileManager.GetCurrent().SpecialClassDisplays[PlayerInfo.class][PlayerInfo.specId];
-        if (classDisplay ~= nil) then
-            classDisplay = classDisplay:GetRawEntries();
+    end
+    if (hasValidSelection == true) then
+        return true, nil;
+    else
+        return false, L["Binding type is not selected."];
+    end
+end
+local function ProcessTypeArguments(actionList, indexToCheck, toCheck)
+    local isValid, errorMessage;
+    if (toCheck.type == "spell") then
+        local name = GetSpellInfo(toCheck.spellId);
+        toCheck.spellName = name;
+        if (name == nil) then
+            isValid, errorMessage = false, L["The spell is not valid."];
         else
-            classDisplay = nil;
+            isValid, errorMessage = true, nil;
         end
-        return classDisplay;
-    end,
-};
-_p.SettingsUtil = SettingsUtil;
+    elseif (toCheck.type == "item") then
+        if (toCheck.itemSelector == nil) then
+            isValid, errorMessage = false, L["The item selector is not valid."];
+        else
+            local itemSelectorAsNum = tonumber(toCheck.itemSelector);
+            if (itemSelectorAsNum == nil) then
+                if (type(toCheck.itemSelector) == "string") then
+                    --other items are also always valid since GetItemInfo might query the data asynchronously and I can't be bothered to implement this at the moment
+                    --https://wow.gamepedia.com/API_GetItemInfo#Details
+                    isValid, errorMessage = true, nil;
+                end
+            else
+                if (itemSelectorAsNum == math.floor(itemSelectorAsNum)) then
+                    if (itemSelectorAsNum <= 23) then   --character item slots are always valid (engi enchants, trinkets etc)
+                        isValid, errorMessage = true, nil;
+                    else
+                        isValid, errorMessage = false, L["Item IDs are not supported. Use the item name instead."];
+                    end
+                end
+            end
+        end
+        
+    else
+        isValid, errorMessage = true, nil;
+    end
+    return isValid, errorMessage;
+end
+local function ProcessMouseBinding(actionList, indexToCheck, toCheck)
+    local isValid, errorMessage;
+    if (toCheck.button == nil) then
+        isValid, errorMessage = false, L["Binding not set."];
+    else
+        --check for duplicates ... yes this has a quadratic runtime since it's run on all elements, but you won't get large collections here
+        local duplicate = false;
+        for i=1, actionList:Length() do
+            if (i ~= indexToCheck) then
+                local otherAction = actionList[i];
+                if (otherAction.alt == toCheck.alt and otherAction.ctrl == toCheck.ctrl and otherAction.shift == toCheck.shift and otherAction.button == toCheck.button) then
+                    --same keybind
+                    duplicate = true;
+                    break;
+                end
+            end
+        end
+        if (duplicate == false) then
+            isValid, errorMessage = true, nil;
+        else
+            isValid, errorMessage = false, L["This binding already exists."];
+        end
+    end
+    return isValid, errorMessage;
+end
+function SettingsUtil.ProcessMouseAction(actionList, indexToCheck, forceCheck)
+    local toCheck = actionList[indexToCheck];
+    local checkResult = _checkedBindings[toCheck];
+    if (forceCheck == true or (toCheck._changed == true or checkResult == nil)) then
+        if (checkResult == nil) then
+            checkResult = {};
+            _checkedBindings[toCheck] = checkResult;
+        end
+        toCheck._changed = false;
+        checkResult.isValid = nil;
+        checkResult.errorMessage = nil;
+    
+        checkResult.isValid, checkResult.errorMessage = ProcessType(actionList, indexToCheck, toCheck);
+    
+        if (checkResult.isValid) then
+            checkResult.isValid, checkResult.errorMessage = ProcessTypeArguments(actionList, indexToCheck, toCheck);
+        end
+
+        if (checkResult.isValid) then
+            checkResult.isValid, checkResult.errorMessage = ProcessMouseBinding(actionList, indexToCheck, toCheck);
+        end
+    end
+    return checkResult.isValid, checkResult.errorMessage;
+end

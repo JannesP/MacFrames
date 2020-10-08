@@ -42,7 +42,6 @@ Settings\Settings.lua
 
 Util\TablePool.lua
 Util\FramePool.lua
-Util\PixelUtil.lua
 Util\SettingsUtil.lua
 Util\MyAuraUtil.lua
 Util\FrameUtil.lua

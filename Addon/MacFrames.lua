@@ -77,7 +77,7 @@ function Addon.EnteringCombat()
 end
 
 function Addon.UpdatePlayerInfo()
-    local _, englishClass, _ = UnitClass("player");
+    local _, englishClass, classId = UnitClass("player");
     if (PlayerInfo.ClassSpecializations == nil) then
         local numSpecs = GetNumSpecializations();
         PlayerInfo.ClassSpecializations = {};
@@ -95,8 +95,9 @@ function Addon.UpdatePlayerInfo()
     local currentSpecIndex = GetSpecialization();
     local currentSpec = PlayerInfo.ClassSpecializations[currentSpecIndex];
     local changedInfo = false;
-    if (PlayerInfo.class ~= englishClass) then
+    if (PlayerInfo.classId ~= classId) then
         PlayerInfo.class = englishClass;
+        PlayerInfo.classId = classId;
         changedInfo = true;
     end
     if (PlayerInfo.specId ~= currentSpec.SpecId) then

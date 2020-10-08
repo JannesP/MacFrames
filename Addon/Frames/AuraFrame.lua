@@ -31,7 +31,7 @@ AuraFrame.ColoringMode = {
 };
 local ColoringMode = AuraFrame.ColoringMode;
 
-local _framePool = _p.FramePool.new();
+local _framePool = _p.FramePool.Create();
 
 function AuraFrame.new(parent, width, height, zoom)
     local frame = _framePool:Take();
@@ -52,7 +52,7 @@ function AuraFrame.new(parent, width, height, zoom)
     if (zoom == nil) then
         frame.icon:SetTexCoord(0,1,0,1);
     else
-        frame.icon:SetTexCoord(_p.PixelUtil.GetIconZoomTransform(zoom));
+        frame.icon:SetTexCoord(_p.FrameUtil.GetIconZoomTransform(zoom));
     end
 
     if (frame.borderHost == nil) then

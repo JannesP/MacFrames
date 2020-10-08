@@ -31,13 +31,7 @@ local _frameName = "MacFramesSettingsFrame";
 local _frame;
 local _activeTab;
 
-local function CreateTextButton(parent, nameSuffix, text, onClickHandler)
-    local b = CreateFrame("Button", parent:GetName() .. "Button" .. nameSuffix, parent, "UIPanelButtonTemplate");
-    b:SetText(text);
-    b:SetWidth(b.Text:GetWidth() + 10);
-    b:SetScript("OnClick", onClickHandler);
-    return b;
-end
+local CreateTextButton = FrameUtil.CreateTextButton;
 
 local function CreateBottomBar(self)
     local frame = CreateFrame("Frame", _frameName .. "BottomBar", self, BackdropTemplateMixin and "BackdropTemplate");

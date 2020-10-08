@@ -25,7 +25,7 @@ local TablePool = _p.TablePool;
 
 local math_min, table_sort = math.min, table.sort;
 
-local _framePool = _p.FramePool.new();
+local _framePool = _p.FramePool.Create();
 
 local AuraGroup = {};
 _p.AuraGroup = AuraGroup;
