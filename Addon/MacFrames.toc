@@ -36,7 +36,6 @@ SavedVariables\Profile.lua
 SavedVariables\ProfileManager.lua
 
 Settings\AuraBlacklist.lua
-Settings\CastBindings.lua
 Settings\Defensives.lua
 Settings\Settings.lua
 

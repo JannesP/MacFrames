@@ -343,9 +343,9 @@ _p.DefaultProfileSettings = {
             },
         },
     },
-    ClickBindings = {},         --generated below
+    MouseActions = {},         --generated below
 }
-local DefaultClickBindings = _p.DefaultProfileSettings.ClickBindings;
+local DefaultMouseActions = _p.DefaultProfileSettings.MouseActions;
 local _clickBindingDefaults = {
     _settingsType = ProfileSettingsTypes.Array;
     [1] = {
@@ -374,7 +374,7 @@ local numClasses = GetNumClasses();
 for i=1,numClasses do
     local _, _, classID = GetClassInfo(i);
     local specList = {};
-    DefaultClickBindings[classID] = specList;
+    DefaultMouseActions[classID] = specList;
     local numSpecs = GetNumSpecializationsForClassID(classID);
     for n=1, numSpecs do
         local specID = GetSpecializationInfoForClassID(classID, n);

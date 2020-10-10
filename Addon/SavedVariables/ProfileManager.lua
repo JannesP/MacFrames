@@ -44,12 +44,12 @@ local function OnProfileChanged(newProfile)
     end
 end
 
-function ProfileManager.RegisterProfileChangedListener(Callback)
-    _profileChangedListeners[Callback] = true;
+function ProfileManager.RegisterProfileChangedListener(callback)
+    _profileChangedListeners[callback] = true;
 end
 
-function ProfileManager.UnregisterProfileChangedListener(Callback)
-    _profileChangedListeners[Callback] = nil;
+function ProfileManager.UnregisterProfileChangedListener(callback)
+    _profileChangedListeners[callback] = nil;
 end
 
 local function OnProfileListChanged()
@@ -58,12 +58,12 @@ local function OnProfileListChanged()
     end
 end
 
-function ProfileManager.RegisterProfileListChangedListener(Callback)
-    _profileListChangedListeners[Callback] = true;
+function ProfileManager.RegisterProfileListChangedListener(callback)
+    _profileListChangedListeners[callback] = true;
 end
 
-function ProfileManager.UnregisterProfileListChangedListener(Callback)
-    _profileListChangedListeners[Callback] = nil;
+function ProfileManager.UnregisterProfileListChangedListener(callback)
+    _profileListChangedListeners[callback] = nil;
 end
 
 local function GetCurrentCharacterKey()

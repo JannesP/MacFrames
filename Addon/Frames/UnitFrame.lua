@@ -36,11 +36,34 @@ for key, value in pairs(RAID_CLASS_COLORS) do
     tinsert(_classColorsByIndex, value);
 end
 
+local _currentProfile = nil;
+_mouseActions = nil;
+
 local _unitFrames = {};
 _p.UnitFrames = _unitFrames;
 
 local UnitFrame = {};
 _p.UnitFrame = UnitFrame;
+
+local function ProfileMouseActions_OnChange(key)
+    UnitFrame.UpdateAllMouseActions();
+end
+
+local function LoadMouseActionsForSpec()
+    if (_currentProfile ~= nil) then
+        if (_mouseActions ~= nil) then
+            _mouseActions:UnregisterPropertyChanged(ProfileMouseActions_OnChange);
+        end
+        _mouseActions = _currentProfile.MouseActions[PlayerInfo.classId][PlayerInfo.specId];
+        _mouseActions:RegisterPropertyChanged(ProfileMouseActions_OnChange);
+        ProfileMouseActions_OnChange();
+    end
+end
+
+ProfileManager.RegisterProfileChangedListener(function(newProfile)
+    _currentProfile = newProfile;
+    LoadMouseActionsForSpec();
+end);
 
 function UnitFrame.OnSettingChanged(self, key)
     if (self == nil or self.isChangingSettings == true) then return; end
@@ -73,15 +96,6 @@ function UnitFrame.OnSettingChanged(self, key)
                 UnitFrame.UpdateRoleIcon(self);
             end
         end
-    end
-end
-
-function UnitFrame.OnSpecialClassDisplaySettingChanged(self, key)
-    UnitFrame.CreateSpecialClassDisplay(self);
-    if (self.isTestMode) then
-        UnitFrame.SetTestMode(self, true, true);
-    else
-        UnitFrame.UpdateAuras(self);
     end
 end
 
@@ -513,22 +527,32 @@ function UnitFrame.RemoveMyAttributes(self)
     end
 end
 
-function UnitFrame.SetupCastBindings(self)
-    local bindings = _p.CastBindings.GetBindingsForSpec();
-    for i=1, #bindings do
+local _stringTable
+function UnitFrame.SetupMouseActions(self)
+    local bindings = _mouseActions;
+    UnitFrame.RemoveMyAttributes(self);
+    UnitFrame.SetAttribute(self, "unit", self.unit);
+    for i=1, bindings:Length() do
         local binding = bindings[i];
-        local prefix = "";
-        if (binding.alt) then prefix = prefix .. "alt-"; end
-        if (binding.ctrl) then prefix = prefix .. "ctrl-"; end
-        if (binding.shift) then prefix = prefix .. "shift-" end
+        if (SettingsUtil.ProcessMouseAction(bindings, i, false) == true) then
+            local prefix = "";
+            if (binding.alt) then prefix = prefix .. "alt-"; end
+            if (binding.ctrl) then prefix = prefix .. "ctrl-"; end
+            if (binding.shift) then prefix = prefix .. "shift-" end
 
-        local suffix = binding.button;
-        if (binding.type == "spell") then
-            UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.value);
-        elseif (binding.type == "target") then
-        elseif (binding.type == "togglemenu") then
+            local suffix = binding.button;
+            if (binding.type == "spell") then
+                UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.spellName);
+            elseif (binding.type == "item") then
+                UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.itemSelector);
+            elseif (binding.type == "target") then
+            elseif (binding.type == "togglemenu") then
+            elseif (binding.type == "focus") then
+            else
+                error("Couldn't find binding type definition: " .. binding.type);
+            end
+            UnitFrame.SetAttribute(self, prefix .. "type" .. suffix, binding.type);
         end
-        UnitFrame.SetAttribute(self, prefix .. "type" .. suffix, binding.type);
     end
 end
 
@@ -539,7 +563,7 @@ function UnitFrame.SetUnit(self, unit)
     self.unit = unit;
     UnitFrame.SetAttribute(self, "unit", unit);
     UnitFrame.RegisterUnitEvents(self)
-    UnitFrame.SetupCastBindings(self);
+    UnitFrame.SetupMouseActions(self);
     for _, group in pairs(self.auraGroups) do
         AuraGroup.SetUnit(group, unit);
     end
@@ -1206,13 +1230,13 @@ function UnitFrame.CreateSpecialClassDisplays()
     end
 end
 
-function UnitFrame.UpdateAllCastBindings()
+function UnitFrame.UpdateAllMouseActions()
     for _, frame in pairs(_unitFrames) do
-        UnitFrame.SetupCastBindings(frame);
+        UnitFrame.SetupMouseActions(frame);
     end
 end
 
 function UnitFrame.PlayerInfoChanged()
     UnitFrame.CreateSpecialClassDisplays();
-    UnitFrame.UpdateAllCastBindings();
+    LoadMouseActionsForSpec();
 end

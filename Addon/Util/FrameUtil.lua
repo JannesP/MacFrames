@@ -443,16 +443,19 @@ function FrameUtil.GetStandardIconZoomTransform()
     return unpack(_standardIconTransform);
 end
 
-function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
-    if (gridFrame.frameUtilGridData == nil) then
-        gridFrame.frameUtilGridData = {
+function FrameUtil.GridLayoutFromObjects(gridParent, gridDescriptor)
+    if (gridParent.frameUtilGridData == nil) then
+        gridParent.frameUtilGridData = {
             descriptor = gridDescriptor,
             headings = {},
         };
     end
-    local gridData = gridFrame.frameUtilGridData;
+    local gridFrame = gridParent[gridDescriptor.gridFramePropertyName];
+    local totalWidth = gridFrame:GetWidth();
+    if (totalWidth == 0) then return; end;
+    local gridData = gridParent.frameUtilGridData;
 
-    local rowItems = gridFrame[gridDescriptor.childListPropertyName];
+    local rowItems = gridParent[gridDescriptor.childListPropertyName];
     local rowSpacing = gridDescriptor.rowSpacing;
     local columnSpacing = gridDescriptor.columnSpacing;
     local currentX = 0;
@@ -460,7 +463,7 @@ function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
 
     local flexibleColumns = 0;
     local totalVisibleColumns = 0;
-    local totalWidth = gridFrame[gridDescriptor.gridFramePropertyName]:GetWidth();
+    local totalWidth = gridFrame:GetWidth();
     local freeWidth = totalWidth;
     for i=1, #gridDescriptor do
         local column = gridDescriptor[i];
@@ -482,7 +485,7 @@ function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
             if (currentX > 0) then  --add column spacing after the first row
                 currentX = currentX + columnSpacing;
             end
-            
+
             local columnWidth;
             if (descriptor.width == "*") then
                 columnWidth = flexibleWidth;
@@ -494,7 +497,7 @@ function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
             --create heading
             local heading = gridData.headings[i];
             if (gridData.headings[i] == nil) then
-                heading = FrameUtil.CreateFrameWithText(gridFrame[gridDescriptor.gridFramePropertyName], nil, descriptor.heading, nil);
+                heading = FrameUtil.CreateFrameWithText(gridFrame, nil, descriptor.heading, nil);
                 gridData.headings[i] = heading;
             else
                 heading.text:SetText(descriptor.heading);
@@ -502,7 +505,7 @@ function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
             heading:SetWidth(columnWidth);
             heading:SetHeight(select(2, heading.text:GetFont()));
             heading:ClearAllPoints();
-            heading:SetPoint("TOPLEFT", gridFrame[gridDescriptor.gridFramePropertyName], "TOPLEFT", currentX, -currentY);
+            heading:SetPoint("TOPLEFT", gridFrame, "TOPLEFT", currentX, -currentY);
             currentY = currentY + heading:GetHeight() + rowSpacing;
             
             for i=1, #rowItems do
@@ -514,14 +517,14 @@ function FrameUtil.GridLayoutFromObjects(gridFrame, gridDescriptor)
                 cell:ClearAllPoints();
                 cell:SetWidth(columnWidth);
                 cell:SetHeight(rowHeight);
-                cell:SetPoint("TOPLEFT", gridFrame[gridDescriptor.gridFramePropertyName], "TOPLEFT", currentX, -currentY);
+                cell:SetPoint("TOPLEFT", gridFrame, "TOPLEFT", currentX, -currentY);
                 currentY = currentY + rowHeight;
             end
             currentX = currentX + columnWidth;
         end
     end
-    gridFrame[gridDescriptor.gridFramePropertyName]:SetHeight(currentY);
-    if (gridFrame[gridDescriptor.gridFramePropertyName]:GetWidth() ~= currentX) then
-        print("Unexpected! Actual width: ", gridFrame:GetWidth(), " (filled width ", currentX, ")");
+    gridFrame:SetHeight(currentY);
+    if (gridFrame:GetWidth() ~= currentX) then
+        _p.Log("Unexpected! Actual width: ", gridFrame:GetWidth(), " (filled width ", currentX, ")");
     end
 end

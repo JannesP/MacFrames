@@ -30,10 +30,13 @@ local PopupDisplays = _p.PopupDisplays;
 _p.SettingsFrameTab = {};
 local SettingsFrameTab = _p.SettingsFrameTab;
 
+local SettingsUtil_ProcessMouseAction = SettingsUtil.ProcessMouseAction;
+local ParseLink = _p.ParseLink;
 local math_max = math.max;
 
 local OptionType = Settings.OptionType;
 local CategoryType = Settings.CategoryType;
+
 local CreateSectionSeperator, CreateEditor, CreateProfileEditor, CreateSliderValueEditor, CreateCheckBoxValueEditor, CreateNotYetImplementedEditor;
 
 local _innerMargin = 10;
@@ -45,7 +48,7 @@ local function RefreshFromProfile()
     _refreshingSettingsFromProfile = true;
     for i=1, #_frames do
         local frame = _frames[i];
-        SettingsFrameTab.RefreshFromProfile(frame);
+        frame:RefreshFromProfile();
     end
     _refreshingSettingsFromProfile = false;
 end
@@ -196,43 +199,18 @@ do
         if (category.Type == CategoryType.Profile) then
             local profileEditor = CreateProfileEditor(frame);
             SetupContentScrollContainer(frame, profileEditor);
-            frame.optionSections = {
-                [1] = {
-                    options = {
-                        [1] = profileEditor,
-                    },
-                    content = {
-                        Layout = profileEditor.Layout,
-                    }
-                },
-            };
+            frame.content = profileEditor;
+            frame.RefreshFromProfile = function () profileEditor:RefreshFromProfile(); end;
         elseif (category.Type == CategoryType.MouseActions) then
             local mouseActionPage = CreateMouseActionPage(frame, category);
             SetupContentScrollContainer(frame, mouseActionPage);
-            frame.optionSections = {
-                [1] = {
-                    options = {
-                        [1] = mouseActionPage,
-                    },
-                    content = {
-                        Layout = mouseActionPage.Layout,
-                    }
-                },
-            };
+            frame.content = mouseActionPage;
+            frame.RefreshFromProfile = function () mouseActionPage:RefreshFromProfile(); end;
         elseif (category.Type == CategoryType.AuraBlacklist) then
             local auraBlacklistEditor = CreateAuraBlacklistEditor(frame, category);
             SetupContentScrollContainer(frame, auraBlacklistEditor);
-            frame.optionSections = {
-                [1] = {
-                    options = {
-                        [1] = auraBlacklistEditor,
-                    },
-                    content = {
-                        Layout = auraBlacklistEditor.Layout,
-                    }
-                },
-            };
-            
+            frame.content = auraBlacklistEditor;
+            frame.RefreshFromProfile = function () auraBlacklistEditor:RefreshFromProfile(); end;
         elseif (category.Type == CategoryType.Options) then
             frame.type = category.Type;
             frame.optionSections = {};
@@ -285,6 +263,7 @@ do
                 end);
                 frame.optionSections[n] = uiSection;
             end
+            frame.RefreshFromProfile = SettingsFrameTab.RefreshFromProfile;
             PanelTemplates_SetNumTabs(frame.tabPanelSectionSelector, #category.Sections);
             PanelTemplates_SetTab(frame.tabPanelSectionSelector, 1);
             SettingsFrameTab.SectionSelected(frame);
@@ -292,7 +271,7 @@ do
             error("encountered unknown category type: '" .. category.Type .. "'");
         end
         tinsert(_frames, frame);
-        SettingsFrameTab.RefreshFromProfile(frame);
+        frame:RefreshFromProfile();
         return frame;
     end
 end
@@ -327,7 +306,6 @@ do
         end
     end
     function SettingsFrameTab.RefreshFromProfile(self)
-        
         for i=1, #self.optionSections do
             Refresh(self.optionSections[i].content);
         end
@@ -556,8 +534,8 @@ do
             profileSelectors[i]:SetWidth(largestWidth);
         end
 
-        frame.RefreshFromProfile = function() end;
-        frame.Layout = function() end;
+        frame.RefreshFromProfile = function(self) end;
+        frame.Layout = function(self) end;
         frame:SetHeight(totalHeight);
 
         ProfileManager.RegisterProfileListChangedListener(RefreshDropDownTexts);
@@ -612,7 +590,14 @@ do
     }
     local function MouseActionEditor_Layout(self)
         local totalHeight = 0;
-        
+
+        _gridLayoutDescriptor[1].visible = false;
+        for i=1, #self.editors do
+            if (self.editors[i].errorIcon:IsShown()) then
+                _gridLayoutDescriptor[1].visible = true;
+                break;
+            end
+        end
         _gridLayoutDescriptor[5].width = self.editors[1].buttonSetKeybind:GetWidth();
         FrameUtil.GridLayoutFromObjects(self, _gridLayoutDescriptor);
 
@@ -650,7 +635,6 @@ do
                 UIDropDownMenu_AddButton(info);
             end
         end
-        local SettingsUtil_ProcessMouseAction = SettingsUtil.ProcessMouseAction;
         local function MouseActionEditor_CheckValidData(self)
             return SettingsUtil_ProcessMouseAction(self.boundList, self.boundIndex, true);
         end
@@ -672,10 +656,14 @@ do
                 self.editBoxContainer:Show();
                 self.editBoxSpellSelect:Show();
                 self.spellIconDisplay:Show();
+                --this needs to be filtered if there are any types added that dont have a link or have a different name
+                self.editBoxSpellSelect.allowedLinkType = boundTable.type;
             else
                 self.editBoxContainer:Hide();
                 self.editBoxSpellSelect:Hide();
                 self.spellIconDisplay:Hide();
+
+                self.editBoxSpellSelect.allowedLinkType = nil;
             end
 
             wipe(_textBuffer);
@@ -707,7 +695,6 @@ do
 
             if (self.boundTable.type == "spell") then
                 local name, _, icon, _, _, _, spellId = GetSpellInfo(self.boundTable.spellId);
-                print("loading")
                 if (spellId ~= nil) then
                     self.spellIconDisplay.texture:SetTexture(icon);
                     self.editBoxSpellSelect:SetText(name);
@@ -719,7 +706,7 @@ do
             elseif (self.boundTable.type == "item") then
                 local itemAsNumber = tonumber(self.boundTable.itemSelector);
                 local itemID, _, _, _, icon = GetItemInfoInstant(SecureCmdItemParse(self.boundTable.itemSelector) or "");
-                if (itemAsNumber > 0 and itemAsNumber == math.floor(itemAsNumber) and itemAsNumber <= 23) then
+                if (itemAsNumber ~= nil and itemAsNumber > 0 and itemAsNumber == math.floor(itemAsNumber) and itemAsNumber <= 23) then
                     self.editBoxSpellSelect:SetText(L["Item slot #{i}"]:gsub("{i}", itemAsNumber));
                     self.editBoxSpellSelect:SetCursorPosition(0);
                     self.spellIconDisplay.texture:SetTexture(icon);
@@ -797,13 +784,36 @@ do
             boundTable.button = mappedButton;
             editor:OnDataChanged();
         end
+        local activeEditBox = nil;
+        hooksecurefunc("ChatEdit_InsertLink", function(link)
+            if (activeEditBox ~= nil and activeEditBox:IsVisible() and activeEditBox:HasFocus()) then
+                local _, _, _, linkType = ParseLink(link);
+                if (activeEditBox.allowedLinkType == linkType) then
+                    activeEditBox:SetText(link);
+                    activeEditBox:SetFocus();
+                else
+                    _p.UserChatMessage(L["This doesn't go here!"]);
+                end
+                --StackSplitFrame:Hide(); --hide stack split frame that is triggered by shift-click
+            end
+            return true;
+        end);
         local function EditBoxSpellSelect_FocusGained(self)
+            activeEditBox = self;
             local editor = self:GetParent();
             local enteredText = self:GetText();
             if (editor.boundTable.type == "spell") then
-                self:SetText(editor.boundTable.spellId);
+                if (editor.boundTable.spellId == nil) then
+                    self:SetText("");
+                else
+                    self:SetText(editor.boundTable.spellId);
+                end
             elseif (editor.boundTable.type == "item") then
-                self:SetText(editor.boundTable.itemSelector);
+                if (editor.boundTable.itemSelector == nil) then
+                    self:SetText("");
+                else
+                    self:SetText(editor.boundTable.itemSelector);
+                end
             end
             editor.spellIconDisplay.texture:SetTexture(134400);
             self:SetCursorPosition(self:GetNumLetters());
@@ -815,9 +825,25 @@ do
                 if (enteredText == "") then
                     editor.boundTable.spellId = nil;
                 else
-                    local name, _, icon, _, _, _, spellId = GetSpellInfo(enteredText);
+                    local name, icon, spellId;
+
+                    local asNumber = tonumber(enteredText);
+                    if (asNumber ~= nil) then
+                        name, _, icon, _, _, _, spellId = GetSpellInfo(asNumber);
+                    else
+                        name, _, icon, _, _, _, spellId = GetSpellInfo(enteredText);
+                    end 
+                    
+                    if (spellId == nil) then
+                        local _, _, _, linkType, spellIdFromLink = ParseLink(enteredText);
+                        if (linkType == "spell") then
+                            name, _, icon, _, _, _, spellId = GetSpellInfo(spellIdFromLink);
+                        end
+                    end
                     if (spellId ~= nil) then
                         editor.boundTable.spellId = spellId;
+                    else
+                        _p.UserChatMessage(L["Spell string was invalid. Resetting to previous value."]);
                     end
                 end
             elseif (editor.boundTable.type == "item") then
@@ -827,10 +853,82 @@ do
                     local itemID, _, _, _, icon = GetItemInfoInstant(SecureCmdItemParse(enteredText) or "");
                     if (itemID ~= nil) then
                         editor.boundTable.itemSelector = enteredText;
+                    else
+                        _p.UserChatMessage(L["Item string was invalid. Resetting to previous value. All strings that work in macros should work here (Character Slot, Item ID and Item Name)."]);
                     end
                 end
             end
             editor:OnDataChanged();
+            activeEditBox = nil;
+        end
+        local function EditBoxSpellSelect_OnMouseDown(self, button)
+            if (button == "LeftButton") then
+                local type, info1, info2, info3 = GetCursorInfo();
+                if type == nil then
+                    self:SetFocus();
+                elseif type == self.allowedLinkType then
+                    self:SetFocus();
+                    if (type == "item") then
+                        --"item", itemID, itemLink
+                        local itemLink = info2;
+                        self:SetText(itemLink);
+                    elseif (type == "spell") then
+                        --"spell", spellIndex, bookType, spellID
+                        local spellLink = GetSpellLink(info3);
+                        self:SetText(spellLink);
+                    end
+                    self:ClearFocus();
+                    ClearCursor();
+                else
+                    _p.UserChatMessage(L["This doesn't go here!"]);
+                end
+            end
+        end
+        local function EditBoxSpellSelect_OnReceiveDrag(self)
+            local type, info1, info2, info3 = GetCursorInfo();
+            if type == self.allowedLinkType then
+                self:SetFocus();
+                if (type == "item") then
+                    --"item", itemID, itemLink
+                    local itemLink = info2;
+                    self:SetText(itemLink);
+                elseif (type == "spell") then
+                    --"spell", spellIndex, bookType, spellID
+                    local spellLink = GetSpellLink(info3);
+                    self:SetText(spellLink);
+                end
+                self:ClearFocus();
+            else
+                _p.UserChatMessage(L["This doesn't go here!"]);
+            end
+            ClearCursor();
+        end
+        local function SpellIconDisplay_OnEnter(self)
+            local parent = self:GetParent();
+            if (not parent.editBoxSpellSelect:HasFocus()) then
+                local boundTable = parent.boundTable;
+                if (boundTable.type == "item") then
+                    local itemSelector = boundTable.itemSelector;
+                    if (itemSelector ~= nil and itemSelector ~= "") then
+                        local itemId = GetItemInfoInstant(boundTable.itemSelector);
+                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                        GameTooltip:SetItemByID(itemId);
+                        GameTooltip:Show();
+                    end
+                elseif (boundTable.type == "spell") then
+                    if (boundTable.spellId ~= nil) then
+                        local _, _, _, _, _, _, spellId = GetSpellInfo(boundTable.spellId);
+                        if (spellId ~= nil) then
+                            GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                            GameTooltip:SetSpellByID(spellId);
+                            GameTooltip:Show();
+                        end
+                    end
+                end
+            end
+        end
+        local function SpellIconDisplay_OnLeave(self)
+            GameTooltip:Hide();
         end
         MouseActionEditor_CreateMouseActionEditor = function(parent)
             local frame = CreateFrame("Frame", nil, parent);
@@ -877,6 +975,9 @@ do
             spellIconDisplay.texture:SetTexCoord(FrameUtil.GetStandardIconZoomTransform());
             FrameUtil.CreateSolidBorder(spellIconDisplay, 1, .5, .5, .5, 1);
             spellIconDisplay:SetPoint("LEFT", editBoxContainer, "LEFT");
+            spellIconDisplay:EnableMouse(true);
+            spellIconDisplay:SetScript("OnEnter", SpellIconDisplay_OnEnter);
+            spellIconDisplay:SetScript("OnLeave", SpellIconDisplay_OnLeave);
 
             local editBoxSpellSelect = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
             frame.editBoxSpellSelect = editBoxSpellSelect;
@@ -891,6 +992,9 @@ do
             editBoxSpellSelect:SetScript("OnTabPressed", EditBox_ClearFocus);
             editBoxSpellSelect:SetScript("OnEditFocusLost", EditBoxSpellSelect_FocusLost);
             editBoxSpellSelect:SetScript("OnEditFocusGained", EditBoxSpellSelect_FocusGained);
+            editBoxSpellSelect:SetScript("OnMouseDown", EditBoxSpellSelect_OnMouseDown);
+            editBoxSpellSelect:SetScript("OnReceiveDrag", EditBoxSpellSelect_OnReceiveDrag);
+            
             editBoxContainer:SetHeight(math.max(editBoxSpellSelect:GetHeight(), spellIconDisplay:GetHeight()));
             editBoxContainer:SetWidth(spellIconDisplay:GetWidth() + editBoxSpellSelect:GetWidth() + 8);
 
@@ -942,6 +1046,7 @@ do
             parent.editors[i]:RefreshFromBoundTable();
         end
         editor.boundList[editor.boundIndex] = editor.boundTable;
+        parent:Layout();
     end
 
     local function MouseActionEditor_OnEditorRemove(editor)
@@ -954,7 +1059,7 @@ do
         if (classId == nil or specId == nil) then error("unexpected selection!") end;
 
         local profile = self.category:GetProfile();
-        local specEntries = profile.ClickBindings[classId][specId];
+        local specEntries = profile.MouseActions[classId][specId];
 
         self.mouseActionList = specEntries;
         for i=1, #self.editors do  --clear current editors

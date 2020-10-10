@@ -92,7 +92,12 @@ _p.Log = function(...)
     else
         print(msg);
     end
-    
+end
+
+--from https://wow.gamepedia.com/ItemLink
+--return values: startIndex, endIndex, Color, linkType, Id, Enchant, Gem1, Gem2, Gem3, Gem4, Suffix, Unique, LinkLvl, reforging, Name
+_p.ParseLink = function(link)
+    return string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?");
 end
 
 _p.Log("Finished init.");

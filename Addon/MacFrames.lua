@@ -171,6 +171,12 @@ As long as this message pops up no profile changes will be saved between reloads
 To clear the settings type '/macframes reset'.
 Alternatively you can report this error on github, please attach your MacFrames.lua from the WTF folder.]], true);
                 else
+                    PopupDisplays.ShowGenericMessage(
+[[Error loading profiles: Unknown Error, please report this.
+Make sure the SavedVariables are correct and restart your game.
+As long as this message pops up no profile changes will be saved between reloads!
+To clear the settings type '/macframes reset'.
+Alternatively you can report this error on github, please attach your MacFrames.lua from the WTF folder.]], true);
                     error(result);
                 end
             else

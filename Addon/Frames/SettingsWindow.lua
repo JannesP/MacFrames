@@ -84,7 +84,7 @@ do
                 _window:SetMaxResize(1000, 800);
                 _window:EnableMouse(true);
 
-                _window:SetSize(600, 450);
+                _window:SetSize(750, 500);
                 _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
 
                 _window.configFrame = SettingsFrame.Show(_window);
