@@ -994,10 +994,10 @@ function UnitFrame.UpdateStatusText(self)
     elseif UnitIsDeadOrGhost(self.unit) then
         text:SetText(L["Dead"]);
         text:Show();
-    elseif not InCombatLockdown() and UnitIsAFK(self.unit) then
+    elseif not UnitAffectingCombat("player") and UnitIsAFK(self.unit) then
         text:SetText(L["AFK"]);
         text:Show();
-    elseif not InCombatLockdown() and UnitIsDND(self.unit) then
+    elseif not UnitAffectingCombat("player") and UnitIsDND(self.unit) then
         text:SetText(L["DND"]);
         text:Show();
     else
