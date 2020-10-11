@@ -180,6 +180,7 @@ function ProfileManager.ResetAddonSettings()
         _p.UserChatMessage(L["Cannot reset settings while in combat!"]);
     end
     MacFramesSavedVariables = nil;
+    _profiles = nil;
     C_UI.Reload();
 end
 
@@ -315,6 +316,10 @@ end
 function ProfileManager.DeleteProfile(profileName)
     if (_profiles[profileName] == nil) then
         return; -- nothing changed
+    end
+    if (_currentProfileName == profileName) then
+        _p.UserChatMessage(L["Cannot remove currently used profile."]);
+        return;
     end
     local setDefaultProfile = false;
     for characterKey, specMapping in pairs(_characterProfileMapping) do

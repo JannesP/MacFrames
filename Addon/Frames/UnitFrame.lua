@@ -131,7 +131,7 @@ do
                 OtherDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateUndispellablesFromSettings)),
                 BossAuras = E(self, CreateAuraChanged(self, UnitFrame.CreateBossAurasFromSettings)),
                 DefensiveBuff = E(self, CreateAuraChanged(self, UnitFrame.CreateDefensivesFromSettings)),
-                SpecialClassDisplay = E(self, CreateAuraChanged(self, UnitFrame.CreateSpecialClassDisplay)),
+                SpecialClassDisplay = E(self, CreateAuraChanged(self, UnitFrame.CreateSpecialClassDisplayFromSettings)),
             };
         end
         local handlers = self.propertyChancedHandlers;
@@ -332,14 +332,6 @@ function UnitFrame.UpdateAllSettings(self)
     UnitFrame.CreateAuraDisplays(self);
 end
 do
-    local testAura = {
-        nil,
-        458720,
-        3,
-        "Magic",
-        10000,
-        GetTime() - 3500,
-    };
     function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
         if (enabled == true) then
             self:SetScript("OnShow", nil);
@@ -370,9 +362,6 @@ do
             UnitFrame.UpdateTestDisplay(self);
             for _, group in pairs(self.auraGroups) do
                 AuraGroup.SetTestMode(group, enabled);
-            end
-            for i=1, #self.specialClassDisplays do
-                AuraFrame.SetTestAura(self.specialClassDisplays[i], unpack(testAura));
             end
         else
             self:SetScript("OnSizeChanged", nil);
@@ -443,16 +432,36 @@ do
 end
 
 function UnitFrame.CreateAuraDisplays(self)
-    --somewhat special aura frame
-    UnitFrame.CreateSpecialClassDisplay(self);
-    --continue with 'normal aura displays'
     if (self.auraGroups == nil) then
         self.auraGroups = {};
     end
+    UnitFrame.CreateSpecialClassDisplayFromSettings(self);
     UnitFrame.CreateDefensivesFromSettings(self);
     UnitFrame.CreateUndispellablesFromSettings(self);
     UnitFrame.CreateDispellablesFromSettings(self);
     UnitFrame.CreateBossAurasFromSettings(self);
+end
+
+function UnitFrame.CreateSpecialClassDisplayFromSettings(self, classDisplayList)
+    local s = self.settings.SpecialClassDisplay;
+    local auraGroup = self.auraGroups.specialClassDisplay;
+    if (auraGroup ~= nil) then
+        AuraGroup.Recycle(self.auraGroups.specialClassDisplay);
+    end
+    if (classDisplayList == nil) then
+        classDisplayList = SettingsUtil.GetSpecialClassDisplays();
+    end
+    auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.PredefinedAuraSet, nil, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
+    self.auraGroups.specialClassDisplay = auraGroup;
+    AuraGroup.SetPredefinedAuras(auraGroup, classDisplayList);
+    AuraGroup.SetIgnoreBlacklist(auraGroup, true);
+    AuraGroup.SetReverseOrder(auraGroup, true);
+    AuraGroup.SetUseFixedPositions(auraGroup, s.fixedPositions);
+    local padding = self.settings.Frames.Padding;
+    PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
+    auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
+    auraGroup:Show();
+    return auraGroup;
 end
 
 function UnitFrame.CreateDefensivesFromSettings(self)
@@ -619,12 +628,14 @@ end
 do
     local function UnitFrame_OnShow(self)
         if (not self.isTestMode) then 
-            UnitFrame.EnableScripts(self) 
+            UnitFrame.EnableScripts(self);
+            --the group roster update fires sometimes before this, so we have to trigger a manual update
+            UnitFrame.UpdateAll(self);
         end
     end
     local function UnitFrame_OnHide(self)
         if (not self.isTestMode) then 
-            UnitFrame.DisableScripts(self) 
+            UnitFrame.DisableScripts(self);
         end
     end
     function UnitFrame.RegisterEvents(self)
@@ -646,6 +657,8 @@ do
         self:RegisterEvent("READY_CHECK");
         self:RegisterEvent("READY_CHECK_FINISHED");
         self:RegisterEvent("PARTY_LEADER_CHANGED");
+        self:RegisterEvent("PLAYER_REGEN_DISABLED");
+        self:RegisterEvent("PLAYER_REGEN_ENABLED");
     end
 end
 
@@ -681,11 +694,13 @@ function UnitFrame.OnEvent(self, event, ...)
     if (event == "PLAYER_ENTERING_WORLD" or event == "GROUP_ROSTER_UPDATE") then
         UnitFrame.UpdateAll(self);
     elseif (event == "PLAYER_TARGET_CHANGED") then
-        UnitFrame.UpdateMaxHealth(self);
-        UnitFrame.UpdateHealth(self);
-        UnitFrame.UpdateHealthColor(self);
-        UnitFrame.UpdateHealthBarExtraInfo(self);
-        UnitFrame.UpdateName(self);
+        if (UnitIsUnit("target", self.unit) or UnitIsUnit("target", self.displayUnit)) then
+            UnitFrame.UpdateMaxHealth(self);
+            UnitFrame.UpdateHealth(self);
+            UnitFrame.UpdateHealthColor(self);
+            UnitFrame.UpdateHealthBarExtraInfo(self);
+            UnitFrame.UpdateName(self);
+        end
         UnitFrame.UpdateTargetHighlight(self);
     elseif (event == "PLAYER_ROLES_ASSIGNED") then
         UnitFrame.UpdateRoleIcon(self);
@@ -695,10 +710,16 @@ function UnitFrame.OnEvent(self, event, ...)
         UnitFrame.UpdateReadyCheckStatus(self);
     elseif (event == "READY_CHECK_FINISHED") then
         UnitFrame.FinishReadyCheck(self);
+    elseif (event == "PLAYER_REGEN_DISABLED") then
+        --entering combat
+        UnitFrame.UpdateAuras(self);    --some auras can be filtered to be hidden in combat
+    elseif (event == "PLAYER_REGEN_ENABLED") then
+        --leaving combat
+        UnitFrame.UpdateAuras(self);    --some auras can be filtered to be hidden in combat
     else
         local eventUnit = arg1;
         if (eventUnit == self.unit or eventUnit == self.displayUnit) then
-            if (event == "UNIT_HEALTH") then
+            if (event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT") then
                 UnitFrame.UpdateHealth(self);
                 UnitFrame.UpdateStatusText(self);
                 UnitFrame.UpdateHealthBarExtraInfo(self)
@@ -714,6 +735,9 @@ function UnitFrame.OnEvent(self, event, ...)
             elseif (event == "UNIT_CONNECTION") then
                 UnitFrame.UpdateStatusText(self);
                 UnitFrame.UpdateHealthColor(self);
+                UnitFrame.UpdateMaxHealth(self);
+                UnitFrame.UpdateHealth(self);
+                UnitFrame.UpdateHealthBarExtraInfo(self);
             elseif (event == "UNIT_AURA") then
                 UnitFrame.UpdateAuras(self);
             elseif (event == "PLAYER_FLAGS_CHANGED") then
@@ -1038,22 +1062,28 @@ function UnitFrame.UpdateMaxHealth(self)
     self.healthBar:SetMinMaxValues(0, maxHealth);
 end
 
-function UnitFrame.UpdateHealthBarExtraInfo(self)
-    local _, maxHealth = self.healthBar:GetMinMaxValues();
-    if (maxHealth <= 0) then
-		return;
-	end
-    local currentHealth = max(0, self.healthBar:GetValue());
-    if (currentHealth == 0) then
+do
+    local function HideExtraInfos(self)
         self.healPrediction:Hide();
         self.totalAbsorb:Hide();
         self.healAbsorb:Hide();
-    else
-        local incomingHeal = UnitGetIncomingHeals(self.displayUnit) or 0;
-        if (incomingHeal == nil) then incomingHeal = 0; end --can happen during a duel, unit is in party but not friendly
-        local absorb = UnitGetTotalAbsorbs(self.displayUnit) or 0;
-        local healAbsorb = UnitGetTotalHealAbsorbs(self.displayUnit) or 0;
-        UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomingHeal, absorb, healAbsorb);
+    end
+    function UnitFrame.UpdateHealthBarExtraInfo(self)
+        local _, maxHealth = self.healthBar:GetMinMaxValues();
+        if (maxHealth <= 0) then
+            HideExtraInfos(self);
+            return;
+        end
+        local currentHealth = max(0, self.healthBar:GetValue());
+        if (currentHealth == 0) then
+            HideExtraInfos(self);
+        else
+            local incomingHeal = UnitGetIncomingHeals(self.displayUnit) or 0;
+            if (incomingHeal == nil) then incomingHeal = 0; end --can happen during a duel, unit is in party but not friendly
+            local absorb = UnitGetTotalAbsorbs(self.displayUnit) or 0;
+            local healAbsorb = UnitGetTotalHealAbsorbs(self.displayUnit) or 0;
+            UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomingHeal, absorb, healAbsorb);
+        end
     end
 end
 
@@ -1165,8 +1195,8 @@ end
 
 function UnitFrame.UpdateAuras(self)
     AuraManager.LoadUnitAuras(self.displayUnit);
-    UnitFrame.UpdateSpecialClassDisplay(self);
     local groups = self.auraGroups;
+    AuraGroup.Update(groups.specialClassDisplay);
     AuraGroup.Update(groups.defensives);
     AuraGroup.Update(groups.undispellable);
     AuraGroup.Update(groups.dispellable);
@@ -1177,56 +1207,12 @@ function UnitFrame.UpdateAuras(self)
     end]]
 end
 
-function UnitFrame.UpdateSpecialClassDisplay(self)
-    local specialClassDisplays = self.specialClassDisplays;
-    if (specialClassDisplays == nil) then return; end
-    for i=1, #specialClassDisplays do
-        AuraFrame.UpdateFromPinnedAura(specialClassDisplays[i]);
-    end
-end
-
-function UnitFrame.CreateSpecialClassDisplay(self, requiredDisplays)
-    if (requiredDisplays == nil) then
-        requiredDisplays = SettingsUtil.GetSpecialClassDisplays();
-    end
-    if (requiredDisplays == nil) then return; end
-
-    local specialClassDisplays = self.specialClassDisplays;
-    if (specialClassDisplays == nil) then
-        specialClassDisplays = {};
-        self.specialClassDisplays = specialClassDisplays;
-    else
-        for i=1, #specialClassDisplays do
-            AuraFrame.Recycle(specialClassDisplays[i]);
-        end
-        wipe(specialClassDisplays);
-    end
-    local lastFrame = nil;
-    for spellId, details in pairs(requiredDisplays) do
-        if (details.enabled == true) then
-            local settings = self.settings.SpecialClassDisplay;
-            local newFrame = AuraFrame.new(self, settings.iconWidth, settings.iconHeight, settings.iconZoom);
-            newFrame:SetFrameLevel(self:GetFrameLevel() + 4);
-            AuraFrame.SetColoringMode(newFrame, AuraFrame.ColoringMode.Custom, 0.25, 0.25, 0.25);
-            AuraFrame.SetPinnedAuraWithId(newFrame, self.unit, details.spellId, details.debuff, details.onlyByPlayer);
-            if (lastFrame == nil) then
-                local padding = self.settings.Frames.Padding;
-                PixelUtil.SetPoint(newFrame, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
-            else
-                PixelUtil.SetPoint(newFrame, "TOPRIGHT", lastFrame, "TOPLEFT", -1, 0);
-            end
-            tinsert(specialClassDisplays, newFrame);
-            lastFrame = newFrame;
-        end
-    end
-end
-
 function UnitFrame.CreateSpecialClassDisplays()
     if (next(_unitFrames) == nil) then return; end;
     local requiredDisplays = SettingsUtil.GetSpecialClassDisplays();
     if (requiredDisplays == nil) then return end
     for _, frame in pairs(_unitFrames) do
-        UnitFrame.CreateSpecialClassDisplay(frame, requiredDisplays);
+        UnitFrame.CreateSpecialClassDisplayFromSettings(frame, requiredDisplays);
     end
 end
 

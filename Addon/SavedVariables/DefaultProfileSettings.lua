@@ -59,7 +59,9 @@ _p.DefaultProfileSettings = {
         SpecialClassDisplay = {
             iconWidth = 14,
             iconHeight = 14,
-            iconZoom = 0.1,  
+            iconZoom = 0.1,
+            iconSpacing = 1,
+            fixedPositions = false,
         },
         DispellableDebuffs = {
             iconWidth = 14,
@@ -123,7 +125,9 @@ _p.DefaultProfileSettings = {
         SpecialClassDisplay = {
             iconWidth = 14,
             iconHeight = 14,
-            iconZoom = 0.1,  
+            iconZoom = 0.1,
+            iconSpacing = 1,
+            dynamicPositions = false,  
         },
         DispellableDebuffs = {
             iconWidth = 14,
@@ -159,19 +163,26 @@ _p.DefaultProfileSettings = {
         ["PRIEST"] = {
             [256] = {   --discipline
                 _settingsType = ProfileSettingsTypes.Array;
-                [1] = { --Atonement
+                [1] = { --Fortitude
+                    spellId = 135987,   
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = false,
+                    hideInCombat = true,
+                }, 
+                [2] = { --Atonement
                     spellId = 194384,   
                     enabled = true,
                     debuff = false,
                     onlyByPlayer = true,
                 },    
-                [2] = { --Weakened Soul
+                [3] = { --Weakened Soul
                     spellId = 6788, 
                     enabled = true,
                     debuff = true,
                     onlyByPlayer = true,
                 },
-                [3] = { --PI
+                [4] = { --PI
                     spellId = 10060, 
                     enabled = true,
                     debuff = false,

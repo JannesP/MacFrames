@@ -33,22 +33,71 @@ _p.AuraGroup = AuraGroup;
 AuraGroup.Type = {
     DispellableDebuff = "debuffDispellable",
     UndispellableDebuff = "debuffUndispellable",
-
     BossAura = "bossAuras",
     DefensiveBuff = "buffDefensive",
+    PredefinedAuraSet = "predefinedAuraSet",
 }
+
+local function CreateAuraFrame(self)
+    local auraFrame = AuraFrame.new(self, self.iconWidth, self.iconHeight, self.iconZoom);
+    auraFrame.displayingAura = false;
+    AuraFrame.SetColoringMode(auraFrame, self.coloringMode, self.customColor.r, self.customColor.g, self.customColor.b, self.customColor.a);
+    tinsert(self.auraFrames, auraFrame);
+    return auraFrame;
+end
+
+local function LayoutFrames(self)
+    local auraFrames = self.auraFrames;
+    local frameCount = #auraFrames;
+    local spacing = self.spacing;
+
+    self:SetWidth((self.iconWidth * frameCount) + (spacing * (frameCount - 1)));
+    self:SetHeight(self.iconHeight);
+
+    local lastFrame = nil;
+    if (self.reverse == true) then
+        for i=1,frameCount do
+            local auraFrame = auraFrames[i];
+            auraFrame:ClearAllPoints();
+            if (lastFrame == nil) then
+                PixelUtil.SetPoint(auraFrame, "TOPRIGHT", self, "TOPRIGHT", 0, 0);
+            else
+                PixelUtil.SetPoint(auraFrame, "TOPRIGHT", lastFrame, "TOPLEFT", -spacing, 0);
+            end
+            lastFrame = auraFrame;
+        end
+    else
+        for i=1,frameCount do
+            local auraFrame = auraFrames[i];
+            auraFrame:ClearAllPoints();
+            if (lastFrame == nil) then
+                PixelUtil.SetPoint(auraFrame, "TOPLEFT", self, "TOPLEFT", 0, 0);
+            else
+                PixelUtil.SetPoint(auraFrame, "TOPLEFT", lastFrame, "TOPRIGHT", spacing, 0);
+            end
+            lastFrame = auraFrame;
+        end
+    end
+end
 
 function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight, spacing, iconZoom)
     local frame = _framePool:Take();
     if frame == nil then
         frame = CreateFrame("Frame", nil, parent);
+        frame.customColor = {};
     else
         frame:SetParent(parent);
     end
-    PixelUtil.SetWidth(frame, (iconWidth * count) + (spacing * (count - 1)));
-    PixelUtil.SetHeight(frame, iconHeight);
     frame.unit = unit;
     frame.auraGroupType = auraGroupType;
+
+    frame.iconWidth = iconWidth;
+    frame.iconHeight = iconHeight;
+    frame.spacing = spacing;
+    frame.iconZoom = iconZoom;
+
+    frame.useFixedPositions = false;
+    frame.predefinedAuras = nil;
 
     frame.reverse = false;
     frame.ignoreBlacklist = false;
@@ -62,34 +111,35 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
         end
     end
 
-    local frameColoringMode = AuraFrame.ColoringMode.Custom;
-    local cr = 0;
-    local cg = 1;
-    local cb = 0;
     if (auraGroupType == AuraGroup.Type.DispellableDebuff or auraGroupType == AuraGroup.Type.UndispellableDebuff or auraGroupType == AuraGroup.Type.BossAura) then
-        frameColoringMode = AuraFrame.ColoringMode.Debuff;
+        AuraGroup.SetColoringMode(frame, AuraFrame.ColoringMode.Debuff);
     elseif (auraGroupType == AuraGroup.Type.DefensiveBuff) then
-        frameColoringMode = AuraFrame.ColoringMode.Custom;
-        cr = 1;
-        cg = 1;
-        cb = 0;
+        AuraGroup.SetColoringMode(frame, AuraFrame.ColoringMode.Custom, 1, 1, 0, 1);
+    elseif (auraGroupType == AuraGroup.Type.PredefinedAuraSet) then
+        AuraGroup.SetColoringMode(frame, AuraFrame.ColoringMode.Custom, .5, .5, .5, 1);
     else
         error("Each AuraGroup type requires an aura color setting!");
     end
 
-    local lastFrame = nil;
-    for i=1,count do
-        local auraFrame = AuraFrame.new(frame, iconWidth, iconHeight, iconZoom);
-        AuraFrame.SetColoringMode(auraFrame, frameColoringMode, cr, cg, cb);
-        if (lastFrame == nil) then
-            PixelUtil.SetPoint(auraFrame, "TOPLEFT", frame, "TOPLEFT", 0, 0);
-        else
-            PixelUtil.SetPoint(auraFrame, "TOPLEFT", lastFrame, "TOPRIGHT", spacing, 0);
-        end
-        tinsert(frame.auraFrames, auraFrame);
-        lastFrame = auraFrame;
+    for i=1, (count or 0) do
+        CreateAuraFrame(frame);
     end
+    LayoutFrames(frame);
     return frame;
+end
+
+function AuraGroup.SetColoringMode(self, mode, r, g, b, a)
+    self.coloringMode = mode;
+    local c = self.customColor;
+
+    c.r = r or 0;
+    c.g = g or 0;
+    c.b = b or 0;
+    c.a = a or 1;
+
+    for i=1,#self.auraFrames do
+        AuraFrame.SetColoringMode(self.auraFrames[i], mode, c.r, c.g, c.b, c.a);
+    end
 end
 
 function AuraGroup.Recycle(self)
@@ -113,8 +163,35 @@ function AuraGroup.SetAllowDisplayedAuras(self, allowDisplayed)
     self.allowDisplayed = allowDisplayed;
 end
 
+function AuraGroup.SetUseFixedPositions(self, useFixedPositions)
+    if (self.auraGroupType ~= AuraGroup.Type.PredefinedAuraSet) then error("Cannot set fixed position when not configured for " .. AuraGroup.Type.PredefinedAuraSet .. ".") end;
+    self.useFixedPositions = useFixedPositions;
+    LayoutFrames(self);
+end
+
+function AuraGroup.SetPredefinedAuras(self, auraList)
+    self.predefinedAuras = auraList;
+end
+
 function AuraGroup.SetReverseOrder(self, reverse)
     self.reverse = reverse;
+    LayoutFrames(self);
+end
+
+function AuraGroup.SetCount(self, count)
+    local countChanged = false;
+    while(#self.auraFrames < #self.predefinedAuras) do
+        CreateAuraFrame(self);
+        countChanged = true;
+    end
+    while(#self.auraFrames > #self.predefinedAuras) do
+        AuraFrame.Recycle(self.auraFrames[#self.auraFrames]);
+        self.auraFrames[#self.auraFrames] = nil;
+        countChanged = true;
+    end
+    if (countChanged) then
+        LayoutFrames(self);
+    end
 end
 
 do
@@ -150,6 +227,14 @@ do
         10000,
         GetTime() - 3500,
     };
+    local testBuff = { 
+        nil,
+        135987,
+        3,
+        "none",
+        10000,
+        GetTime() - 3500,
+    };
     function AuraGroup.SetTestMode(self, enabled)
         if (enabled == true) then
             local types = AuraGroup.Type;
@@ -162,6 +247,8 @@ do
                 aura = testBoss;
             elseif self.auraGroupType == types.DefensiveBuff then
                 aura = testDefensive;
+            elseif self.auraGroupType == types.PredefinedAuraSet then
+                aura = testBuff;
             else
                 error("invalid AuraGroup.Type: " .. self.auraGroupType);
             end
@@ -184,16 +271,10 @@ do
         end
         return result;
     end
-    local function DisplayInFrame(self, displayedCount, ...)
-        local frameCount = #self.auraFrames;
-        local frameIndex;
-        if (self.reverse == true) then
-            frameIndex = frameCount - displayedCount;
-        else
-            frameIndex = displayedCount + 1;
-        end
-        local frame = self.auraFrames[frameIndex];
-        AuraFrame.DisplayAura(frame, ...);
+    local function DisplayInFrame(self, frameIndex, ...)
+        local auraFrame = self.auraFrames[frameIndex];
+        auraFrame.displayingAura = true;
+        AuraFrame.DisplayAura(auraFrame, ...);
     end
     local _auraTablePool = TablePool.Create(function(table)
         wipe(table);
@@ -205,12 +286,23 @@ do
         end
         wipe(_auraList);
     end
+    local function SetInAuraList(index, info, priority, ...)
+        local holder = _auraTablePool:Take();
+        local auraLength = select('#', ...);
+        for i=1,auraLength do
+            holder[i] = select(i, ...);
+        end
+        holder.n = auraLength;
+        holder.priority = priority;
+        holder.info = info;
+        _auraList[index] = holder;
+    end
     do
         local frame, displayedCount, frameCount;
         local function NormalDisplayAuraFunc(slot, info, ...)
             if (IsAllowedBySettings(frame, slot, info, ...)) then
                 --info.displayed = true;
-                DisplayInFrame(frame, displayedCount, ...);
+                DisplayInFrame(frame, displayedCount + 1, ...);
                 displayedCount = displayedCount + 1;
                 if (frameCount <= displayedCount) then
                     return true;
@@ -220,15 +312,42 @@ do
         end
         local function DefensiveBuffAuraFunc(slot, info, priority, ...)
             if (IsAllowedBySettings(frame, slot, info, ...)) then
-                local holder = _auraTablePool:Take();
-                local auraLength = select('#', ...);
-                for i=1,auraLength do
-                    holder[i] = select(i, ...);
+                SetInAuraList(#_auraList + 1, info, priority, ...);
+            end
+            return false;
+        end
+        local _predefinedDebuffCount = 0;
+        local _predefinedBuffCount = 0;
+        local _predefinedIteratingDebuffs = false;
+        local function PredefinedAuraSetFunc(slot, info, ...)
+            if (IsAllowedBySettings(frame, slot, info, ...)) then
+                for i=1, #frame.predefinedAuras do
+                    local predefined = frame.predefinedAuras[i];
+                    if (select(10, ...) == predefined.spellId) then
+                        if (predefined.onlyByPlayer == true and info.byPlayer == false) then
+                            break;
+                        end
+                        if (predefined.enabled == false) then
+                            break;
+                        end
+                        if (predefined.hideInCombat == true and UnitAffectingCombat("player")) then
+                            break;
+                        end
+                        SetInAuraList(i, info, nil, ...);
+                        if (_predefinedIteratingDebuffs) then
+                            _predefinedDebuffCount = _predefinedDebuffCount - 1;
+                            if (_predefinedDebuffCount == 0) then
+                                return true;
+                            end
+                        else
+                            _predefinedBuffCount = _predefinedBuffCount - 1;
+                            if (_predefinedBuffCount == 0) then
+                                return true;
+                            end
+                        end
+                        return false;
+                    end 
                 end
-                holder.n = auraLength;
-                holder.priority = priority;
-                holder.info = info;
-                _auraList[#_auraList + 1] = holder;
             end
             return false;
         end
@@ -238,8 +357,12 @@ do
         function AuraGroup.Update(self)
             frame = self;
             displayedCount = 0;
-            frameCount = #self.auraFrames;
 
+            frameCount = #self.auraFrames;
+            for i=1, frameCount do
+                self.auraFrames[i].displayingAura = false;
+            end
+            
             local types = AuraGroup.Type;
             if self.auraGroupType == types.DispellableDebuff then
                 AuraManager.ForAllDispellableDebuffs(self.unit, NormalDisplayAuraFunc);
@@ -254,22 +377,57 @@ do
                 for i=1, math_min(#_auraList, frameCount) do
                     local aura = _auraList[i];
                     aura.info.displayed = true;
-                    DisplayInFrame(self, displayedCount, unpack(aura));
                     displayedCount = displayedCount + 1;
+                    DisplayInFrame(self, displayedCount, unpack(aura));
+                end
+            elseif self.auraGroupType == types.PredefinedAuraSet then
+                if (self.predefinedAuras ~= nil) then
+                    ClearAuraList();
+                    local predefinedAuraCount = #self.predefinedAuras;
+                    AuraGroup.SetCount(self, predefinedAuraCount);
+
+                    _predefinedDebuffCount = 0;
+                    _predefinedBuffCount = 0;
+                    for i=1, predefinedAuraCount do
+                        if (self.predefinedAuras[i].debuff == true) then
+                            _predefinedDebuffCount = _predefinedDebuffCount + 1;
+                        else
+                            _predefinedBuffCount = _predefinedBuffCount + 1;
+                        end
+                    end
+                    if (_predefinedDebuffCount > 0) then
+                        _predefinedIteratingDebuffs = true;
+                        AuraManager.ForAllDebuffs(self.unit, PredefinedAuraSetFunc);
+                    end
+                    if (_predefinedBuffCount > 0) then
+                        _predefinedIteratingDebuffs = false;
+                        AuraManager.ForAllBuffs(self.unit, PredefinedAuraSetFunc);
+                    end
+                    if (self.useFixedPositions) then
+                        for i=1, predefinedAuraCount do
+                            local aura = _auraList[i];
+                            if (aura ~= nil) then
+                                DisplayInFrame(self, i, unpack(aura));
+                            end
+                        end
+                    else
+                        for i=1, predefinedAuraCount do
+                            local aura = _auraList[i];
+                            if (aura ~= nil) then
+                                displayedCount = displayedCount + 1;
+                                DisplayInFrame(self, displayedCount, unpack(aura));
+                            end
+                        end
+                    end
                 end
             else
                 error("invalid AuraGroup.Type: " .. self.auraGroupType);
             end
             --hide frames that aren't in use
-            if (displayedCount < frameCount) then
-                if (self.reverse == true) then
-                    for i=frameCount - displayedCount, 1, -1 do
-                        self.auraFrames[i]:Hide();
-                    end
-                else
-                    for i=displayedCount + 1, frameCount do
-                        self.auraFrames[i]:Hide();
-                    end
+            for i=1, frameCount do
+                local auraFrame = self.auraFrames[i];
+                if auraFrame.displayingAura ~= true then
+                    auraFrame:Hide();
                 end
             end
         end

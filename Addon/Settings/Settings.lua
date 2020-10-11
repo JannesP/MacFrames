@@ -332,6 +332,29 @@ local function AddUnitFrameOptions(targetSections, PS)
             return PS().SpecialClassDisplay.iconHeight;
         end,
     });
+    tinsert(classDisplayOptions.Options, {
+        Name = L["Spacing"],
+        Type = OptionType.SliderValue,
+        Min = 0,
+        SoftMax = 10,
+        Set = function(value)
+            PS().SpecialClassDisplay.iconSpacing = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.iconSpacing;
+        end,
+    });
+    tinsert(classDisplayOptions.Options, {
+        Name = L["Fixed Positioning"],
+        Description = L["Auras have a fixed placement any leave blank spaces in between."],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().SpecialClassDisplay.fixedPositions = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.fixedPositions;
+        end,
+    });
 
     tinsert(classDisplayCategoryConfigureAuras.Options, {
         Name = L["Aura Selector"],

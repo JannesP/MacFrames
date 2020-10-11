@@ -222,12 +222,13 @@ do
                 for key, value in pairs(self._settings) do
                     unwrapped[key] = Profile_GetSVars(value);
                 end
+                unwrapped._settingsType = nil;  --this is just to reduce save file size a bit
             elseif (stype == ProfileSettingsTypes.Array) then
                 unwrapped = deepcopy(self._settings);
+                unwrapped._settingsType = stype;
             else
                 error("ProfileSettingsType '" .. stype .. "' is not implemented in Profile_GetSVars!");
             end
-            unwrapped._settingsType = stype;
             unwrapped.Version = self.Version;
             return unwrapped;
         else

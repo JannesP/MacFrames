@@ -23,7 +23,11 @@ local AuraBlacklist = _p.AuraBlacklist;
 local Defensives = _p.Defensives;
 local TablePool = _p.TablePool;
 
+--imported globals
+local UnitAuraBySlot = UnitAuraBySlot;
+--imported own
 local MyAuraUtil_IsBossAura = MyAuraUtil.IsBossAura;
+local MyAuraUtil_AllUnitAuraSlots = MyAuraUtil.AllUnitAuraSlots;
 
 local AuraManager = {};
 _p.AuraManager = AuraManager;
@@ -81,12 +85,12 @@ end
 function AuraManager.LoadUnitBuffs(unit)
     local buffCache = GetClearedUnitCache(unit, _buffCache);
     
-    MyAuraUtil.AllUnitAuraSlots(unit, "HELPFUL", _slotCache);
+    MyAuraUtil_AllUnitAuraSlots(unit, "HELPFUL", _slotCache);
     for i=1, #_slotCache do
         buffCache[_slotCache[i]] = _auraInfoCache:Take();
     end
 
-    MyAuraUtil.AllUnitAuraSlots(unit, "HELPFUL|PLAYER", _slotCache);
+    MyAuraUtil_AllUnitAuraSlots(unit, "HELPFUL|PLAYER", _slotCache);
     for i=1, #_slotCache do
         buffCache[_slotCache[i]].byPlayer = true;
     end
@@ -95,17 +99,17 @@ end
 function AuraManager.LoadUnitDebuffs(unit)
     local debuffCache = GetClearedUnitCache(unit, _debuffCache);
 
-    MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL", _slotCache);
+    MyAuraUtil_AllUnitAuraSlots(unit, "HARMFUL", _slotCache);
     for i=1, #_slotCache do
         debuffCache[_slotCache[i]] = _auraInfoCache:Take();
     end
 
-    MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL|RAID", _slotCache);
+    MyAuraUtil_AllUnitAuraSlots(unit, "HARMFUL|RAID", _slotCache);
     for i=1, #_slotCache do
         debuffCache[_slotCache[i]].dispellable = true;
     end
 
-    MyAuraUtil.AllUnitAuraSlots(unit, "HARMFUL|PLAYER", _slotCache);
+    MyAuraUtil_AllUnitAuraSlots(unit, "HARMFUL|PLAYER", _slotCache);
     for i=1, #_slotCache do
         debuffCache[_slotCache[i]].byPlayer = true;
     end
@@ -125,10 +129,12 @@ do
     local function ForAllDebuffs(unit, func)
         ForEachAura(unit, _debuffCache[unit], func);
     end
+    AuraManager.ForAllDebuffs = ForAllDebuffs;
 
     local function ForAllBuffs(unit, func)
         ForEachAura(unit, _buffCache[unit], func);
     end
+    AuraManager.ForAllBuffs = ForAllBuffs;
     
     do
         local p_unit, p_func;
