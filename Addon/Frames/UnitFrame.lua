@@ -123,6 +123,10 @@ do
             end
         end
     end
+    local function CreateBuffGroupsFromSettings(...)
+        UnitFrame.CreateSpecialClassDisplayFromSettings(...);
+        UnitFrame.CreateBuffsFromSettings(...);
+    end
     function UnitFrame.SetSettings(self, settings, suppressUpdate)
         if (self.propertyChancedHandlers == nil) then
             self.propertyChancedHandlers = {
@@ -131,7 +135,8 @@ do
                 OtherDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateUndispellablesFromSettings)),
                 BossAuras = E(self, CreateAuraChanged(self, UnitFrame.CreateBossAurasFromSettings)),
                 DefensiveBuff = E(self, CreateAuraChanged(self, UnitFrame.CreateDefensivesFromSettings)),
-                SpecialClassDisplay = E(self, CreateAuraChanged(self, UnitFrame.CreateSpecialClassDisplayFromSettings)),
+                SpecialClassDisplay = E(self, CreateAuraChanged(self, CreateBuffGroupsFromSettings)),
+                Buffs = E(self, CreateAuraChanged(self, CreateBuffGroupsFromSettings)),
             };
         end
         local handlers = self.propertyChancedHandlers;
@@ -144,6 +149,7 @@ do
             oldSettings.BossAuras:UnregisterPropertyChanged(handlers.BossAuras);
             oldSettings.DefensiveBuff:UnregisterPropertyChanged(handlers.DefensiveBuff);
             oldSettings.SpecialClassDisplay:UnregisterPropertyChanged(handlers.SpecialClassDisplay);
+            oldSettings.Buffs:UnregisterPropertyChanged(handlers.Buffs);
         end
 
         self.settings = settings;
@@ -154,6 +160,7 @@ do
         newSettings.BossAuras:RegisterPropertyChanged(handlers.BossAuras);
         newSettings.DefensiveBuff:RegisterPropertyChanged(handlers.DefensiveBuff);
         newSettings.SpecialClassDisplay:RegisterPropertyChanged(handlers.SpecialClassDisplay);
+        newSettings.Buffs:RegisterPropertyChanged(handlers.Buffs);
 
         if (not suppressUpdate) then
             UnitFrame.UpdateAllSettings(self);
@@ -436,6 +443,7 @@ function UnitFrame.CreateAuraDisplays(self)
         self.auraGroups = {};
     end
     UnitFrame.CreateSpecialClassDisplayFromSettings(self);
+    UnitFrame.CreateBuffsFromSettings(self);
     UnitFrame.CreateDefensivesFromSettings(self);
     UnitFrame.CreateUndispellablesFromSettings(self);
     UnitFrame.CreateDispellablesFromSettings(self);
@@ -448,6 +456,10 @@ function UnitFrame.CreateSpecialClassDisplayFromSettings(self, classDisplayList)
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.specialClassDisplay);
     end
+    if (s.enabled == false) then
+        self.auraGroups.specialClassDisplay = nil;
+        return;
+    end
     if (classDisplayList == nil) then
         classDisplayList = SettingsUtil.GetSpecialClassDisplays();
     end
@@ -455,10 +467,32 @@ function UnitFrame.CreateSpecialClassDisplayFromSettings(self, classDisplayList)
     self.auraGroups.specialClassDisplay = auraGroup;
     AuraGroup.SetPredefinedAuras(auraGroup, classDisplayList);
     AuraGroup.SetIgnoreBlacklist(auraGroup, true);
+    AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.SetReverseOrder(auraGroup, true);
     AuraGroup.SetUseFixedPositions(auraGroup, s.fixedPositions);
     local padding = self.settings.Frames.Padding;
     PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
+    auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
+    auraGroup:Show();
+    return auraGroup;
+end
+
+function UnitFrame.CreateBuffsFromSettings(self)
+    local s = self.settings.Buffs;
+    local auraGroup = self.auraGroups.buffs;
+    if (auraGroup ~= nil) then
+        AuraGroup.Recycle(self.auraGroups.buffs);
+    end
+    auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.Buff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
+    self.auraGroups.buffs = auraGroup;
+    AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
+    AuraGroup.SetReverseOrder(auraGroup, true);
+    local padding = self.settings.Frames.Padding;
+    if (self.auraGroups.specialClassDisplay ~= nil) then
+        PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self.auraGroups.specialClassDisplay, "BOTTOMRIGHT", 0, -padding);
+    else
+        PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
+    end
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
     auraGroup:Show();
     return auraGroup;
@@ -472,6 +506,7 @@ function UnitFrame.CreateDefensivesFromSettings(self)
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.DefensiveBuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.defensives = auraGroup;
+    AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.SetReverseOrder(auraGroup, true);
     local padding = self.settings.Frames.Padding;
     PixelUtil.SetPoint(auraGroup, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -padding, padding);
@@ -488,6 +523,7 @@ function UnitFrame.CreateUndispellablesFromSettings(self)
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.UndispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.undispellable = auraGroup;
+    AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     local padding = self.settings.Frames.Padding;
     PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self, "BOTTOMLEFT", padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
@@ -503,6 +539,7 @@ function UnitFrame.CreateDispellablesFromSettings(self)
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.DispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.dispellable = auraGroup;
+    AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self.auraGroups.undispellable, "TOPLEFT", 0, 1);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
     auraGroup:Show();
@@ -517,6 +554,7 @@ function UnitFrame.CreateBossAurasFromSettings(self)
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.BossAura, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.bossAuras = auraGroup;
+    AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     PixelUtil.SetPoint(auraGroup, "CENTER", self, "CENTER", 0, 0);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 3);
     auraGroup:Show();
@@ -1196,15 +1234,14 @@ end
 function UnitFrame.UpdateAuras(self)
     AuraManager.LoadUnitAuras(self.displayUnit);
     local groups = self.auraGroups;
+
+    --can't iterate over groups because the order is important for aura duplicate checking
     AuraGroup.Update(groups.specialClassDisplay);
     AuraGroup.Update(groups.defensives);
     AuraGroup.Update(groups.undispellable);
     AuraGroup.Update(groups.dispellable);
     AuraGroup.Update(groups.bossAuras);
-
-    --[[for _, group in pairs(self.auraGroups) do
-        AuraGroup.Update(group);
-    end]]
+    AuraGroup.Update(groups.buffs);
 end
 
 function UnitFrame.CreateSpecialClassDisplays()

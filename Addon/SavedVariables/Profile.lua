@@ -63,7 +63,7 @@ do
             local default = self._defaults[key];
             if (default ~= nil) then
                 _p.Log("Loading default ("..key.."): "..tostring(default));
-                result = CreateWrapper(default);
+                result = CreateWrapper(default, default);
                 self._settings[key] = result;
             end
         end

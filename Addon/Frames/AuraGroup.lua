@@ -24,6 +24,7 @@ local AuraBlacklist = _p.AuraBlacklist;
 local TablePool = _p.TablePool;
 
 local math_min, table_sort = math.min, table.sort;
+local CompactUnitFrame_UtilShouldDisplayBuff, CompactUnitFrame_Util_ShouldDisplayDebuff = CompactUnitFrame_UtilShouldDisplayBuff, CompactUnitFrame_Util_ShouldDisplayDebuff;
 
 local _framePool = _p.FramePool.Create();
 
@@ -35,6 +36,7 @@ AuraGroup.Type = {
     UndispellableDebuff = "debuffUndispellable",
     BossAura = "bossAuras",
     DefensiveBuff = "buffDefensive",
+    Buff = "buff",
     PredefinedAuraSet = "predefinedAuraSet",
 }
 
@@ -99,6 +101,7 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
     frame.useFixedPositions = false;
     frame.predefinedAuras = nil;
 
+    frame.useBlizzardAuraFilter = false;
     frame.reverse = false;
     frame.ignoreBlacklist = false;
     frame.allowDisplayed = false;
@@ -115,10 +118,10 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
         AuraGroup.SetColoringMode(frame, AuraFrame.ColoringMode.Debuff);
     elseif (auraGroupType == AuraGroup.Type.DefensiveBuff) then
         AuraGroup.SetColoringMode(frame, AuraFrame.ColoringMode.Custom, 1, 1, 0, 1);
-    elseif (auraGroupType == AuraGroup.Type.PredefinedAuraSet) then
+    elseif (auraGroupType == AuraGroup.Type.PredefinedAuraSet or auraGroupType == AuraGroup.Type.Buff) then
         AuraGroup.SetColoringMode(frame, AuraFrame.ColoringMode.Custom, .5, .5, .5, 1);
     else
-        error("Each AuraGroup type requires an aura color setting!");
+        error("Each AuraGroup type requires an aura color setting! Missing for: " .. tostring(auraGroupType));
     end
 
     for i=1, (count or 0) do
@@ -167,6 +170,10 @@ function AuraGroup.SetUseFixedPositions(self, useFixedPositions)
     if (self.auraGroupType ~= AuraGroup.Type.PredefinedAuraSet) then error("Cannot set fixed position when not configured for " .. AuraGroup.Type.PredefinedAuraSet .. ".") end;
     self.useFixedPositions = useFixedPositions;
     LayoutFrames(self);
+end
+
+function AuraGroup.SetUseBlizzardAuraFilter(self, useBlizzardAuraFilter)
+    self.useBlizzardAuraFilter = useBlizzardAuraFilter;
 end
 
 function AuraGroup.SetPredefinedAuras(self, auraList)
@@ -249,6 +256,8 @@ do
                 aura = testDefensive;
             elseif self.auraGroupType == types.PredefinedAuraSet then
                 aura = testBuff;
+            elseif self.auraGroupType == types.Buff then
+                aura = testBuff;
             else
                 error("invalid AuraGroup.Type: " .. self.auraGroupType);
             end
@@ -268,6 +277,14 @@ do
             result = false;
         elseif (not self.allowDisplayed and info.displayed) then
             result = false;
+        else
+            if (self.useBlizzardAuraFilter == true) then
+                if (info.isDebuff == true) then
+                    result = CompactUnitFrame_Util_ShouldDisplayDebuff(...);
+                else
+                    result = CompactUnitFrame_UtilShouldDisplayBuff(...);
+                end
+            end
         end
         return result;
     end
@@ -370,6 +387,8 @@ do
                 AuraManager.ForAllUndispellableDebuffs(self.unit, NormalDisplayAuraFunc);
             elseif self.auraGroupType == types.BossAura then
                 AuraManager.ForAllBossAuras(self.unit, NormalDisplayAuraFunc);
+            elseif self.auraGroupType == types.Buff then
+                AuraManager.ForAllBuffs(self.unit, NormalDisplayAuraFunc);
             elseif self.auraGroupType == types.DefensiveBuff then
                 ClearAuraList();
                 AuraManager.ForAllDefensiveBuffs(self.unit, DefensiveBuffAuraFunc);
@@ -408,6 +427,7 @@ do
                             local aura = _auraList[i];
                             if (aura ~= nil) then
                                 DisplayInFrame(self, i, unpack(aura));
+                                aura.info.displayed = true;
                             end
                         end
                     else
@@ -416,6 +436,7 @@ do
                             if (aura ~= nil) then
                                 displayedCount = displayedCount + 1;
                                 DisplayInFrame(self, displayedCount, unpack(aura));
+                                aura.info.displayed = true;
                             end
                         end
                     end

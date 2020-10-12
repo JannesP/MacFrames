@@ -80,7 +80,7 @@ do
                 FrameUtil.ConfigureDragDropHost(_window.heading, _window);
 
                 FrameUtil.AddResizer(_window, _window);
-                --_window:SetMinResize(480, 300);
+                _window:SetMinResize(600, 300);
                 _window:SetMaxResize(1000, 800);
                 _window:EnableMouse(true);
 
@@ -92,6 +92,8 @@ do
                 _window.configFrame:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT",  -10, 10);
             end
             _window:Show();
+        else
+            _p.UserChatMessage(L["Cannot open settings in combat."]);
         end
     end
 end

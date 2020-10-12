@@ -1297,6 +1297,11 @@ do
         editBox:SetScript("OnEditFocusLost", EditorOnChange(SliderEditBox_EditorOnChange));
 
         slider:SetScript("OnValueChanged", EditorOnChange(Slider_EditorOnChange));
+
+        if (option.Description ~= nil) then
+            FrameUtil.CreateTextTooltip(frame, option.Description, 1, 1, 1, 1);
+        end
+
         frame.RefreshFromProfile = SliderEditor_RefreshFromProfile;
         return frame;
     end
@@ -1312,6 +1317,11 @@ do
         checkBox:SetScript("OnClick", EditorOnChange(function(self)
             Set(option, self:GetChecked());
         end));
+
+        if (option.Description ~= nil) then
+            FrameUtil.CreateTextTooltip(frame, option.Description, 1, 1, 1, 1);
+        end
+
         frame.RefreshFromProfile = function(self)
             checkBox:SetChecked(option.Get());
         end

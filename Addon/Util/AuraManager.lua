@@ -36,6 +36,7 @@ local _auraInfoCache = TablePool.Create(function (table)
     table.dispellable = false;
     table.displayed = false;
     table.byPlayer = false;
+    table.isDebuff = false;
 end);
 --[[
     _buffCache = {
@@ -101,7 +102,9 @@ function AuraManager.LoadUnitDebuffs(unit)
 
     MyAuraUtil_AllUnitAuraSlots(unit, "HARMFUL", _slotCache);
     for i=1, #_slotCache do
-        debuffCache[_slotCache[i]] = _auraInfoCache:Take();
+        local debuffInfo = _auraInfoCache:Take();
+        debuffInfo.isDebuff = true;
+        debuffCache[_slotCache[i]] = debuffInfo;
     end
 
     MyAuraUtil_AllUnitAuraSlots(unit, "HARMFUL|RAID", _slotCache);

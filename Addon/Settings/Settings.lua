@@ -197,6 +197,22 @@ local function CreateAuraGroupOptions(name, GetAuraSettings)
     return options;
 end
 
+local function CreateAuraGroupOptionsWithBlizzardFilter(name, GetAuraSettings)
+    local options = CreateAuraGroupOptions(name, GetAuraSettings);
+    tinsert(options.Options, {
+        Name = L["Use Blizzard Aura Filter"],
+        Description = L["Shows the same buffs the default raidframe shows. Otherwise this will be unfiltered."],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            GetAuraSettings().useBlizzardAuraFilter = value;
+        end,
+        Get = function()
+            return GetAuraSettings().useBlizzardAuraFilter;
+        end,
+    });
+    return options;
+end
+
 local function AddUnitFrameOptions(targetSections, PS)
     local unitFrameOptions = {};
     local frameLayoutOptions = CreateSection(L["Frame Layout"]);
@@ -309,6 +325,17 @@ local function AddUnitFrameOptions(targetSections, PS)
     tinsert(classDisplayOptions.Sections, classDisplayCategoryConfigureAuras);
     
     tinsert(classDisplayOptions.Options, {
+        Name = L["Enabled"],
+        Description = L["This setting is mostly for healers to have a consistent order of specific buffs (eg. HoTs).\n'Normal' buffs will be displayed below when this is enabled.'"];
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().SpecialClassDisplay.enabled = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.enabled;
+        end,
+    });
+    tinsert(classDisplayOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
         Min = 4,
@@ -346,7 +373,7 @@ local function AddUnitFrameOptions(targetSections, PS)
     });
     tinsert(classDisplayOptions.Options, {
         Name = L["Fixed Positioning"],
-        Description = L["Auras have a fixed placement any leave blank spaces in between."],
+        Description = L["Auras have a fixed placement and leave blank spaces in between."],
         Type = OptionType.CheckBox,
         Set = function(value)
             PS().SpecialClassDisplay.fixedPositions = value;
@@ -355,7 +382,6 @@ local function AddUnitFrameOptions(targetSections, PS)
             return PS().SpecialClassDisplay.fixedPositions;
         end,
     });
-
     tinsert(classDisplayCategoryConfigureAuras.Options, {
         Name = L["Aura Selector"],
         Type = OptionType.NotYetImplemented,
@@ -363,12 +389,13 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
         Get = function()
         end,
-    })
+    });
     
     tinsert(unitFrameOptions, CreateAuraGroupOptions("Defensives", function() return PS().DefensiveBuff; end));
-    tinsert(unitFrameOptions, CreateAuraGroupOptions("Boss Auras", function() return PS().BossAuras; end));
-    tinsert(unitFrameOptions, CreateAuraGroupOptions("Undispellable Debuffs", function() return PS().OtherDebuffs; end));
-    tinsert(unitFrameOptions, CreateAuraGroupOptions("Dispellable Debuffs", function() return PS().DispellableDebuffs; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Boss Auras", function() return PS().BossAuras; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Undispellable Debuffs", function() return PS().OtherDebuffs; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Dispellable Debuffs", function() return PS().DispellableDebuffs; end));
+    tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Buffs", function() return PS().Buffs; end));
 
     for i=1, #unitFrameOptions do
         tinsert(targetSections, unitFrameOptions[i]);
