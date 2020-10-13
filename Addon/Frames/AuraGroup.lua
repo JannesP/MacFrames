@@ -242,29 +242,46 @@ do
         10000,
         GetTime() - 3500,
     };
+    local testSpecial = {
+        nil,
+        458720,
+        3,
+        "none",
+        10000,
+        GetTime() - 3500,
+    }
     function AuraGroup.SetTestMode(self, enabled)
         if (enabled == true) then
             local types = AuraGroup.Type;
-            local aura;
-            if self.auraGroupType == types.DispellableDebuff then
-                aura = testDispellable;
-            elseif self.auraGroupType == types.UndispellableDebuff then
-                aura = testUndispellable;
-            elseif self.auraGroupType == types.BossAura then
-                aura = testBoss;
-            elseif self.auraGroupType == types.DefensiveBuff then
-                aura = testDefensive;
-            elseif self.auraGroupType == types.PredefinedAuraSet then
-                aura = testBuff;
-            elseif self.auraGroupType == types.Buff then
-                aura = testBuff;
-            else
-                error("invalid AuraGroup.Type: " .. self.auraGroupType);
-            end
+            
             local auraFrames = self.auraFrames;
-            for i=1, #auraFrames do
-                AuraFrame.SetTestAura(auraFrames[i], unpack(aura));
+            if (self.auraGroupType == types.PredefinedAuraSet) then
+                AuraGroup.SetCount(self, #self.auraGroupType);
+                local aura = testSpecial;
+                for i=1, #self.predefinedAuras do
+                    aura[2] = select(3, GetSpellInfo(self.predefinedAuras[i].spellId));
+                    AuraFrame.SetTestAura(auraFrames[i], unpack(aura));
+                end
+            else
+                local aura;
+                if self.auraGroupType == types.DispellableDebuff then
+                    aura = testDispellable;
+                elseif self.auraGroupType == types.UndispellableDebuff then
+                    aura = testUndispellable;
+                elseif self.auraGroupType == types.BossAura then
+                    aura = testBoss;
+                elseif self.auraGroupType == types.DefensiveBuff then
+                    aura = testDefensive;
+                elseif self.auraGroupType == types.Buff then
+                    aura = testBuff;
+                else
+                    error("invalid AuraGroup.Type: " .. self.auraGroupType);
+                end
+                for i=1, #auraFrames do
+                    AuraFrame.SetTestAura(auraFrames[i], unpack(aura));
+                end
             end
+            
         else
             AuraGroup.Update(self);
         end

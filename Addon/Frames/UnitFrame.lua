@@ -489,7 +489,7 @@ function UnitFrame.CreateBuffsFromSettings(self)
     AuraGroup.SetReverseOrder(auraGroup, true);
     local padding = self.settings.Frames.Padding;
     if (self.auraGroups.specialClassDisplay ~= nil) then
-        PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self.auraGroups.specialClassDisplay, "BOTTOMRIGHT", 0, -padding);
+        PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self.auraGroups.specialClassDisplay, "BOTTOMRIGHT", 0, -1);
     else
         PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
     end
@@ -1236,7 +1236,7 @@ function UnitFrame.UpdateAuras(self)
     local groups = self.auraGroups;
 
     --can't iterate over groups because the order is important for aura duplicate checking
-    AuraGroup.Update(groups.specialClassDisplay);
+    if (groups.specialClassDisplay ~= nil) then AuraGroup.Update(groups.specialClassDisplay) end;
     AuraGroup.Update(groups.defensives);
     AuraGroup.Update(groups.undispellable);
     AuraGroup.Update(groups.dispellable);
