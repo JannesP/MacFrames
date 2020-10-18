@@ -707,10 +707,6 @@ function UnitFrame.RegisterUnitEvents(self)
 		displayUnit = self.displayUnit;
     end
     self:RegisterUnitEvent("UNIT_HEALTH", unit, displayUnit);
-    --TODO: remove when prepatch hits
-    if (not _p.isRunningShadowlands) then --if it's not shadowlands yet
-        self:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", unit, displayUnit);
-    end
     self:RegisterUnitEvent("UNIT_FLAGS", unit, displayUnit);
     self:RegisterUnitEvent("UNIT_PHASE", unit, displayUnit);
     self:RegisterUnitEvent("UNIT_MAXHEALTH", unit, displayUnit);
@@ -757,7 +753,7 @@ function UnitFrame.OnEvent(self, event, ...)
     else
         local eventUnit = arg1;
         if (eventUnit == self.unit or eventUnit == self.displayUnit) then
-            if (event == "UNIT_HEALTH" or event == "UNIT_HEALTH_FREQUENT") then
+            if (event == "UNIT_HEALTH") then
                 UnitFrame.UpdateHealth(self);
                 UnitFrame.UpdateStatusText(self);
                 UnitFrame.UpdateHealthBarExtraInfo(self)

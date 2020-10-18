@@ -31,7 +31,7 @@ function FrameUtil.CreateText(frame, text, strata, font)
 end
 
 function FrameUtil.CreateFrameWithText(parent, name, text, backdrop)
-    local frame = CreateFrame("Frame", name, parent, backdrop and BackdropTemplateMixin and "BackdropTemplate");
+    local frame = CreateFrame("Frame", name, parent, backdrop and "BackdropTemplate");
     if (backdrop ~= nil) then frame:SetBackdrop(backdrop); end
     frame.text = FrameUtil.CreateText(frame, text);
     frame.text:ClearAllPoints();

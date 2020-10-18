@@ -173,7 +173,7 @@ do
         TabPanel_Reflow(parent);
     end
     local function SetupContentScrollContainer(parent, content)
-        parent.contentContainer = CreateFrame("Frame", parent:GetName() .. "ContentContainer", parent, BackdropTemplateMixin and "BackdropTemplate");
+        parent.contentContainer = CreateFrame("Frame", parent:GetName() .. "ContentContainer", parent, "BackdropTemplate");
         parent.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
         parent.contentContainer:SetAllPoints(parent);
 
@@ -224,7 +224,7 @@ do
             frame.tabPanelSectionSelector:SetScript("OnSizeChanged", TabPanel_Reflow);
             frame.tabPanelSectionSelector:SetScript("OnShow", TabPanel_Reflow);
 
-            frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, BackdropTemplateMixin and "TooltipBorderBackdropTemplate");
+            frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, "TooltipBorderBackdropTemplate");
             --frame.contentContainer:SetBackdrop(BACKDROP_TOOLTIP_0_16);
             frame.contentContainer:SetPoint("TOPLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
             frame.contentContainer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);

@@ -34,7 +34,7 @@ local _activeTab;
 local CreateTextButton = FrameUtil.CreateTextButton;
 
 local function CreateBottomBar(self)
-    local frame = CreateFrame("Frame", _frameName .. "BottomBar", self, BackdropTemplateMixin and "BackdropTemplate");
+    local frame = CreateFrame("Frame", _frameName .. "BottomBar", self, "BackdropTemplate");
     frame:SetBackdrop(BACKDROP_TOOLTIP_0_16);
     frame:ClearAllPoints();
 
@@ -53,7 +53,7 @@ end
 
 local function CreateTabSelector(self)
     local frameName = _frameName .. "TabSelector";
-    local frame = CreateFrame("Frame", frameName, self, BackdropTemplateMixin and "BackdropTemplate");
+    local frame = CreateFrame("Frame", frameName, self, "BackdropTemplate");
     frame:SetBackdrop(BACKDROP_TOOLTIP_0_16);
     self.tabs = {};
     local count = 1;
@@ -102,7 +102,7 @@ end
 
 function SettingsFrame.Show(parent)
     if _frame == nil then
-        _frame = CreateFrame("Frame", _frameName, parent, BackdropTemplateMixin and "BackdropTemplate");
+        _frame = CreateFrame("Frame", _frameName, parent, "BackdropTemplate");
 
         _frame.bottomBar = CreateBottomBar(_frame);
         _frame.bottomBar:SetPoint("BOTTOMLEFT", _frame, "BOTTOMLEFT", 0, 0);

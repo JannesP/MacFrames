@@ -35,7 +35,7 @@ local _window;
 
 do
     local function CreateCloseButton(parent)
-        local closeButtonFrame = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate");
+        local closeButtonFrame = CreateFrame("Frame", nil, parent, "BackdropTemplate");
         closeButtonFrame:SetBackdrop(_backdropSettings);
         closeButtonFrame:SetSize(32, 32);
 
@@ -50,7 +50,7 @@ do
         return closeButtonFrame;
     end
     local function CreateHeading(parent)
-        local headerFrame = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate");
+        local headerFrame = CreateFrame("Frame", nil, parent, "BackdropTemplate");
         headerFrame:SetBackdrop(_backdropSettings);
 
         headerFrame.text = FrameUtil.CreateText(headerFrame, L["MacFrames Options"], "ARTWORK");
@@ -63,7 +63,7 @@ do
     function SettingsWindow.Open()
         if (not InCombatLockdown()) then
             if (_window == nil) then
-                _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, BackdropTemplateMixin and "BackdropTemplate");
+                _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, "BackdropTemplate");
                 _window:SetFrameStrata("HIGH");
                 _window:SetBackdrop(_backdropSettings);
                 tinsert(UISpecialFrames, _window:GetName());
