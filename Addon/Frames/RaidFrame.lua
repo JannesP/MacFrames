@@ -24,6 +24,7 @@ local Resources = _p.Resources;
 local UnitFrame = _p.UnitFrame;
 local FrameUtil = _p.FrameUtil;
 local ProfileManager = _p.ProfileManager;
+local BlizzardFrameUtil = _p.BlizzardFrameUtil;
 
 _p.RaidFrame = {};
 local RaidFrame = _p.RaidFrame;
@@ -34,6 +35,7 @@ local _groupFrames = nil;
 local _unitFrames = nil;
 local _groupChangedInCombat = false;
 local _changingSettings = false;
+local _disabledBlizzardFrames = false;
 
 local function RaidSettings_PropertyChanged(key)
     if (_changingSettings == true or _frame == nil) then return; end
@@ -41,6 +43,10 @@ local function RaidSettings_PropertyChanged(key)
         _frame:SetFrameStrata(_raidSettings.FrameStrata);
     elseif (key == "FrameLevel") then
         _frame:SetFrameLevel(_raidSettings.FrameLevel);
+    elseif (key == "Enabled") then
+        _frame.enabled = _raidSettings.Enabled;
+    elseif (key == "DisableBlizzardFrames") then
+        RaidFrame.SetDisableBlizzardFrame(_raidSettings.DisableBlizzardFrames);
     else
         RaidFrame.UpdateRect(_frame);
         RaidFrame.ProcessLayout(_frame);
@@ -68,7 +74,22 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
             UnitFrame.SetSettings(_unitFrames[i], _raidSettings);
         end
     end
+    RaidFrame.SetDisableBlizzardFrame(_raidSettings.DisableBlizzardFrames);
 end);
+
+function RaidFrame.SetDisableBlizzardFrame(disable)
+    if (_disabledBlizzardFrames == true) then
+        if (disable == false) then
+            _p.PopupDisplays.ShowSettingsUiReloadRequired();
+        end
+    else
+        if (disable == true) then
+            if (InCombatLockdown()) then error(L["Cannot disable blizzard frames in combat."]); end;
+            _disabledBlizzardFrames = true;
+            BlizzardFrameUtil.DisableCompactUnitFrames();
+        end
+    end
+end
 
 do
     local onSizeChangedSpacing, onSizeChangedMargin;

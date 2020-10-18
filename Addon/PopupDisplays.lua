@@ -25,6 +25,7 @@ _p.PopupDisplays = {};
 local PopupDisplays = _p.PopupDisplays;
 PopupDisplays.GenericMessage = "MACFRAMES_GENERIC_MESSAGE";
 PopupDisplays.ResetSavedVariables = "MACFRAMES_RESET_SAVED_VARIABLES";
+PopupDisplays.SettingsUiReloadRequired = "MACFRAMES_SETTINGS_UI_RELOAD_REQUIRED";
 PopupDisplays.CopyProfileEnterName = "MACFRAMES_COPY_PROFILE_ENTER_NAME";
 PopupDisplays.RenameProfileEnterName = "MACFRAMES_RENAME_PROFILE_ENTER_NAME";
 PopupDisplays.DeleteProfile = "MACFRAMES_DELETE_PROFILE";
@@ -38,6 +39,26 @@ StaticPopupDialogs[PopupDisplays.GenericMessage] = {
     text = L["Do you really want to reset the addon settings? This will reload your UI.\nALL PROFILES WILL BE DELETED!"],
     button1 = L["Ok"],
     OnAccept = function(self)
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = false,
+    showAlert = false,
+}
+
+function PopupDisplays.ShowSettingsUiReloadRequired()
+    StaticPopup_Show(PopupDisplays.SettingsUiReloadRequired);
+end
+StaticPopupDialogs[PopupDisplays.SettingsUiReloadRequired] = {
+    text = L["To set the desired settings a UI reload is required. Do you want to reload the UI now?"],
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function(self)
+        if (not InCombatLockdown()) then
+            C_UI.Reload();
+        else
+            _p.UserChatMessage(L["Cannot reload UI in combat. Please consider reloading after the combat ends."]);
+        end
     end,
     timeout = 0,
     whileDead = true,

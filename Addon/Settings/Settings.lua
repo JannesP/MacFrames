@@ -224,6 +224,26 @@ local function AddUnitFrameOptions(targetSections, PS)
 
     tinsert(unitFrameOptions, frameLayoutOptions);
     tinsert(frameLayoutOptions.Options, {
+        Name = L["Enabled"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Enabled = value;
+        end,
+        Get = function()
+            return PS().Enabled;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
+        Name = L["Disable Blizzard Frames"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().DisableBlizzardFrames = value;
+        end,
+        Get = function()
+            return PS().DisableBlizzardFrames;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
         Min = Constants.UnitFrame.MinWidth,
@@ -401,6 +421,27 @@ local function AddUnitFrameOptions(targetSections, PS)
         tinsert(targetSections, unitFrameOptions[i]);
     end
 end
+
+local _general = {
+    Name = L["General"],
+    Type = Settings.CategoryType.Options,
+    GetProfile = P,
+    Sections = {},
+};
+local generalGeneral = CreateSection(L["General"]);
+tinsert(_general.Sections, generalGeneral);
+tinsert(generalGeneral.Options, {
+    Name = L["Disable Raid Settings Drawer"],
+    Description = L["The thingy on the left of the screen which has the options for the default raid frames.\nThis will only work when both, default party and -raid frames are hidden."],
+    Type = OptionType.CheckBox,
+    Set = function(value)
+        P().DisableCompactUnitFrameManager = value;
+    end,
+    Get = function()
+        return P().DisableCompactUnitFrameManager;
+    end,
+});
+tinsert(Settings.Categories, _general);
 
 local _raidFrames = {
     Name = L["Raidframes"],

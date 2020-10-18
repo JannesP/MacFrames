@@ -39,6 +39,7 @@ Settings\AuraBlacklist.lua
 Settings\Defensives.lua
 Settings\Settings.lua
 
+Util\BlizzardFrameUtil.lua
 Util\TablePool.lua
 Util\FramePool.lua
 Util\SettingsUtil.lua

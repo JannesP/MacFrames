@@ -1320,6 +1320,7 @@ do
 
         if (option.Description ~= nil) then
             FrameUtil.CreateTextTooltip(frame, option.Description, 1, 1, 1, 1);
+            FrameUtil.CreateTextTooltip(checkBox, option.Description, 1, 1, 1, 1);
         end
 
         frame.RefreshFromProfile = function(self)

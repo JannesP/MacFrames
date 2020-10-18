@@ -27,9 +27,9 @@ local _currentProfileVersion = _p.DefaultProfileSettings.Version;
 
 local CreateWrapper, NewWrapper, NewArrayWrapper;
 do
-    local function Wrapper_OnPropertyChanged(self, key)
+    local function Wrapper_OnPropertyChanged(self, key, value)
         for callback, _ in pairs(self._propertyChangedListeners) do
-            callback(key);
+            callback(key, value);
         end
     end
     local function Wrapper_RegisterPropertyChanged(self, callback)
@@ -79,7 +79,7 @@ do
         if (self._settings[key] ~= value) then
             print("Changing ", key, " value: ", value);
             self._settings[key] = value;
-            self:OnPropertyChanged(key);
+            self:OnPropertyChanged(key, value);
         end
     end
 
@@ -89,23 +89,23 @@ do
         end
         print("Changing ", key, " value: ", tostring(value));
         self._settings[key] = value;
-        self:OnPropertyChanged(key);
+        self:OnPropertyChanged(key, value);
     end
     local function ArrayWrapper_Metatable__len(self)
         return #self._settings;
     end
     local function ArrayWrapper_Add(self, value)
         tinsert(self._settings, value);
-        self:OnPropertyChanged(#self._settings);
+        self:OnPropertyChanged(#self._settings, value);
     end
     local function ArrayWrapper_Remove(self, index)
         local settings = self._settings;
         if (#settings == index) then
             tremove(self._settings);
-            self:OnPropertyChanged(index);
+            self:OnPropertyChanged(index, nil);
         else
             tremove(self._settings, index);
-            self:OnPropertyChanged(nil);
+            self:OnPropertyChanged(nil, nil);
         end
     end
     NewWrapper = function(defaults)

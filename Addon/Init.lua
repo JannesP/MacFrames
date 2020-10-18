@@ -75,22 +75,29 @@ _p.CreateError = function(technicalMessage, userMessage, traceback)
     return err;
 end
 
-_p.Log = function(...)
-    if (not _p.isLoggingEnabled) then return; end
-    local msg = { ... };
-    if (#msg == 0) then
-        print("nil");
-        return;
-    elseif (#msg == 1) then
-        msg = msg[1];
-    end
-    local msgType = type(msg);
-    if (msg == nil) then
-        print("nil");
-    elseif (msgType == "table") then
-        print(_p.tprint(msg));
-    else
-        print(msg);
+do
+    local _isLoggingEnabled = _p.isLoggingEnabled;
+    _p.Log = function(...)
+        if (not _isLoggingEnabled) then return; end
+        
+        local count = select('#', ...);
+        if (count == 0) then
+            print("nil");
+            return;
+        elseif (count == 1) then
+            local msg = select(1, ...);
+            local msgType = type(msg);
+            if (msg == nil) then
+                print("nil");
+            elseif (msgType == "table") then
+                local msg = { ... };
+                print(_p.tprint(msg));
+            else
+                print(msg);
+            end
+        else
+            print(...);
+        end
     end
 end
 

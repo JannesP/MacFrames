@@ -24,6 +24,7 @@ local ProfileManager = _p.ProfileManager;
 local PartyFrame = _p.PartyFrame;
 local RaidFrame = _p.RaidFrame;
 local PopupDisplays = _p.PopupDisplays;
+local BlizzardFrameUtil = _p.BlizzardFrameUtil;
 
 --these can only be loaded after the addon is loaded
 local SettingsWindow;
@@ -100,7 +101,7 @@ function Addon.UpdatePlayerInfo()
         PlayerInfo.classId = classId;
         changedInfo = true;
     end
-    if (PlayerInfo.specId ~= currentSpec.SpecId) then
+    if (currentSpec ~= nil and PlayerInfo.specId ~= currentSpec.SpecId) then
         PlayerInfo.specId = currentSpec.SpecId;
         changedInfo = true;
     end
@@ -139,6 +140,35 @@ function Addon.ToggleTestMode(type)
     end
 end
 
+do
+    local _disabledCUFManager = false;
+    local function SetDisableBlizzardCUFManager(disable)
+        if (_disabledCUFManager == true) then
+            if (disable == false) then
+                _p.PopupDisplays.ShowSettingsUiReloadRequired();
+            end
+        else
+            if (disable == true) then
+                if (InCombatLockdown()) then error(L["Cannot disable blizzard frames in combat."]); end;
+                _disabledCUFManager = true;
+                BlizzardFrameUtil.DisableCompactUnitFrameManager();
+            end
+        end
+    end
+    local function ProfileSettingChanged(key, value)
+        if (key == "DisableCompactUnitFrameManager") then
+            SetDisableBlizzardCUFManager(value);
+        end
+    end
+    ProfileManager.RegisterProfileChangedListener(function(newProfile, oldProfile)
+        if (oldProfile ~= nil) then
+            oldProfile:UnregisterPropertyChanged(ProfileSettingChanged);
+        end
+        newProfile:RegisterPropertyChanged(ProfileSettingChanged);
+    
+        SetDisableBlizzardCUFManager(newProfile.DisableCompactUnitFrameManager);
+    end);
+end
 
 -- ########### EVENT HANDLING ############
 local _eventFrame, _events = CreateFrame("Frame"), {};

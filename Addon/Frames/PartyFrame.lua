@@ -23,6 +23,7 @@ local Constants = _p.Constants;
 local UnitFrame = _p.UnitFrame;
 local FrameUtil = _p.FrameUtil;
 local ProfileManager = _p.ProfileManager;
+local BlizzardFrameUtil = _p.BlizzardFrameUtil;
 
 _p.PartyFrame = {};
 local PartyFrame = _p.PartyFrame;
@@ -30,6 +31,7 @@ local PartyFrame = _p.PartyFrame;
 local _frame = nil;
 local _unitFrames = nil;
 local _partySettings = nil;
+local _disabledBlizzardFrames = false;
 
 local _changingSettings = false;
 
@@ -41,6 +43,10 @@ local function PartySettings_PropertyChanged(key)
         _frame:SetFrameLevel(_partySettings.FrameLevel);
     elseif (key == "Vertical") then
         PartyFrame.ProcessLayout(_frame, true);
+    elseif (key == "Enabled") then
+        _frame.enabled = _partySettings.Enabled;
+    elseif (key == "DisableBlizzardFrames") then
+        PartyFrame.SetDisableBlizzardFrame(_partySettings.DisableBlizzardFrames);
     else
         PartyFrame.ProcessLayout(_frame);
     end
@@ -66,7 +72,23 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
             UnitFrame.SetSettings(_unitFrames[i], _partySettings);
         end
     end
+
+    PartyFrame.SetDisableBlizzardFrame(_partySettings.DisableBlizzardFrames);
 end);
+
+function PartyFrame.SetDisableBlizzardFrame(disable)
+    if (_disabledBlizzardFrames == true) then
+        if (disable == false) then
+            _p.PopupDisplays.ShowSettingsUiReloadRequired();
+        end
+    else
+        if (disable == true) then
+            if (InCombatLockdown()) then error(L["Cannot disable blizzard frames in combat."]); end;
+            _disabledBlizzardFrames = true;
+            BlizzardFrameUtil.DisablePartyFrames();
+        end
+    end
+end
 
 do
     local onSizeChangedSpacing, onSizeChangedMargin;
