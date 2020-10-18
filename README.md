@@ -12,6 +12,7 @@ This addon is a replacement for the default blizzard raid and party frames. It t
 
 Features that are currently missing but which I'm planning to implement in no particular order:
 
+* [BUG] [A lot of things are broken for characters without spec. This includes all characters below level 10!](https://github.com/JannesP/MacFrames/issues/19)
 * resource bars (Mana, Focus, etc.)
 * configuration UI for Class/Spec specific buffs (you can hack this into the profile and it works ... disc priest and resto shaman are configured)
 * configuration for the positioning of the different aura groups
