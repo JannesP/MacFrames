@@ -1,1 +1,0 @@
-FileWatcher\ExecuteBatIfFileChanged.exe ..\Addon\ CopyAddonFiles.bat

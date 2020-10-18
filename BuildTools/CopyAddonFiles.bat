@@ -1,2 +1,0 @@
-robocopy "..\Addon" "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\MacFrames" /mir
-robocopy "..\Addon" "C:\Program Files (x86)\World of Warcraft\_beta_\Interface\AddOns\MacFrames" /mir

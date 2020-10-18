@@ -1,0 +1,8 @@
+package-as: MacFrames
+
+ignore:
+    - DevTools
+    - RawMedia
+
+embedded-libraries:
+    - libsharedmedia-3-0
