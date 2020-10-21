@@ -27,6 +27,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 				<Texture name="$parentHealAbsorb" parentKey="healAbsorb"/>
 				<Texture name="$parentHealPrediction" parentKey="healPrediction"/>
 				<Texture name="$parentTotalAbsorb" parentKey="totalAbsorb"/>
+				<Texture name="$parentOverAbsorb" parentKey="overAbsorb"/>
 			</Layer>
 			<Layer level="ARTWORK">
 				<Texture name="$parentRankIcon" hidden="true" parentKey="rankIcon"/>

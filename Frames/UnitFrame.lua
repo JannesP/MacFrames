@@ -324,6 +324,13 @@ function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     PixelUtil.SetPoint(self.totalAbsorb, "TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
     PixelUtil.SetPoint(self.totalAbsorb, "BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
 
+    self.overAbsorb:ClearAllPoints();
+    self.overAbsorb:SetTexture(Resources.HEALTH_OVER_ABSORB);
+    self.overAbsorb:SetBlendMode("ADD");
+    PixelUtil.SetPoint(self.overAbsorb, "TOPRIGHT", self.healthBar, "TOPRIGHT", 0, 0);
+    PixelUtil.SetPoint(self.overAbsorb, "BOTTOMRIGHT", self.healthBar, "BOTTOMRIGHT", 0, 0);
+    self.overAbsorb:SetWidth(6);
+
     self.healPrediction:ClearAllPoints();
     self.healPrediction:SetTexture(healthBarTexturePath);
     self.healPrediction:SetVertexColor(0, 0.55, 0.1, 0.5);
@@ -1101,6 +1108,7 @@ do
         self.healPrediction:Hide();
         self.totalAbsorb:Hide();
         self.healAbsorb:Hide();
+        self.overAbsorb:Hide();
     end
     function UnitFrame.UpdateHealthBarExtraInfo(self)
         local _, maxHealth = self.healthBar:GetMinMaxValues();
@@ -1123,9 +1131,10 @@ end
 
 function UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomingHeal, absorb, healAbsorb)
     local totalWidth = self.healthBar:GetWidth();
-    if (currentHealth == maxHealth) then
+    if (currentHealth == maxHealth and absorb == 0) then
         self.totalAbsorb:Hide();
         self.healPrediction:Hide();
+        self.overAbsorb:Hide();
     else
         local remainingEmptyHealth = maxHealth - currentHealth;
         remainingEmptyHealth, nextAnchorFrame, overAmount = UnitFrame.ProcessHealthBarExtraInfoBar(self.healPrediction, incomingHeal, self.healthBar:GetStatusBarTexture(), remainingEmptyHealth, maxHealth, totalWidth);
@@ -1135,6 +1144,9 @@ function UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomin
         remainingEmptyHealth, nextAnchorFrame, overAmount = UnitFrame.ProcessHealthBarExtraInfoBar(self.totalAbsorb, absorb, nextAnchorFrame, remainingEmptyHealth, maxHealth, totalWidth);
         if (overAmount > 0) then
             --overcapped absorbs
+            self.overAbsorb:Show();
+        else
+            self.overAbsorb:Hide();
         end
     end
     if (healAbsorb == 0) then
