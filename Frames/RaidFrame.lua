@@ -36,6 +36,7 @@ local _unitFrames = nil;
 local _groupChangedInCombat = false;
 local _changingSettings = false;
 local _disabledBlizzardFrames = false;
+local _forcedVisibility = nil;
 
 local function RaidSettings_PropertyChanged(key)
     if (_changingSettings == true or _frame == nil) then return; end
@@ -140,7 +141,7 @@ do
 
         RaidFrame.UpdateRect(_frame);
         RaidFrame.ProcessLayout(_frame);
-        RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
+        RaidFrame.SetForcedVisibility(_forcedVisibility);
         RaidFrame.SetupEvents(_frame);
         return _frame;
     end
@@ -163,9 +164,22 @@ function RaidFrame.SetTestMode(enabled)
             _groupFrames[i]:Show();
         end
     else
-        RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
+        RaidFrame.SetForcedVisibility(_forcedVisibility);
     end
     RaidFrame.SetChildTestModes(enabled);
+end
+
+function RaidFrame.SetForcedVisibility(visible)
+    if (visible == true) then
+        UnregisterAttributeDriver(_frame, "state-visibility");
+        _frame:Show();
+    elseif (visible == false) then
+        UnregisterAttributeDriver(_frame, "state-visibility");
+        _frame:Hide();
+    else
+        RegisterAttributeDriver(_frame, "state-visibility", _raidSettings.StateDriverVisibility);
+    end
+    _forcedVisibility = visible;
 end
 
 function RaidFrame.SetMovable(movable)

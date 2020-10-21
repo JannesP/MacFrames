@@ -178,6 +178,20 @@ function _events:ADDON_LOADED(addonName)
     end
 end
 do
+    local function ProcessArenaPartyLayout()
+        if (not InCombatLockdown()) then
+            if (IsActiveBattlefieldArena()) then
+                --if we are inside an arena we want to display the party frames despite being in a raid
+                PartyFrame.SetForcedVisibility(true);
+                RaidFrame.SetForcedVisibility(false);
+            else
+                PartyFrame.SetForcedVisibility(nil);
+                RaidFrame.SetForcedVisibility(nil);
+            end
+        else
+            error("I thought this wouldnt happen :( Please report this.");
+        end
+    end
     local function ProfileLoadError(err)
         if (type(err) == "table") then
             return err;
@@ -214,6 +228,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 _raidFrame = RaidFrame.create();
             end
         end
+        ProcessArenaPartyLayout();
     end
 end
 function _events:PLAYER_REGEN_DISABLED()
