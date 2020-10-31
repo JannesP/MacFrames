@@ -23,6 +23,7 @@ _p.AuraBlacklist = {
     --[6788] = true,      --Weakened Soul
     --[206151] = true,    --Challenger's Burden
     --[319346] = true,    --Infinity's Toll
+    [232698] = true,      --Shadow Form
 
     --###### Hero/BL ######
     --[57724] = true,     --Sated
