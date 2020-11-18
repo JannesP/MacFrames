@@ -194,26 +194,19 @@ _p.DefaultProfileSettings = {
         ["PRIEST"] = {
             [256] = {   --discipline
                 _settingsType = ProfileSettingsTypes.Array;
-                [1] = { --Fortitude
-                    spellId = 135987,   
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = false,
-                    hideInCombat = true,
-                }, 
-                [2] = { --Atonement
+                [1] = { --Atonement
                     spellId = 194384,   
                     enabled = true,
                     debuff = false,
                     onlyByPlayer = true,
                 },    
-                [3] = { --Weakened Soul
+                [2] = { --Weakened Soul
                     spellId = 6788, 
                     enabled = true,
                     debuff = true,
                     onlyByPlayer = true,
                 },
-                [4] = { --PI
+                [3] = { --PI
                     spellId = 10060, 
                     enabled = true,
                     debuff = false,
