@@ -528,3 +528,26 @@ function FrameUtil.GridLayoutFromObjects(gridParent, gridDescriptor)
         _p.Log("Unexpected! Actual width: ", gridFrame:GetWidth(), " (filled width ", currentX, ")");
     end
 end
+
+function FrameUtil.CreateHorizontalSeperatorWithText(parent, text)
+    local frame = CreateFrame("Frame", nil, parent);
+    frame.leftLine = frame:CreateTexture();
+    frame.rightLine = frame:CreateTexture();
+    frame.text = FrameUtil.CreateText(frame, text, nil, "GameFontNormal");
+
+    frame.leftLine:SetColorTexture(.4, .4, .4, 1);
+    PixelUtil.SetHeight(frame.leftLine, 2);
+
+    frame.rightLine:SetColorTexture(.4, .4, .4, 1);
+    PixelUtil.SetHeight(frame.rightLine, 2);
+
+    frame.text:SetPoint("CENTER", frame, "CENTER");
+    frame.text:SetJustifyH("CENTER");
+    frame:SetHeight(select(2, frame.text:GetFont()));
+    local p = 5;
+    frame.leftLine:SetPoint("LEFT", frame, "LEFT", p, 0);
+    frame.leftLine:SetPoint("RIGHT", frame.text, "LEFT", -p, 0);
+    frame.rightLine:SetPoint("LEFT", frame.text, "RIGHT", p, 0);
+    frame.rightLine:SetPoint("RIGHT", frame, "RIGHT", -p, 0);
+    return frame;
+end

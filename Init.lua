@@ -18,9 +18,11 @@
 
 local ADDON_NAME, _p = ...;
 
-_p.isDevMode = false;
+_p.isDevMode = true;
 local _isLoggingEnabled = _p.isDevMode;
 _p.versionNumber = 0;
+
+_p.Noop = function() end;
 
 _p.PlayerInfo = {
     class = nil,
@@ -105,6 +107,7 @@ end
 
 --@do-not-package@
 _p.isDevMode = true;
+mf = _p;
 _isLoggingEnabled = true;
 --@end-do-not-package@
 

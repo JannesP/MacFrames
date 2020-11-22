@@ -19,7 +19,7 @@
 local ADDON_NAME, _p = ...;
 local Addon = _p.Addon;
 local FrameUtil = _p.FrameUtil;
-local SettingsFrameTab = _p.SettingsFrameTab;
+local SettingsPageFactory = _p.SettingsPageFactory;
 local Constants = _p.Constants;
 
 _p.SettingsFrame = {};
@@ -61,7 +61,7 @@ local function CreateTabSelector(self)
     local categories = Settings.Categories;
     for i=1, #categories do
         local category = categories[i];
-        local tab = SettingsFrameTab.Create(frame, category);
+        local tab = SettingsPageFactory.CreatePage(frame, category);
         local selectButton = CreateFrame("CheckButton", frameName .. "TabSelector" .. count, frame, "OptionsListButtonTemplate");
         self.tabs[selectButton] = tab;
         selectButton.highlight = selectButton:GetHighlightTexture();
