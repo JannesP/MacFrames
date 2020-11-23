@@ -30,12 +30,13 @@ ProfileManager.AddonDefaults = _defaultProfileMarker .. L["Addon Defaults"] .. _
 
 local _isErrorState = false;
 
-local _currentSettingsVersion = 0;
+local _currentSettingsVersion = 2;
 local _profileChangedListeners = {};
 local _profileListChangedListeners = {};
 local _characterProfileMapping;
 local _defaultProfileName;
 local _currentProfile, _currentProfileName;
+local _minimapSettings;
 local _profiles;
 
 local function OnProfileChanged(newProfile)
@@ -111,6 +112,9 @@ local function UpdateSavedVarsVersion(svars)
     while (svars.Version < _currentSettingsVersion) do
         if (svars.Version == 0) then
             svars.Version = 1;
+        elseif (svars.Version == 1) then
+            svars.MinimapSettings = { hide = false };
+            svars.Version = 2;
         else
             if (svars.Version ~= _currentSettingsVersion) then
                 error(_p.CreateError("No upgrade path from settings version " .. tostring(svars.Version) .. " to current version " .. tostring(_currentSettingsVersion) .. " could be found.", nil, true));
@@ -124,6 +128,7 @@ function ProfileManager.AddonLoaded()
         _p.Log("first time load!");
         _characterProfileMapping = {};
         _profiles = {};
+        _minimapSettings = {};
     else
         ProfileManager.LoadSVars(MacFramesSavedVariables);
     end
@@ -187,6 +192,7 @@ end
 function ProfileManager.LoadSVars(svars)
     UpdateSavedVarsVersion(svars);
     _defaultProfileName = svars.DefaultProfileName;
+    _minimapSettings = svars.MinimapSettings;
     _characterProfileMapping = svars.CharacterProfileMapping;
     _profiles = {};
     if (svars.Profiles) then
@@ -213,6 +219,7 @@ function ProfileManager.BuildSavedVariables()
     svars.CharacterProfileMapping = _characterProfileMapping;
     svars.Profiles = {};
     svars.Version = _currentSettingsVersion;
+    svars.MinimapSettings = _minimapSettings;
     for name, profile in pairs(_profiles) do
         svars.Profiles[name] = Profile.GetSVars(profile);
     end
@@ -338,4 +345,8 @@ function ProfileManager.DeleteProfile(profileName)
     end
     _profiles[profileName] = nil;
     OnProfileListChanged();
+end
+
+function ProfileManager.GetMinimapSettings()
+    return _minimapSettings;
 end

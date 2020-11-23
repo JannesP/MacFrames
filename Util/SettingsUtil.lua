@@ -19,7 +19,6 @@
 local ADDON_NAME, _p = ...; 
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
-local Settings = _p.Settings;
 local L = _p.L;
 
 _p.SettingsUtil = {};
@@ -38,6 +37,60 @@ function SettingsUtil.GetSpecialClassDisplays()
 end
 
 --[[
+    Here are some definitions for the MouseAction bindings 
+    since they need to be validatable outside of the configuration ui.
+]]
+SettingsUtil.ValidMouseActionBindingTypes = {
+    [1] = {
+        value = "spell",
+        text = L["Cast Spell"],
+    },
+    [2] = {
+        value = "target",
+        text = L["Target Unit"],
+    },
+    [3] = {
+        value = "togglemenu",
+        text = L["Open Menu"],
+    },
+    [4] = {
+        value = "focus",
+        text = L["Focus Unit"],
+    },
+    [5] = {
+        value = "item",
+        text = L["Use Item"],
+    },
+}
+SettingsUtil.MouseActionButtonAttributeMapping = {
+    [1] = {
+        clickName = "LeftButton",
+        attributeName = "1",
+        displayName = L["Left"],
+    },
+    [2] = {
+        clickName = "RightButton",
+        attributeName = "2",
+        displayName = L["Right"],
+    },
+    [3] = {
+        clickName = "MiddleButton",
+        attributeName = "3",
+        displayName = L["Middle"],
+    },
+    [4] = {
+        clickName = "Button4",
+        attributeName = "4",
+        displayName = L["Back (Mouse 4)"],
+    },
+    [5] = {
+        clickName = "Button5",
+        attributeName = "5",
+        displayName = L["Forward (Mouse 5)"],
+    },
+}
+
+--[[
 { 
     alt = false,
     ctrl = false,
@@ -52,8 +105,8 @@ end
 }
 ]]
 local _checkedBindings = setmetatable({}, { __mode = "k" });    --created with weak key references
-local _bindingTypes = Settings.ValidMouseActionBindingTypes;
-local _bindingButtonAttributeMapping = Settings.MouseActionButtonAttributeMapping;
+local _bindingTypes = SettingsUtil.ValidMouseActionBindingTypes;
+local _bindingButtonAttributeMapping = SettingsUtil.MouseActionButtonAttributeMapping;
 local function ProcessType(actionList, indexToCheck, toCheck)
     local hasValidSelection = false;
     for i=1, #_bindingTypes do

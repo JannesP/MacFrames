@@ -98,8 +98,8 @@ end
 local MouseActionEditor_CreateMouseActionEditor, MouseActionEditor_UpdateForCurrentSpecSelection;
 do
     local _dropDownCount = 0;
-    local _bindingTypes = Settings.ValidMouseActionBindingTypes;
-    local _bindingButtonAttributeMapping = Settings.MouseActionButtonAttributeMapping;
+    local _bindingTypes = SettingsUtil.ValidMouseActionBindingTypes;
+    local _bindingButtonAttributeMapping = SettingsUtil.MouseActionButtonAttributeMapping;
     local function MouseActionEditor_DropDownSelectBindingType(dropDownButton, arg1BindingTypeKey, arg2, checked)
         local editor = dropDownButton.owner;
         editor.boundTable.type = arg1BindingTypeKey;

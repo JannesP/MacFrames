@@ -25,15 +25,21 @@ local PartyFrame = _p.PartyFrame;
 local RaidFrame = _p.RaidFrame;
 local PopupDisplays = _p.PopupDisplays;
 local BlizzardFrameUtil = _p.BlizzardFrameUtil;
-
+local Constants = _p.Constants;
 --these can only be loaded after the addon is loaded
 local SettingsWindow;
+
+local LibDataBroker = LibStub("LibDataBroker-1.1");
+local LibMinimapIcon = LibStub("LibDBIcon-1.0");
+local LdbDataObject;
 
 local _partyFrame;
 local _raidFrame;
 
 local Addon = {};
 _p.Addon = Addon;
+
+Addon.LibMinimapIcon = LibMinimapIcon;
 
 Addon.TestMode = {
     Disabled = 0,
@@ -69,6 +75,29 @@ end
 
 function Addon.Loaded()
     SettingsWindow = _p.SettingsWindow;
+end
+
+function Addon.SetupMinimapIcon()
+    LdbDataObject = LibDataBroker:NewDataObject("MacFrames_Icon", {
+        type = "launcher",
+        text = "MacFrames",
+        icon = "Interface\\AddOns\\MacFrames\\Media\\Logo.tga",
+        OnClick = function(_, button)
+            if (button == "LeftButton") then
+                SettingsWindow.Toggle();
+            elseif (button == "RightButton") then
+                Addon.ToggleAnchors();
+            end
+        end,
+        OnTooltipShow = function(tooltip)
+            tooltip:SetText("MacFrames")
+            tooltip:AddLine("");
+            tooltip:AddLine("|cffeda55fClick|r to Toggle Configuration UI", 0.2, 1, 0.2);
+            tooltip:AddLine("|cffeda55fRight-Click|r to Toggle Anchors", 0.2, 1, 0.2);
+            tooltip:Show()
+        end,
+    });
+    LibMinimapIcon:Register(Constants.MinimapIconRegisterName, LdbDataObject, ProfileManager.GetMinimapSettings());
 end
 
 function Addon.EnteringCombat()
@@ -208,7 +237,7 @@ do
                 ProfileManager.TriggerErrorState();
                 if (type(result) == "table") then
                     PopupDisplays.ShowGenericMessage(
-[[Error loading profiles: 
+[[MacFrames - Error loading profiles: 
 "]]..result.UserMessage..[["
 Make sure the SavedVariables are correct and restart your game.
 As long as this message pops up no profile changes will be saved between reloads!
@@ -216,16 +245,17 @@ To clear the settings type '/macframes reset'.
 Alternatively you can report this error on github, please attach your MacFrames.lua from the WTF folder.]], true);
                 else
                     PopupDisplays.ShowGenericMessage(
-[[Error loading profiles: Unknown Error, please report this.
+[[MacFrames - Error loading profiles: Unknown Error, please report this.
 Make sure the SavedVariables are correct and restart your game.
 As long as this message pops up no profile changes will be saved between reloads!
-To clear the settings type '/macframes reset'.
+To clear all settings: type '/macframes reset'.
 Alternatively you can report this error on github, please attach your MacFrames.lua from the WTF folder.]], true);
                     error(result);
                 end
             else
                 _partyFrame = PartyFrame.create();
                 _raidFrame = RaidFrame.create();
+                Addon.SetupMinimapIcon();
             end
         end
         ProcessArenaPartyLayout();

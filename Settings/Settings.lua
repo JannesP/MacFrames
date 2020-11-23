@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 local L = _p.L;
 local ProfileManager = _p.ProfileManager;
 local Constants = _p.Constants;
+local Addon = _p.Addon;
 
 _p.Settings = {};
 local Settings = _p.Settings;
@@ -61,62 +62,6 @@ Settings.CategoryType = {
     AuraBlacklist = "AuraBlacklist",
     Options = "Options",
 }
-
---[[
-    Here are some definitions for the MouseAction bindings 
-    since they need to be validatable outside of the configuration ui.
-]]
-Settings.ValidMouseActionBindingTypes = {
-    [1] = {
-        value = "spell",
-        text = L["Cast Spell"],
-    },
-    [2] = {
-        value = "target",
-        text = L["Target Unit"],
-    },
-    [3] = {
-        value = "togglemenu",
-        text = L["Open Menu"],
-    },
-    [4] = {
-        value = "focus",
-        text = L["Focus Unit"],
-    },
-    [5] = {
-        value = "item",
-        text = L["Use Item"],
-    },
-}
-Settings.MouseActionButtonAttributeMapping = {
-    [1] = {
-        clickName = "LeftButton",
-        attributeName = "1",
-        displayName = L["Left"],
-    },
-    [2] = {
-        clickName = "RightButton",
-        attributeName = "2",
-        displayName = L["Right"],
-    },
-    [3] = {
-        clickName = "MiddleButton",
-        attributeName = "3",
-        displayName = L["Middle"],
-    },
-    [4] = {
-        clickName = "Button4",
-        attributeName = "4",
-        displayName = L["Back (Mouse 4)"],
-    },
-    [5] = {
-        clickName = "Button5",
-        attributeName = "5",
-        displayName = L["Forward (Mouse 5)"],
-    },
-}
-
-
 
 local function P()
     return ProfileManager.GetCurrent();
@@ -439,6 +384,22 @@ tinsert(generalGeneral.Options, {
     end,
     Get = function()
         return P().DisableCompactUnitFrameManager;
+    end,
+});
+tinsert(generalGeneral.Options, {
+    Name = L["Disable Minimap Icon"],
+    Description = L["You can still open the options with /macframes.\nThis setting is saved across profiles."],
+    Type = OptionType.CheckBox,
+    Set = function(value)
+        ProfileManager.GetMinimapSettings().hide = value;
+        if (value) then
+            Addon.LibMinimapIcon:Hide(Constants.MinimapIconRegisterName);
+        else
+            Addon.LibMinimapIcon:Show(Constants.MinimapIconRegisterName);
+        end
+    end,
+    Get = function()
+        return ProfileManager.GetMinimapSettings().hide;
     end,
 });
 tinsert(Settings.Categories, _general);

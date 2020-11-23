@@ -19,9 +19,10 @@
 local ADDON_NAME, _p = ...;
 
 _p.Constants = {
-    HealthBarDefaultTextureName = "MacFrames Health Bar";
-    TargetBorderDefaultTextureName =  "MacFrames Target Border";
-    AggroBorderDefaultTextureName =  "MacFrames Aggro Border";
+    MinimapIconRegisterName = "MacFrames",
+    HealthBarDefaultTextureName = "MacFrames Health Bar",
+    TargetBorderDefaultTextureName =  "MacFrames Target Border",
+    AggroBorderDefaultTextureName =  "MacFrames Aggro Border",
     PartyFrameGlobalName = "MacFramesParty",
     RaidFrameGlobalName = "MacFramesRaid",
     DefaultProfileMarker = "*",

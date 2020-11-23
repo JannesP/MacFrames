@@ -28,7 +28,7 @@
 ## X-Curse-Project-ID: 412950
 ## X-WoWI-ID: 25739
 
-Embeds.xml
+Libs\Embeds.xml
 
 Constants.lua
 Resources.lua
@@ -41,7 +41,6 @@ SavedVariables\ProfileManager.lua
 
 Settings\AuraBlacklist.lua
 Settings\Defensives.lua
-Settings\Settings.lua
 
 Util\BlizzardFrameUtil.lua
 Util\TablePool.lua
@@ -62,6 +61,8 @@ Frames\RaidFrame.lua
 PopupDisplays.lua
 
 MacFrames.lua
+
+Settings\Settings.lua
 
 Frames\SettingsEditors\BaseEditorFrame.lua
 Frames\SettingsEditors\SliderEditorFrame.lua
