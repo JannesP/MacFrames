@@ -4,5 +4,9 @@ ignore:
     - DevTools
     - RawMedia
 
-embedded-libraries:
+required-dependencies:
     - libsharedmedia-3-0
+    - libstub
+    - libdbicon-1-0
+    - libdatabroker-1-1
+    - callbackhandler-1-0
