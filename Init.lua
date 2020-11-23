@@ -18,9 +18,11 @@
 
 local ADDON_NAME, _p = ...;
 
+_p.isDevMode = false;
+--@do-not-package@
 _p.isDevMode = true;
-local _isLoggingEnabled = _p.isDevMode;
-_p.versionNumber = 0;
+mf = _p;
+--@end-do-not-package@
 
 _p.Noop = function() end;
 
@@ -77,7 +79,7 @@ _p.CreateError = function(technicalMessage, userMessage, traceback)
 end
 
 _p.Log = function(...)
-    if (not _isLoggingEnabled) then return; end
+    if (not _p.isDevMode) then return; end
     
     local count = select('#', ...);
     if (count == 0) then
@@ -104,11 +106,5 @@ end
 _p.ParseLink = function(link)
     return string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?");
 end
-
---@do-not-package@
-_p.isDevMode = true;
-mf = _p;
-_isLoggingEnabled = true;
---@end-do-not-package@
 
 _p.Log("Finished init.");

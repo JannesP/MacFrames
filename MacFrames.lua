@@ -17,7 +17,7 @@
 --]]
 
 local ADDON_NAME, _p = ...;
-_p.Log(ADDON_NAME .. " version " .. _p.versionNumber .. " loaded.");
+_p.Log(ADDON_NAME .. " loaded.");
 local UnitFrame = _p.UnitFrame;
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
