@@ -4,7 +4,7 @@ ignore:
     - DevTools
     - RawMedia
 
-required-dependencies:
+embedded-libraries:
     - libsharedmedia-3-0
     - libstub
     - libdbicon-1-0
