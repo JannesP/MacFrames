@@ -9,7 +9,6 @@ embedded-libraries:
     - libstub
     - libdbicon-1-0
     - libdatabroker-1-1
-    - callbackhandler-1-0
 
 manual-changelog:
     filename: CHANGELOG.md
