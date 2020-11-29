@@ -148,6 +148,7 @@ _p.DefaultProfileSettings = {
             fixedPositions = false,
             useBlizzardAuraFilter = false,
             enabled = false,
+            EnableAuraTooltips = false,
         },
         DispellableDebuffs = {
             iconWidth = 14,
@@ -156,6 +157,7 @@ _p.DefaultProfileSettings = {
             iconCount = 2,
             iconSpacing = 1,
             useBlizzardAuraFilter = true,
+            EnableAuraTooltips = false,
         },
         OtherDebuffs = {
             iconWidth = 14,
@@ -164,6 +166,7 @@ _p.DefaultProfileSettings = {
             iconCount = 3,
             iconSpacing = 1,
             useBlizzardAuraFilter = true,
+            EnableAuraTooltips = false,
         },
         BossAuras = {
             iconWidth = 20,
@@ -172,6 +175,7 @@ _p.DefaultProfileSettings = {
             iconCount = 1,
             iconSpacing = 2,
             useBlizzardAuraFilter = true,
+            EnableAuraTooltips = false,
         },
         DefensiveBuff = {
             iconWidth = 16,
@@ -180,6 +184,7 @@ _p.DefaultProfileSettings = {
             iconCount = 2,
             iconSpacing = 2,
             useBlizzardAuraFilter = false,
+            EnableAuraTooltips = false,
         },
         Buffs = {
             iconWidth = 14,
@@ -188,6 +193,7 @@ _p.DefaultProfileSettings = {
             iconCount = 2,
             iconSpacing = 2,
             useBlizzardAuraFilter = true,
+            EnableAuraTooltips = false,
         },
     },
     SpecialClassDisplays = {    --shown in top right in order of appearance here (top right to top left)

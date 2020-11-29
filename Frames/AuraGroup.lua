@@ -105,6 +105,7 @@ function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight
     frame.reverse = false;
     frame.ignoreBlacklist = false;
     frame.allowDisplayed = false;
+    frame.enableTooltips = false;
 
     if (frame.auraFrames == nil) then
         frame.auraFrames = {};
@@ -178,6 +179,19 @@ end
 
 function AuraGroup.SetPredefinedAuras(self, auraList)
     self.predefinedAuras = auraList;
+    AuraGroup.SetCount(self, #auraList);
+end
+
+function AuraGroup.EnableTooltips(self, enableFlag)
+    if (enableFlag == nil) then
+        enableFlag = true;
+    end
+    local auraFrames = self.auraFrames;
+    self.enableTooltips = enableFlag;
+    for i=1,#auraFrames do
+        local auraFrame = auraFrames[i];
+        AuraFrame.EnableTooltip(auraFrame, enableFlag);
+    end
 end
 
 function AuraGroup.SetReverseOrder(self, reverse)
@@ -287,6 +301,7 @@ do
         end
     end
 end
+
 do
     local function IsAllowedBySettings(self, slot, info, ...)
         local result = true;
@@ -305,10 +320,10 @@ do
         end
         return result;
     end
-    local function DisplayInFrame(self, frameIndex, ...)
+    local function DisplayInFrame(self, frameIndex, auraSlot, ...)
         local auraFrame = self.auraFrames[frameIndex];
         auraFrame.displayingAura = true;
-        AuraFrame.DisplayAura(auraFrame, ...);
+        AuraFrame.DisplayAura(auraFrame, self.unit, auraSlot, ...);
     end
     local _auraTablePool = TablePool.Create(function(table)
         wipe(table);
@@ -320,13 +335,14 @@ do
         end
         wipe(_auraList);
     end
-    local function SetInAuraList(index, info, priority, ...)
+    local function SetInAuraList(index, slot, info, priority, ...)
         local holder = _auraTablePool:Take();
         local auraLength = select('#', ...);
         for i=1,auraLength do
             holder[i] = select(i, ...);
         end
         holder.n = auraLength;
+        holder.slot = slot;
         holder.priority = priority;
         holder.info = info;
         _auraList[index] = holder;
@@ -336,7 +352,7 @@ do
         local function NormalDisplayAuraFunc(slot, info, ...)
             if (IsAllowedBySettings(frame, slot, info, ...)) then
                 --info.displayed = true;
-                DisplayInFrame(frame, displayedCount + 1, ...);
+                DisplayInFrame(frame, displayedCount + 1, slot, ...);
                 displayedCount = displayedCount + 1;
                 if (frameCount <= displayedCount) then
                     return true;
@@ -346,7 +362,7 @@ do
         end
         local function DefensiveBuffAuraFunc(slot, info, priority, ...)
             if (IsAllowedBySettings(frame, slot, info, ...)) then
-                SetInAuraList(#_auraList + 1, info, priority, ...);
+                SetInAuraList(#_auraList + 1, slot, info, priority, ...);
             end
             return false;
         end
@@ -367,7 +383,7 @@ do
                         if (predefined.hideInCombat == true and UnitAffectingCombat("player")) then
                             break;
                         end
-                        SetInAuraList(i, info, nil, ...);
+                        SetInAuraList(i, slot, info, nil, ...);
                         if (_predefinedIteratingDebuffs) then
                             _predefinedDebuffCount = _predefinedDebuffCount - 1;
                             if (_predefinedDebuffCount == 0) then
@@ -414,7 +430,7 @@ do
                     local aura = _auraList[i];
                     aura.info.displayed = true;
                     displayedCount = displayedCount + 1;
-                    DisplayInFrame(self, displayedCount, unpack(aura));
+                    DisplayInFrame(self, displayedCount, aura.slot, unpack(aura));
                 end
             elseif self.auraGroupType == types.PredefinedAuraSet then
                 if (self.predefinedAuras ~= nil) then
@@ -443,7 +459,7 @@ do
                         for i=1, predefinedAuraCount do
                             local aura = _auraList[i];
                             if (aura ~= nil) then
-                                DisplayInFrame(self, i, unpack(aura));
+                                DisplayInFrame(self, i, aura.slot, unpack(aura));
                                 aura.info.displayed = true;
                             end
                         end
@@ -452,7 +468,7 @@ do
                             local aura = _auraList[i];
                             if (aura ~= nil) then
                                 displayedCount = displayedCount + 1;
-                                DisplayInFrame(self, displayedCount, unpack(aura));
+                                DisplayInFrame(self, displayedCount, aura.slot, unpack(aura));
                                 aura.info.displayed = true;
                             end
                         end

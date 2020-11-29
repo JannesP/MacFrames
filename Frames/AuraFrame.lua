@@ -37,6 +37,9 @@ function AuraFrame.new(parent, width, height, zoom)
     local frame = _framePool:Take();
     if (frame == nil) then
         frame = CreateFrame("Frame", nil, parent, "MacFramesUnitFrameAuraTemplate");
+        frame:SetScript("OnEnter", AuraFrame.DisplayTooltip);
+        frame:SetScript("OnLeave", AuraFrame.HideTooltip);
+        AuraFrame.EnableTooltip(frame, false);
     else
         frame:SetParent(parent);
     end
@@ -74,7 +77,7 @@ end
 
 function AuraFrame.SetTestAura(self, ...)
     if (select('#', ...) > 0) then
-        AuraFrame.DisplayAura(self, ...);
+        AuraFrame.DisplayAura(self, nil, nil, ...);
         self.cooldown:Pause();
     else
         AuraFrame.DisplayAura(self);
@@ -124,7 +127,7 @@ do
         if (not pinnedAura.onlyByPlayer or info.byPlayer) then
             info.displayed = true;
             displayed = true;
-            AuraFrame.DisplayAura(frame, ...);
+            AuraFrame.DisplayAura(frame, pinnedAura.unit, slot, ...);
             return true;
         end
         return false;
@@ -152,16 +155,26 @@ function AuraFrame.SetBackgroundColor(self, debuffType)
     end
 end
 
-function AuraFrame.DisplayAura(self, ...)
+function AuraFrame.DisplayAura(self, unit, slot, ...)
     local _, icon, stacks, debuffType, duration, expirationTime = ...;
     if (icon == nil or duration == nil or expirationTime == nil) then
+        self.unit = nil;
+        self.auraSlot = nil;
+        self.auraSpellId = nil;
         self:Hide();
     else
         AuraFrame.SetBackgroundColor(self, debuffType);
+        self.unit = unit;
+        self.auraSlot = slot;
+        self.auraSpellId = select(10, ...);
         self.icon:SetTexture(icon);
         self.cooldown:SetCooldown(expirationTime - duration, duration);
         self.cooldown:Resume();
         self:Show();
+
+        if (GameTooltip:IsOwned(self)) then
+            AuraFrame.DisplayTooltip(self);
+        end
 
         if (stacks > 0) then
             self.count:SetText(stacks);
@@ -172,6 +185,30 @@ function AuraFrame.DisplayAura(self, ...)
     end
 end
 
+function AuraFrame.EnableTooltip(self, enableFlag)
+    self:EnableMouse(enableFlag);
+end
+
+function AuraFrame.DisplayTooltip(self)
+    if (self.auraSlot ~= nil) then
+        GameTooltip_SetDefaultAnchor(GameTooltip, self);
+        GameTooltip:SetSpellByID(self.auraSpellId);
+        GameTooltip:Show();
+    else
+        AuraFrame.HideTooltip(self);
+    end
+end
+
+function AuraFrame.HideTooltip(self)
+    if (GameTooltip:IsOwned(self)) then
+        GameTooltip:Hide();
+    end
+end
+
 function AuraFrame.Hide(self)
+    AuraFrame.HideTooltip(self);
+    self.unit = nil;
+    self.auraSlot = nil;
+    self.auraSpellId = nil;
     self:Hide();
 end

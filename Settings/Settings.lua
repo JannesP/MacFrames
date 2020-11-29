@@ -80,6 +80,17 @@ local _ufFrameLayoutIndex = 1;
 local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
     local auraGroupSettings = {};
     tinsert(auraGroupSettings, {
+        Name = L["Display Tooltips"],
+        Description = L["This makes all auras in this group opaque for clicks! You won't be able to cast/target through them."],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            GetAuraSettings().EnableAuraTooltips = value;
+        end,
+        Get = function()
+            return GetAuraSettings().EnableAuraTooltips;
+        end,
+    });
+    tinsert(auraGroupSettings, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
         Min = 4,
@@ -298,6 +309,17 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
         Get = function()
             return PS().SpecialClassDisplay.enabled;
+        end,
+    });
+    tinsert(classDisplayOptions.Options, {
+        Name = L["Display Tooltips"],
+        Description = L["This makes all auras in this group opaque for clicks! You won't be able to cast/target through them."],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().SpecialClassDisplay.EnableAuraTooltips = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.EnableAuraTooltips;
         end,
     });
     tinsert(classDisplayOptions.Options, {

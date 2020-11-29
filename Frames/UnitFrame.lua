@@ -30,6 +30,7 @@ local AuraGroup = _p.AuraGroup;
 local AuraManager = _p.AuraManager;
 local ProfileManager = _p.ProfileManager;
 local FrameUtil = _p.FrameUtil;
+local FramePool = _p.FramePool;
 
 local _classColorsByIndex = {};
 for key, value in pairs(RAID_CLASS_COLORS) do
@@ -38,6 +39,8 @@ end
 
 local _currentProfile = nil;
 _mouseActions = nil;
+local _auraTooltipHostPool = FramePool.Create();
+local _auraTooltipHostList = {};
 
 local _unitFrames = {};
 _p.UnitFrames = _unitFrames;
@@ -455,6 +458,11 @@ function UnitFrame.CreateAuraDisplays(self)
     UnitFrame.CreateUndispellablesFromSettings(self);
     UnitFrame.CreateDispellablesFromSettings(self);
     UnitFrame.CreateBossAurasFromSettings(self);
+    for i=#_auraTooltipHostList, 1, -1 do
+        local frame = _auraTooltipHostList[i];
+        UnitFrame.RemoveMyAttributes(frame);
+        _auraTooltipHostPool:Put(frame);
+    end
 end
 
 function UnitFrame.CreateSpecialClassDisplayFromSettings(self, classDisplayList)
@@ -477,6 +485,7 @@ function UnitFrame.CreateSpecialClassDisplayFromSettings(self, classDisplayList)
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.SetReverseOrder(auraGroup, true);
     AuraGroup.SetUseFixedPositions(auraGroup, s.fixedPositions);
+    AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
     PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
@@ -494,6 +503,7 @@ function UnitFrame.CreateBuffsFromSettings(self)
     self.auraGroups.buffs = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.SetReverseOrder(auraGroup, true);
+    AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
     if (self.auraGroups.specialClassDisplay ~= nil) then
         PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self.auraGroups.specialClassDisplay, "BOTTOMRIGHT", 0, -1);
@@ -515,6 +525,7 @@ function UnitFrame.CreateDefensivesFromSettings(self)
     self.auraGroups.defensives = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.SetReverseOrder(auraGroup, true);
+    AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
     PixelUtil.SetPoint(auraGroup, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
@@ -531,6 +542,7 @@ function UnitFrame.CreateUndispellablesFromSettings(self)
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.UndispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.undispellable = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
+    AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
     PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self, "BOTTOMLEFT", padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
@@ -547,6 +559,7 @@ function UnitFrame.CreateDispellablesFromSettings(self)
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.DispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.dispellable = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
+    AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self.auraGroups.undispellable, "TOPLEFT", 0, 1);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
     auraGroup:Show();
@@ -561,6 +574,7 @@ function UnitFrame.CreateBossAurasFromSettings(self)
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.BossAura, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.bossAuras = auraGroup;
+    AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     PixelUtil.SetPoint(auraGroup, "CENTER", self, "CENTER", 0, 0);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 3);
