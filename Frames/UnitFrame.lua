@@ -499,6 +499,10 @@ function UnitFrame.CreateBuffsFromSettings(self)
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.buffs);
     end
+    if (s.Enabled == false) then
+        self.auraGroups.buffs = nil;
+        return nil;
+    end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.Buff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.buffs = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
@@ -521,6 +525,10 @@ function UnitFrame.CreateDefensivesFromSettings(self)
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.defensives);
     end
+    if (s.Enabled == false) then
+        self.auraGroups.defensives = nil;
+        return nil;
+    end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.DefensiveBuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.defensives = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
@@ -539,6 +547,10 @@ function UnitFrame.CreateUndispellablesFromSettings(self)
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.undispellable);
     end
+    if (s.Enabled == false) then
+        self.auraGroups.undispellable = nil;
+        return nil;
+    end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.UndispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.undispellable = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
@@ -556,6 +568,10 @@ function UnitFrame.CreateDispellablesFromSettings(self)
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.dispellable);
     end
+    if (s.Enabled == false) then
+        self.auraGroups.dispellable = nil;
+        return nil;
+    end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.DispellableDebuff, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.dispellable = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
@@ -571,6 +587,10 @@ function UnitFrame.CreateBossAurasFromSettings(self)
     local auraGroup = self.auraGroups.bossAuras;
     if (auraGroup ~= nil) then
         AuraGroup.Recycle(self.auraGroups.bossAuras);
+    end
+    if (s.Enabled == false) then
+        self.auraGroups.bossAuras = nil;
+        return nil;
     end
     auraGroup = AuraGroup.new(self, self.unit, AuraGroup.Type.BossAura, s.iconCount, s.iconWidth, s.iconHeight, s.iconSpacing, s.iconZoom);
     self.auraGroups.bossAuras = auraGroup;
@@ -1259,11 +1279,11 @@ function UnitFrame.UpdateAuras(self)
 
     --can't iterate over groups because the order is important for aura duplicate checking
     if (groups.specialClassDisplay ~= nil) then AuraGroup.Update(groups.specialClassDisplay) end;
-    AuraGroup.Update(groups.defensives);
-    AuraGroup.Update(groups.undispellable);
-    AuraGroup.Update(groups.dispellable);
-    AuraGroup.Update(groups.bossAuras);
-    AuraGroup.Update(groups.buffs);
+    if (groups.defensives ~= nil) then AuraGroup.Update(groups.defensives) end;
+    if (groups.undispellable ~= nil) then AuraGroup.Update(groups.undispellable) end;
+    if (groups.dispellable ~= nil) then AuraGroup.Update(groups.dispellable) end;
+    if (groups.bossAuras ~= nil) then AuraGroup.Update(groups.bossAuras) end;
+    if (groups.buffs ~= nil) then AuraGroup.Update(groups.buffs) end;
 end
 
 function UnitFrame.CreateSpecialClassDisplays()
