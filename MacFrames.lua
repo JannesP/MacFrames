@@ -157,7 +157,10 @@ function Addon.ToggleTestMode(type)
         Addon.ToggleAnchors(false);
         Addon.testMode = newValue;
         if (Addon.testMode == Addon.TestMode.Disabled) then
+            RaidFrame.SetDisabled(false);
             RaidFrame.SetTestMode(false);
+            
+            PartyFrame.SetDisabled(false);
             PartyFrame.SetTestMode(false);
         elseif (Addon.testMode == Addon.TestMode.Party) then
             RaidFrame.SetDisabled(true);
