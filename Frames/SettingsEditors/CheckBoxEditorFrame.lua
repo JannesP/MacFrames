@@ -45,8 +45,8 @@ function CheckBoxEditorFrame.Create(parent, option)
     checkBox:SetScript("OnClick", BaseEditorFrame.CreateEditorOnChange(frame, CheckBox_OnChange));
 
     if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, 1, 1, 1, 1);
-        FrameUtil.CreateTextTooltip(checkBox, option.Description, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(frame, option.Description, frame, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(checkBox, option.Description, frame, 1, 1, 1, 1);
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);

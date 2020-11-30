@@ -103,7 +103,7 @@ function SliderEditorFrame.Create(parent, option)
     slider:SetScript("OnValueChanged", BaseEditorFrame.CreateEditorOnChange(frame, Slider_EditorOnChange));
 
     if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(frame, option.Description, frame, 1, 1, 1, 1);
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(SliderEditor_RefreshFromProfile);

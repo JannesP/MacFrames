@@ -47,29 +47,33 @@ function FrameUtil.CreateSolidTexture(frame, ...)
 end
 do
     local function OnEnter(self)
-        if (self.tooltipText ~= nil) then
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-            GameTooltip:SetText(self.tooltipText, unpack(self.tooltipColor));
+        if (self.fuTooltip ~= nil) then
+            GameTooltip:SetOwner(self.fuTooltip.anchorFrame or self, "ANCHOR_RIGHT");
+            GameTooltip:SetText(self.fuTooltip.text, unpack(self.fuTooltip.color));
             GameTooltip:Show();
         end
     end
     local function OnLeave(self)
-        GameTooltip:Hide();
-    end
-    local function OnHide(self)
-        if (GameTooltip:GetOwner() == self) then
+        if (GameTooltip:IsOwned(self.fuTooltip.anchorFrame or self)) then
             GameTooltip:Hide();
         end
     end
-    function FrameUtil.CreateTextTooltip(frame, text, ...)
-        if (frame.tooltipText == nil) then
+    local function OnHide(self)
+        if (GameTooltip:IsOwned(self.fuTooltip.anchorFrame or self)) then
+            GameTooltip:Hide();
+        end
+    end
+    function FrameUtil.CreateTextTooltip(frame, text, tooltipAnchorFrame, ...)
+        if (frame.fuTooltip == nil) then
+            frame.fuTooltip = {};
             frame:EnableMouse();
             frame:HookScript("OnEnter", OnEnter);
             frame:HookScript("OnLeave", OnLeave);
             frame:HookScript("OnHide", OnHide);
         end
-        frame.tooltipColor = { ... };
-        frame.tooltipText = text;
+        frame.fuTooltip.color = { ... };
+        frame.fuTooltip.text = text;
+        frame.fuTooltip.anchorFrame = tooltipAnchorFrame;
     end
 end
 do

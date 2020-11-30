@@ -177,7 +177,7 @@ do
             _textBuffer[#_textBuffer + 1] = keybindText;
         end
         local keybindTextComplete = table.concat(_textBuffer, " + ");
-        FrameUtil.CreateTextTooltip(self.cellTextKeybind, keybindTextComplete, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(self.cellTextKeybind, keybindTextComplete, self.cellTextKeybind, 1, 1, 1, 1);
         self.textSetKeybind:SetText(keybindTextComplete);
 
         if (self.boundTable.type == "spell") then
@@ -219,7 +219,7 @@ do
             --self.errorText:SetText(L["Invalid Binding: {msg}"]:gsub("{msg}", errorMsg));
             --self.errorText:SetHeight(select(2, self.errorText:GetFont()));
             --can't hide/set to 0 because anchors wouldn't work
-            FrameUtil.CreateTextTooltip(self.errorIcon, errorMsg, 1, 1, 0, 1);
+            FrameUtil.CreateTextTooltip(self.errorIcon, errorMsg, self.errorIcon, 1, 1, 0, 1);
             self.errorIcon:SetWidth(self.errorIcon:GetHeight());
             self.errorIcon:Show();
         else
