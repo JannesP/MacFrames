@@ -33,6 +33,7 @@ local _unitFrames = nil;
 local _partySettings = nil;
 local _disabledBlizzardFrames = false;
 local _forcedVisibility = nil;
+local _isTestMode = false;
 
 local _changingSettings = false;
 
@@ -48,6 +49,10 @@ local function PartySettings_PropertyChanged(key)
         _frame.enabled = _partySettings.Enabled;
     elseif (key == "DisableBlizzardFrames") then
         PartyFrame.SetDisableBlizzardFrame(_partySettings.DisableBlizzardFrames);
+    elseif (key == "AlwaysShowPlayer") then
+        if (_isTestMode == false) then
+            PartyFrame.SetForcedVisibility(_forcedVisibility);
+        end
     else
         PartyFrame.ProcessLayout(_frame);
     end
@@ -149,10 +154,12 @@ do
 end
 function PartyFrame.SetTestMode(enabled)
     if (enabled == true) then
+        _isTestMode = true;
         UnregisterAttributeDriver(_frame, "state-visibility");
         _frame:Show();
     else
         PartyFrame.SetForcedVisibility(_forcedVisibility);
+        _isTestMode = false;
     end
     PartyFrame.SetChildTestModes(enabled);
 end
@@ -164,7 +171,11 @@ function PartyFrame.SetForcedVisibility(visible)
         UnregisterAttributeDriver(_frame, "state-visibility");
         _frame:Hide();
     else
-        RegisterAttributeDriver(_frame, "state-visibility", _partySettings.StateDriverVisibility);
+        if (_partySettings.AlwaysShowPlayer) then
+            RegisterAttributeDriver(_frame, "state-visibility", _partySettings.StateDriverVisibilityForcePlayer);
+        else
+            RegisterAttributeDriver(_frame, "state-visibility", _partySettings.StateDriverVisibility);
+        end
     end
     _forcedVisibility = visible;
 end

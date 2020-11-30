@@ -453,6 +453,17 @@ local _partyFrames = {
 };
 AddUnitFrameOptions(_partyFrames.Sections, function() return P().PartyFrame; end);
 tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
+    Name = L["Always Show Player"],
+    Description = L["Shows the player frame if you're not in a group at all."],
+    Type = OptionType.CheckBox,
+    Set = function(value)
+        P().PartyFrame.AlwaysShowPlayer = value;
+    end,
+    Get = function()
+        return P().PartyFrame.AlwaysShowPlayer;
+    end,
+});
+tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
     Name = L["Vertical"],
     Type = OptionType.CheckBox,
     Set = function(value)

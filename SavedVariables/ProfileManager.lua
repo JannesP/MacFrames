@@ -30,7 +30,7 @@ ProfileManager.AddonDefaults = _defaultProfileMarker .. L["Addon Defaults"] .. _
 
 local _isErrorState = false;
 
-local _currentSettingsVersion = 2;
+local _currentSettingsVersion = 3;
 local _profileChangedListeners = {};
 local _profileListChangedListeners = {};
 local _characterProfileMapping;
@@ -104,20 +104,33 @@ local function GetProfileForCurrentCharacter()
     end
     return resultProfileName, resultProfile;
 end
-
-local function UpdateSavedVarsVersion(svars)
-    if (svars.Version == nil) then
-        error(_p.CreateError("Your settings are too old and cannot be upgraded, sorry :(", nil, true));
+local UpdateSavedVarsVersion;
+do
+    local function ForEachProfile(svars, func)
+        for k, v in pairs(svars.Profiles) do
+            func(k, v);
+        end
     end
-    while (svars.Version < _currentSettingsVersion) do
-        if (svars.Version == 0) then
-            svars.Version = 1;
-        elseif (svars.Version == 1) then
-            svars.MinimapSettings = { hide = false };
-            svars.Version = 2;
-        else
-            if (svars.Version ~= _currentSettingsVersion) then
-                error(_p.CreateError("No upgrade path from settings version " .. tostring(svars.Version) .. " to current version " .. tostring(_currentSettingsVersion) .. " could be found.", nil, true));
+    --declared above do block
+    UpdateSavedVarsVersion = function(svars)
+        if (svars.Version == nil) then
+            error(_p.CreateError("Your settings are too old and cannot be upgraded, sorry :(", nil, true));
+        end
+        while (svars.Version < _currentSettingsVersion) do
+            if (svars.Version == 0) then
+                svars.Version = 1;
+            elseif (svars.Version == 1) then
+                svars.MinimapSettings = { hide = false };
+                svars.Version = 2;
+            elseif (svars.Version == 2) then
+                ForEachProfile(svars, function(name, profile)
+                    profile.PartyFrame.StateDriverVisibility = "[group:raid] hide; [group:party] show; hide;";
+                end);
+                svars.Version = 3;
+            else
+                if (svars.Version ~= _currentSettingsVersion) then
+                    error(_p.CreateError("No upgrade path from settings version " .. tostring(svars.Version) .. " to current version " .. tostring(_currentSettingsVersion) .. " could be found.", nil, true));
+                end
             end
         end
     end
