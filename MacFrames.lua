@@ -135,7 +135,7 @@ function Addon.UpdatePlayerInfo()
         changedInfo = true;
     end
 
-    _p.Log("Logged on with class: " .. englishClass .. " (" .. currentSpec.Name .. ")");
+    _p.Log("Logged on with class: " .. englishClass .. " (" .. ((currentSpec and currentSpec.Name) or "no specialization") .. ")");
     if (changedInfo) then
         ProfileManager.PlayerInfoChanged();
         UnitFrame.PlayerInfoChanged();
@@ -159,7 +159,7 @@ function Addon.ToggleTestMode(type)
         if (Addon.testMode == Addon.TestMode.Disabled) then
             RaidFrame.SetDisabled(false);
             RaidFrame.SetTestMode(false);
-            
+
             PartyFrame.SetDisabled(false);
             PartyFrame.SetTestMode(false);
         elseif (Addon.testMode == Addon.TestMode.Party) then
@@ -234,6 +234,11 @@ do
     function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
         Addon.UpdatePlayerInfo();
         if (isInitialLogin or isReloadingUi) then
+            if (PlayerInfo.specId == nil) then
+                ProfileManager.TriggerErrorState();
+                PopupDisplays.ShowGenericMessage("MacFrames currently doesn't support characters without a specialization.\nI kinda forgot about fresh characters. Please consider using the default frames until you are able to select a specialization.\nSorry :(");
+                return;
+            end
             _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
             local success, result = xpcall(ProfileManager.AddonLoaded, ProfileLoadError);
             if (not success) then
@@ -261,7 +266,9 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 Addon.SetupMinimapIcon();
             end
         end
-        ProcessArenaPartyLayout();
+        if (PlayerInfo.specId ~= nil) then
+            ProcessArenaPartyLayout();
+        end
     end
 end
 function _events:PLAYER_REGEN_DISABLED()

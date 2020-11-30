@@ -19,6 +19,8 @@
 local ADDON_NAME, _p = ...;
 local L = _p.L;
 local FrameUtil = _p.FrameUtil;
+local PlayerInfo = _p.PlayerInfo;
+local PopupDisplays = _p.PopupDisplays;
 
 _p.SettingsWindow = {};
 local SettingsWindow = _p.SettingsWindow;
@@ -61,6 +63,10 @@ do
         return headerFrame;
     end
     function SettingsWindow.Open()
+        if (PlayerInfo.specId == nil) then
+            PopupDisplays.ShowGenericMessage("MacFrames currently doesn't support characters without a specialization.\nI kinda forgot about fresh characters. Please consider using the default frames until you are able to select a specialization.\nSorry :(");
+            return;
+        end
         if (not InCombatLockdown()) then
             if (_window == nil) then
                 _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, "BackdropTemplate");
