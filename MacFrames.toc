@@ -67,6 +67,7 @@ Settings\Settings.lua
 Frames\SettingsEditors\BaseEditorFrame.lua
 Frames\SettingsEditors\SliderEditorFrame.lua
 Frames\SettingsEditors\CheckBoxEditorFrame.lua
+Frames\SettingsEditors\BarTextureEditorFrame.lua
 
 Frames\SettingsPages\GenericOptionsSettingsPage.lua
 Frames\SettingsPages\AuraBlacklistSettingsPage.lua

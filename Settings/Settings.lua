@@ -53,6 +53,7 @@ Settings.Categories = {}
 Settings.OptionType = {
     SliderValue = "SliderValue",
     CheckBox = "CheckBox",
+    BarTexture = "BarTexture",
     NotYetImplemented = "NotYetImplemented",
 }
 local OptionType = Settings.OptionType;
@@ -207,6 +208,16 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
         Get = function()
             return PS().DisableBlizzardFrames;
+        end,
+    });
+    tinsert(frameLayoutOptions.Options, {
+        Name = L["Bar Texture"],
+        Type = OptionType.BarTexture,
+        Set = function(value)
+            PS().Frames.HealthBarTextureName = value;
+        end,
+        Get = function()
+            return PS().Frames.HealthBarTextureName;
         end,
     });
     tinsert(frameLayoutOptions.Options, {

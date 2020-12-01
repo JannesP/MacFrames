@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 
 local FrameUtil = _p.FrameUtil;
 local BaseEditorFrame = _p.BaseEditorFrame;
+local OptionType = _p.Settings.OptionType;
 
 _p.CheckBoxEditorFrame = {};
 local CheckBoxEditorFrame = _p.CheckBoxEditorFrame;
@@ -34,7 +35,7 @@ end
 
 function CheckBoxEditorFrame.Create(parent, option)
     local value = option.Get();
-    local frame = BaseEditorFrame.Create(parent, option);
+    local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
 
     local checkBox = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate");
     frame.checkBox = checkBox;
@@ -52,3 +53,5 @@ function CheckBoxEditorFrame.Create(parent, option)
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
     return frame;
 end
+
+BaseEditorFrame.AddConstructor(OptionType.CheckBox, CheckBoxEditorFrame.Create);

@@ -28,8 +28,6 @@ local CheckBoxEditorFrame = _p.CheckBoxEditorFrame;
 _p.GenericOptionsSettingsPage = {};
 local GenericOptionsSettingsPage = _p.GenericOptionsSettingsPage;
 
-local OptionType = Settings.OptionType;
-
 local _tabPanelCount = 0;
 
 local _borderPadding = Constants.TooltipBorderClearance;
@@ -51,17 +49,6 @@ local function Section_Layout(self, width, height)
         end
     end
     self:SetHeight(height);
-end
-local function CreateEditor(parent, option)
-    if (option.Type == OptionType.SliderValue) then
-        return SliderEditorFrame.Create(parent, option);
-    elseif (option.Type == OptionType.CheckBox) then
-        return CheckBoxEditorFrame.Create(parent, option);
-    elseif (option.Type == OptionType.NotYetImplemented) then
-        return BaseEditorFrame.CreateNotYetImplemented(parent, option);
-    else
-        error("Option type '" .. option.Type .. "' not implemented!");
-    end
 end
 local function CreateSection(parent, section, depth)
     local s = CreateFrame("Frame", nil, parent);
@@ -85,7 +72,7 @@ local function CreateSection(parent, section, depth)
         s.optionsContainer.optionEditors = {};
         local options = section.Options;
         for i=1, #options do
-            local editor = CreateEditor(s.optionsContainer, options[i]);
+            local editor = BaseEditorFrame.Create(s.optionsContainer, options[i]);
             s.optionsContainer.optionEditors[i] = editor;
         end
     end

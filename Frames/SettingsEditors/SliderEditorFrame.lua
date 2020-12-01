@@ -19,6 +19,7 @@
 local ADDON_NAME, _p = ...;
 
 local BaseEditorFrame = _p.BaseEditorFrame;
+local OptionType = _p.Settings.OptionType;
 
 _p.SliderEditorFrame = {};
 local SliderEditorFrame = _p.SliderEditorFrame;
@@ -65,7 +66,7 @@ function SliderEditorFrame.Create(parent, option)
     if (value == nil) then
         error("Value for " .. option.Name .. " was nil!");
     end
-    local frame = BaseEditorFrame.Create(parent, option);
+    local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
     frame.option = option;
 
     local slider = CreateFrame("Slider", nil, frame, "OptionsSliderTemplate");
@@ -109,3 +110,5 @@ function SliderEditorFrame.Create(parent, option)
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(SliderEditor_RefreshFromProfile);
     return frame;
 end
+
+BaseEditorFrame.AddConstructor(OptionType.SliderValue, SliderEditorFrame.Create);

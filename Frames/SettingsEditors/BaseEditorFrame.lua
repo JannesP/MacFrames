@@ -20,9 +20,17 @@ local ADDON_NAME, _p = ...;
 
 local Constants = _p.Constants;
 local FrameUtil = _p.FrameUtil;
+local OptionType = _p.Settings.OptionType;
 
 _p.BaseEditorFrame = {};
 local BaseEditorFrame = _p.BaseEditorFrame;
+
+local _constructors = {};
+
+function BaseEditorFrame.AddConstructor(type, func)
+    if (_constructors[type] ~= nil) then error("Cannot register a type twice!"); end;
+    _constructors[type] = func;
+end
 
 function BaseEditorFrame.CreateEditorOnChange(self, handler)
     return function(...)
@@ -32,7 +40,7 @@ function BaseEditorFrame.CreateEditorOnChange(self, handler)
 end
 
 function BaseEditorFrame.CreateNotYetImplemented(parent, option)
-    local frame = BaseEditorFrame.Create(parent, option);
+    local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
     local text = FrameUtil.CreateText(frame, "Not yet implemented :(");
     text:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
     text:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0);
@@ -59,6 +67,13 @@ local function IsChangingSettings(self)
 end
 
 function BaseEditorFrame.Create(parent, option)
+    if (_constructors[option.Type] == nil) then
+        error("Couldn't find constructor for " .. option.Type);
+    end
+    return _constructors[option.Type](parent, option);
+end
+
+function BaseEditorFrame.CreateBaseFrame(parent, option)
     local frame = CreateFrame("Frame", nil, parent);
     frame.option = option;
 
@@ -76,3 +91,5 @@ function BaseEditorFrame.Create(parent, option)
     frame.SetOptionValue = SetOptionValue;
     return frame;
 end
+
+BaseEditorFrame.AddConstructor(OptionType.NotYetImplemented, BaseEditorFrame.CreateNotYetImplemented);
