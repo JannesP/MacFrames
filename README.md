@@ -12,7 +12,7 @@ This addon is a replacement for the default blizzard raid and party frames. It t
 
 Features that are currently missing but which I'm planning to implement in no particular order:
 
-* [BUG] [A lot of things are broken for characters without spec.](https://github.com/JannesP/MacFrames/issues/19)
+* [BUG] [Characters without a specialization cannot use the addon. (Freshly created allied races and Characters on Tutorial Island)](https://github.com/JannesP/MacFrames/issues/19)
 * [BUG] [Status Text on the Frames sometimes disappears](https://github.com/JannesP/MacFrames/issues/38)
 * [BUG] [Boders and placement aren't pixel perfect (sometimes one side of the border is 2px wide and sometimes missing)](https://github.com/JannesP/MacFrames/issues/35) *to fix this you can try to move the frames a few pixels to any side until I find a proper solution*
 * resource bars (Mana, Focus, etc.)
