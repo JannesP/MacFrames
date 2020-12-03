@@ -12,11 +12,12 @@ This addon is a replacement for the default blizzard raid and party frames. It t
 
 Features that are currently missing but which I'm planning to implement in no particular order:
 
-* [BUG] [A lot of things are broken for characters without spec. This includes all characters below level 10!](https://github.com/JannesP/MacFrames/issues/19)
+* [BUG] [A lot of things are broken for characters without spec.](https://github.com/JannesP/MacFrames/issues/19)
+* [BUG] [Status Text on the Frames sometimes disappears](https://github.com/JannesP/MacFrames/issues/38)
+* [BUG] [Boders and placement aren't pixel perfect (sometimes one side of the border is 2px wide and sometimes missing)](https://github.com/JannesP/MacFrames/issues/35) *to fix this you can try to move the frames a few pixels to any side until I find a proper solution*
 * resource bars (Mana, Focus, etc.)
 * configuration UI for Class/Spec specific buffs (you can hack this into the profile and it works ... disc priest and resto shaman are configured)
 * configuration for the positioning of the different aura groups
-* "overshield" indicator (the glow when someone has a shield on full life)
 * exporting/importing of profiles
 * pets
 * vehicle support (need a tip where I can test that (freely hop in/out of one and gain/loose debuffs)
