@@ -83,7 +83,7 @@ do
                 _window.heading:ClearAllPoints();
                 _window.heading:SetPoint("BOTTOM", _window, "TOP", 0, -10);
 
-                FrameUtil.ConfigureDragDropHost(_window.heading, _window);
+                FrameUtil.ConfigureDragDropHost(_window.heading, _window, nil, true);
 
                 FrameUtil.AddResizer(_window, _window);
                 _window:SetMinResize(600, 300);

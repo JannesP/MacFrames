@@ -149,14 +149,22 @@ do
             parent.onFinishDragDrop(parent, parent.frameToMove);
         end
     end
-    function FrameUtil.CreateDragDropOverlay(frame, OnFinishDragDrop)
+    local function CbClampToScreen_Click(self)
+        local checked = self:GetChecked();
+        self.dragDropHost.frameToMove:SetClampedToScreen(checked);
+        self.dragDropHost:SetClampedToScreen(checked);
+    end
+    function FrameUtil.CreateDragDropOverlay(frame, OnFinishDragDrop, clampToScreen)
+        if (clampToScreen == nil) then
+            clampToScreen = true;
+        end
         local dragDropHost = FrameUtil.CreateFrameWithText(frame, frame:GetName() .. "DragDropOverlay", L["Drag Me!"]);
         dragDropHost:SetAllPoints();
         dragDropHost.texture = FrameUtil.CreateSolidTexture(dragDropHost, 0, 0, 0, 0.8);
         dragDropHost:SetFrameLevel(frame:GetFrameLevel() + 100);
         dragDropHost.borderFrames = FrameUtil.CreateSolidBorder(dragDropHost, 1, 1, 1, 1, 1);
         dragDropHost:Hide();
-        FrameUtil.ConfigureDragDropHost(dragDropHost, frame, OnFinishDragDrop);
+        FrameUtil.ConfigureDragDropHost(dragDropHost, frame, OnFinishDragDrop, clampToScreen);
 
         local bUp = FrameUtil.CreateArrowButton(dragDropHost, "up");
         bUp:ClearAllPoints();
@@ -181,7 +189,22 @@ do
         bDown:SetPoint("TOP", dragDropHost.text, "BOTTOM", 0, 0);
         bDown:SetSize(24, 24);
         bDown:SetScript("OnClick", Frame_MoveDown);
-        
+
+        local cbClampToScreenFrame = CreateFrame("Frame", nil, dragDropHost);
+        local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, "UICheckButtonTemplate");
+        cbClampToScreen.dragDropHost = dragDropHost;
+        cbClampToScreen:SetScript("OnClick", CbClampToScreen_Click);
+        cbClampToScreen:SetPoint("LEFT");
+        cbClampToScreen:SetChecked(clampToScreen);
+
+        cbClampToScreenFrame.text = FrameUtil.CreateText(cbClampToScreenFrame, L["Clamp"]);
+        cbClampToScreenFrame.text:ClearAllPoints();
+        cbClampToScreenFrame.text:SetPoint("RIGHT");
+
+        cbClampToScreenFrame:ClearAllPoints();
+        cbClampToScreenFrame:SetHeight(math.max(cbClampToScreen:GetHeight(), cbClampToScreenFrame:GetHeight()));
+        cbClampToScreenFrame:SetWidth(cbClampToScreen:GetWidth() + 4 + cbClampToScreenFrame.text:GetWidth());
+        cbClampToScreenFrame:SetPoint("BOTTOM", bUp, "TOP", 0, -8);
         return dragDropHost;
     end
 end
@@ -248,11 +271,14 @@ do
             end
         end
     end
-    function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDragDrop)
-        frameToMove:SetClampedToScreen(true);
+    function FrameUtil.ConfigureDragDropHost(dragDropHost, frameToMove, OnFinishDragDrop, clampToScreen)
+        if (clampToScreen == nil) then
+            clampToScreen = true;
+        end
         dragDropHost.frameToMove = frameToMove;
         dragDropHost.onFinishDragDrop = OnFinishDragDrop;
-        dragDropHost:SetClampedToScreen(true);
+        frameToMove:SetClampedToScreen(clampToScreen);
+        dragDropHost:SetClampedToScreen(clampToScreen);
         dragDropHost:EnableMouse(true);
         dragDropHost:SetScript("OnMouseDown", DragDropHost_OnMouseDown);
         dragDropHost:SetScript("OnMouseUp", DragDropHost_OnMouseUp);

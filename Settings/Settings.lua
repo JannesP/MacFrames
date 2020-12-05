@@ -54,6 +54,7 @@ Settings.OptionType = {
     SliderValue = "SliderValue",
     CheckBox = "CheckBox",
     BarTexture = "BarTexture",
+    ButtonAction = "ButtonAction",
     NotYetImplemented = "NotYetImplemented",
 }
 local OptionType = Settings.OptionType;
@@ -201,6 +202,18 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
     });
     tinsert(frameLayoutOptions.Options, {
+        Name = L["Reset Position"],
+        Description = L["In case you forgot where you put them."],
+        Type = OptionType.ButtonAction,
+        ButtonText = L["to Screen Center"],
+        Set = function(value)
+            PS().AnchorInfo.OffsetX = 0;
+            PS().AnchorInfo.OffsetY = 0;
+            PS().AnchorInfo.AnchorPoint = "CENTER";
+        end,
+        Get = _p.Noop,
+    });
+    tinsert(frameLayoutOptions.Options, {
         Name = L["Disable Blizzard Frames"],
         Type = OptionType.CheckBox,
         Set = function(value)
@@ -268,16 +281,6 @@ local function AddUnitFrameOptions(targetSections, PS)
             return PS().Frames.Padding;
         end,
     });
-    tinsert(frameLayoutOptions.Options, {
-        Name = L["Show Server Names"],
-        Type = OptionType.CheckBox,
-        Set = function(value)
-            PS().Frames.DisplayServerNames = value;
-        end,
-        Get = function()
-            return PS().Frames.DisplayServerNames;
-        end,
-    });
     
     tinsert(subSectionIndicators.Options, {
         Name = L["Color based on Health"],
@@ -302,6 +305,17 @@ local function AddUnitFrameOptions(targetSections, PS)
             return PS().Frames.OutOfRangeAlpha * 100;
         end,
     });
+    tinsert(subSectionIndicators.Options, {
+        Name = L["Show Server Names"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.DisplayServerNames = value;
+        end,
+        Get = function()
+            return PS().Frames.DisplayServerNames;
+        end,
+    });
+
     tinsert(subSectionPerformance.Options, {
         Name = L["Range Checks per Second"],
         Type = OptionType.SliderValue,

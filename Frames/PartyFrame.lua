@@ -127,7 +127,7 @@ do
                 UnitFrame.SnapToPixels(_unitFrames[i]);
             end
             _changingSettings = false;
-        end);
+        end, false);
         
         FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
             function(dragDropHost, frame)   --resizeStart

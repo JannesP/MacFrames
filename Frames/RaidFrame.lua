@@ -112,7 +112,7 @@ do
             RaidFrame.UpdateAnchorFromCurrentPosition(frame);
             RaidFrame.UpdateRect(frame);
             RaidFrame.ProcessLayout(frame);
-        end);
+        end, false);
 
         FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
             function(dragDropHost, frame)   --resizeStart
