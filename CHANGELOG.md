@@ -1,5 +1,9 @@
 # MacFrames Changelog
 
+## v0.0.8a (2020/12/01)
+* NEW: button to reset the position of the raid-/party frames
+* CHANGE: raid/party frames don't clamp to the screen anymore (poor people in groups 7 and 8 FeelsBadMan)
+
 ## v0.0.7a (2020/12/01)
 * NEW: disable select aura displays in the options
 * NEW: option to disable player frame while not in a party
@@ -7,6 +11,7 @@
 * CHANGE: made health bar texture a bit darker
 * FIX: party-/raidframes missing after using any test mode
 * FIX: characters without spec now don't get lua errors but get an error message
+
 ## v0.0.6a (2020/11/29)
 * NEW: add option to show buff/debuff tooltips
 * Added a lot of missing defensives. Please report if I missed some :)
