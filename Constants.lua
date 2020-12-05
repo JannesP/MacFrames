@@ -21,6 +21,7 @@ local ADDON_NAME, _p = ...;
 _p.Constants = {
     MinimapIconRegisterName = "MacFrames",
     HealthBarDefaultTextureName = "MacFrames Health Bar",
+    PowerBarDefaultTextureName = "MacFrames Health Bar",
     TargetBorderDefaultTextureName =  "MacFrames Target Border",
     AggroBorderDefaultTextureName =  "MacFrames Aggro Border",
     PartyFrameGlobalName = "MacFramesParty",

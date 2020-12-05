@@ -72,6 +72,13 @@ function UnitFrame.OnSettingChanged(self, key)
     if (self == nil or self.isChangingSettings == true) then return; end
     if (key == "HealthBarTextureName") then
         UnitFrame.UpdateHealthBarTextureFromSettings(self);
+    elseif (key == "PowerBarTextureName") then
+        UnitFrame.UpdatePowerBarTextureFromSettings(self);
+    elseif (key == "PowerBarEnabled" or key == "PowerBarHeight") then
+        UnitFrame.LayoutHealthAndPowerBar(self);
+        UnitFrame.UpdatePowerMax(self);
+        UnitFrame.UpdatePower(self);
+        UnitFrame.UpdatePowerColor(self);
     elseif (key == "TargetBorderWidth") then
         UnitFrame.UpdateTargetHighlightTextureFromSettings(self);
     elseif (key == "AggroBorderWidth") then
@@ -131,8 +138,8 @@ do
         UnitFrame.CreateBuffsFromSettings(...);
     end
     function UnitFrame.SetSettings(self, settings, suppressUpdate)
-        if (self.propertyChancedHandlers == nil) then
-            self.propertyChancedHandlers = {
+        if (self.propertyChangedHandlers == nil) then
+            self.propertyChangedHandlers = {
                 Frames = E(self, UnitFrame.OnSettingChanged, true),
                 DispellableDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateDispellablesFromSettings)),
                 OtherDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateUndispellablesFromSettings)),
@@ -142,7 +149,7 @@ do
                 Buffs = E(self, CreateAuraChanged(self, CreateBuffGroupsFromSettings)),
             };
         end
-        local handlers = self.propertyChancedHandlers;
+        local handlers = self.propertyChangedHandlers;
 
         if (self.settings ~= nil) then
             local oldSettings = self.settings;
@@ -211,9 +218,6 @@ end
 function UnitFrame.Setup(self)
     self:SetAlpha(1);
     self.background:SetTexture(Resources.SB_HEALTH_BACKGROUND);
-
-    PixelUtil.SetPoint(self.healthBar, "TOPLEFT", self, "TOPLEFT", 1, -1);
-    PixelUtil.SetPoint(self.healthBar, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
     
     self.targetBorder = CreateFrame("Frame", nil, self);
     self.targetBorder:SetAllPoints();
@@ -341,8 +345,46 @@ function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     PixelUtil.SetPoint(self.healPrediction, "BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
 end
 
+function UnitFrame.UpdatePowerBarTextureFromSettings(self)
+    self.isChangingSettings = true;
+    local powerBarTexturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
+        "statusbar", self.settings.Frames.PowerBarTextureName, Constants.PowerBarDefaultTextureName);
+    self.settings.Frames.PowerBarTextureName = usedLsmName;
+    self.isChangingSettings = false;
+    self.powerBar:SetStatusBarTexture(powerBarTexturePath, "BORDER");
+end
+
+function UnitFrame.LayoutHealthAndPowerBar(self)
+    local powerBar = self.powerBar;
+    local healthBar = self.healthBar;
+
+    if (self.settings.Frames.PowerBarEnabled) then
+        powerBar.enabled = true;
+        local powerBarHeightPixelized = PixelUtil.GetNearestPixelSize(self.settings.Frames.PowerBarHeight, self:GetEffectiveScale(), 1);
+        powerBar:SetPoint("TOP", self, "BOTTOM", 0, powerBarHeightPixelized + 1);
+        powerBar:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 1, 1);
+        powerBar:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
+
+        healthBar:ClearAllPoints();
+        healthBar:SetPoint("TOP", self, "TOP", 0, -1);
+        healthBar:SetPoint("BOTTOMLEFT", powerBar, "TOPLEFT", 0, 0);
+        healthBar:SetPoint("BOTTOMRIGHT", powerBar, "TOPRIGHT", 0, 0);
+    else
+        powerBar.enabled = false;
+        powerBar:ClearAllPoints();
+        powerBar:Hide();
+        healthBar:ClearAllPoints();
+        healthBar:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1);
+        healthBar:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
+        --PixelUtil.SetPoint(self.healthBar, "TOPLEFT", self, "TOPLEFT", 1, -1);
+        --PixelUtil.SetPoint(self.healthBar, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
+    end
+end
+
 function UnitFrame.UpdateAllSettings(self)
     UnitFrame.UpdateHealthBarTextureFromSettings(self);
+    UnitFrame.UpdatePowerBarTextureFromSettings(self);
+    UnitFrame.LayoutHealthAndPowerBar(self);
     UnitFrame.UpdateTargetHighlightTextureFromSettings(self);
     UnitFrame.UpdateAggroHighlightTextureFromSettings(self);
 
@@ -364,6 +406,8 @@ do
                 self.testModeData = {};
             end
             if (not preserveTestModeData) then
+                self.testModeData.power = math.random(1, 1000);
+                self.testModeData.maxPower = 1000;
                 self.testModeData.health = math.random(1, 1000);
                 self.testModeData.maxHealth = 1000;
                 self.testModeData.incomingHeal = math.random(0, 200);
@@ -404,6 +448,8 @@ function UnitFrame.UpdateTestDisplay(self)
     self.healthBar:SetMinMaxValues(0, data.maxHealth);
     UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
     UnitFrame.SetHealth(self, data.health);
+    self.powerBar:SetMinMaxValues(0, data.maxPower);
+    UnitFrame.SetPower(self, data.power);
 end
 do
     local _visibleFrames = {};
@@ -738,6 +784,8 @@ do
         self:RegisterEvent("PARTY_LEADER_CHANGED");
         self:RegisterEvent("PLAYER_REGEN_DISABLED");
         self:RegisterEvent("PLAYER_REGEN_ENABLED");
+        self:RegisterEvent("PARTY_MEMBER_DISABLE");
+	    self:RegisterEvent("PARTY_MEMBER_ENABLE");
     end
 end
 
@@ -762,6 +810,9 @@ function UnitFrame.RegisterUnitEvents(self)
     self:RegisterUnitEvent("INCOMING_RESURRECT_CHANGED", unit, displayUnit);
     self:RegisterUnitEvent("READY_CHECK_CONFIRM", unit, displayUnit);
     self:RegisterUnitEvent("INCOMING_SUMMON_CHANGED", unit, displayUnit);
+    self:RegisterUnitEvent("UNIT_MAXPOWER", unit, displayUnit);
+    self:RegisterUnitEvent("UNIT_DISPLAYPOWER", unit, displayUnit);
+    self:RegisterUnitEvent("UNIT_POWER_UPDATE", unit, displayUnit);
 end
 
 function UnitFrame.OnEvent(self, event, ...)
@@ -791,6 +842,10 @@ function UnitFrame.OnEvent(self, event, ...)
     elseif (event == "PLAYER_REGEN_ENABLED") then
         --leaving combat
         UnitFrame.UpdateAuras(self);    --some auras can be filtered to be hidden in combat
+    elseif ( event == "PARTY_MEMBER_DISABLE" or event == "PARTY_MEMBER_ENABLE" ) then	--Alternate power info may now be available.
+		UnitFrame.UpdatePowerMax(self);
+        UnitFrame.UpdatePower(self);
+        UnitFrame.UpdatePowerColor(self);
     else
         local eventUnit = arg1;
         if (eventUnit == self.unit or eventUnit == self.displayUnit) then
@@ -804,12 +859,22 @@ function UnitFrame.OnEvent(self, event, ...)
                 UnitFrame.UpdateHealthBarExtraInfo(self);
             elseif (event == "UNIT_ABSORB_AMOUNT_CHANGED" or event == "UNIT_HEAL_PREDICTION" or event == "UNIT_HEAL_ABSORB_AMOUNT_CHANGED") then
                 UnitFrame.UpdateHealthBarExtraInfo(self);
+            elseif (event == "UNIT_POWER_UPDATE") then
+                UnitFrame.UpdatePower(self);
+            elseif (event == "UNIT_MAXPOWER") then
+                UnitFrame.UpdatePowerMax(self);
+                UnitFrame.UpdatePower(self);
+            elseif (event == "UNIT_DISPLAYPOWER") then
+                UnitFrame.UpdatePowerMax(self);
+                UnitFrame.UpdatePower(self);
+                UnitFrame.UpdatePowerColor(self);
             elseif (event == "UNIT_NAME_UPDATE") then
                 UnitFrame.UpdateName(self);
                 UnitFrame.UpdateHealthColor(self);
             elseif (event == "UNIT_CONNECTION") then
                 UnitFrame.UpdateStatusText(self);
                 UnitFrame.UpdateHealthColor(self);
+                UnitFrame.UpdatePowerColor(self);
                 UnitFrame.UpdateMaxHealth(self);
                 UnitFrame.UpdateHealth(self);
                 UnitFrame.UpdateHealthBarExtraInfo(self);
@@ -842,6 +907,9 @@ function UnitFrame.UpdateAll(self)
         UnitFrame.UpdateHealthColor(self);
         UnitFrame.UpdateMaxHealth(self);
         UnitFrame.UpdateHealth(self);
+        UnitFrame.UpdatePowerMax(self);
+        UnitFrame.UpdatePower(self);
+        UnitFrame.UpdatePowerColor(self);
         UnitFrame.UpdateHealthBarExtraInfo(self);
         UnitFrame.UpdateInRange(self);
         UnitFrame.UpdateRoleIcon(self);
@@ -1089,6 +1157,56 @@ function UnitFrame.UpdateHealth(self)
     end
 end
 
+function UnitFrame.UpdatePower(self)
+    if (UnitIsDeadOrGhost(self.displayUnit)) then 
+        --otherwise looks weird when somebody is a ghost
+        self.powerBar:SetValue(0);
+    else
+        UnitFrame.SetPower(self, UnitPower(self.displayUnit, nil, true));
+    end
+end
+
+function UnitFrame.SetPower(self, power)
+    if (self.powerBar.enabled ~= true) then
+        return;
+    end
+    self.powerBar:SetValue(power);
+end
+
+function UnitFrame.UpdatePowerColor(self)
+    if (self.powerBar.enabled ~= true) then
+        return;
+    end
+    local r, g, b;
+    if (not UnitIsConnected(self.unit)) then
+		--Color it gray
+		r, g, b = 0.5, 0.5, 0.5;
+	else
+        local powerType, powerToken, altR, altG, altB = UnitPowerType(self.displayUnit);
+        local info = PowerBarColor[powerToken];
+        if (info) then
+                r, g, b = info.r, info.g, info.b;
+        else
+            if (not altR) then
+                -- couldn't find a power token entry...default to indexing by power type or just mana if we don't have that either
+                info = PowerBarColor[powerType] or PowerBarColor["MANA"];
+                r, g, b = info.r, info.g, info.b;
+            else
+                r, g, b = altR, altG, altB;
+            end
+        end
+    end
+    self.powerBar:SetStatusBarColor(r, g, b);
+end
+
+
+function UnitFrame.UpdatePowerMax(self)
+    if (self.powerBar.enabled ~= true) then
+        return;
+    end
+    self.powerBar:SetMinMaxValues(0, UnitPowerMax(self.displayUnit, nil, true));
+end
+
 do
     local function ProjectNumberRange(value, oldMin, oldMax, newMin, newMax)
         return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin; 
@@ -1253,6 +1371,13 @@ function UnitFrame.SetHealthColor(self, r, g, b)
     if (r ~= self.healthBar.r or g ~= self.healthBar.g or b ~= self.healthBar.b) then
 		self.healthBar:SetStatusBarColor(r, g, b);
 		self.healthBar.r, self.healthBar.g, self.healthBar.b = r, g, b;
+	end
+end
+
+function UnitFrame.SetPowerColor(self, r, g, b)
+    if (r ~= self.powerBar.r or g ~= self.powerBar.g or b ~= self.powerBar.b) then
+		self.powerBar:SetStatusBarColor(r, g, b);
+		self.powerBar.r, self.powerBar.g, self.powerBar.b = r, g, b;
 	end
 end
 

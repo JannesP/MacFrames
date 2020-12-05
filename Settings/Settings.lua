@@ -187,6 +187,8 @@ local function AddUnitFrameOptions(targetSections, PS)
     
     local subSectionIndicators = CreateSection(L["Indicators"]);
     tinsert(frameLayoutOptions.Sections, subSectionIndicators);
+    local subSectionPowerBar = CreateSection(L["Power Bar"]);
+    tinsert(frameLayoutOptions.Sections, subSectionPowerBar);
     local subSectionPerformance = CreateSection(L["Performance"]);
     tinsert(frameLayoutOptions.Sections, subSectionPerformance);
 
@@ -313,6 +315,40 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
         Get = function()
             return PS().Frames.DisplayServerNames;
+        end,
+    });
+
+    tinsert(subSectionPowerBar.Options, {
+        Name = L["Enabled"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.PowerBarEnabled = value;
+        end,
+        Get = function()
+            return PS().Frames.PowerBarEnabled;
+        end,
+    });
+    tinsert(subSectionPowerBar.Options, {
+        Name = L["Bar Texture"],
+        Type = OptionType.BarTexture,
+        Set = function(value)
+            PS().Frames.PowerBarTextureName = value;
+        end,
+        Get = function()
+            return PS().Frames.PowerBarTextureName;
+        end,
+    });
+    tinsert(subSectionPowerBar.Options, {
+        Name = L["Height"],
+        Type = OptionType.SliderValue,
+        Min = 1,
+        Max = 40,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.PowerBarHeight = value;
+        end,
+        Get = function()
+            return PS().Frames.PowerBarHeight;
         end,
     });
 

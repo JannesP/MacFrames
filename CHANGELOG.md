@@ -1,6 +1,7 @@
 # MacFrames Changelog
 
-## v0.0.8a (2020/12/01)
+## v0.0.8a (2020/XX/XX)
+* NEW: power bars for everyone! (by default enabled in party and disabled in raid)
 * NEW: button to reset the position of the raid-/party frames
 * CHANGE: raid/party frames don't clamp to the screen anymore (poor people in groups 7 and 8 FeelsBadMan)
 
