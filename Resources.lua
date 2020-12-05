@@ -25,13 +25,7 @@ local Resources = {
     SB_HEALTH_BACKGROUND = "Interface\\AddOns\\MacFrames\\Media\\HealthBar-background.tga",
 
     HEALTH_OVER_ABSORB = "Interface\\AddOns\\MacFrames\\Media\\Overabsorb.tga",
-
-    BORDER_HEALTH_TARGET = "Interface\\AddOns\\MacFrames\\Media\\Border-target.tga",
-    BORDER_HEALTH_AGGRO = "Interface\\AddOns\\MacFrames\\Media\\Border-aggro.tga",
 }
 _p.Resources = Resources;
 
 LSM:Register("statusbar", Constants.HealthBarDefaultTextureName, Resources.SB_HEALTH_FILL);
-
-LSM:Register("border", Constants.TargetBorderDefaultTextureName, Resources.BORDER_HEALTH_TARGET);
-LSM:Register("border", Constants.AggroBorderDefaultTextureName, Resources.BORDER_HEALTH_AGGRO);
