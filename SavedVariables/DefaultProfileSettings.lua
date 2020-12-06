@@ -19,6 +19,12 @@
 local ADDON_NAME, _p = ...;
 local Constants = _p.Constants;
 
+local LSM = LibStub("LibSharedMedia-3.0");
+--fonts (especially size) might need tweaking for other locales, but you can change them in the settings anyways
+local _defaultFont = LSM:GetDefault("font");
+local _defaultFontSizeSmall = 10;
+local _defaultFontSizeNormal = 12;
+
 _p.ProfileSettingsTypes = {
     Properties = "properties",
     Array = "array",
@@ -63,6 +69,14 @@ _p.DefaultProfileSettings = {
             Padding = 2,
             TargetBorderWidth = 2,
             AggroBorderWidth = 1,
+            NameFont = {
+                Name = _defaultFont,
+                Size = _defaultFontSizeSmall,
+            },
+            StatusTextFont = {
+                Name = _defaultFont,
+                Size = _defaultFontSizeNormal,
+            },
         },
         SpecialClassDisplay = {
             iconWidth = 14,
@@ -158,6 +172,14 @@ _p.DefaultProfileSettings = {
             Padding = 2,
             TargetBorderWidth = 2,
             AggroBorderWidth = 1,
+            NameFont = {
+                Name = _defaultFont,
+                Size = _defaultFontSizeSmall,
+            },
+            StatusTextFont = {
+                Name = _defaultFont,
+                Size = _defaultFontSizeNormal,
+            },
         },
         SpecialClassDisplay = {
             iconWidth = 14,

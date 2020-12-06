@@ -42,6 +42,7 @@ SavedVariables\ProfileManager.lua
 Settings\AuraBlacklist.lua
 Settings\Defensives.lua
 
+Util\StringUtil.lua
 Util\BlizzardFrameUtil.lua
 Util\TablePool.lua
 Util\FramePool.lua
@@ -69,6 +70,7 @@ Frames\SettingsEditors\SliderEditorFrame.lua
 Frames\SettingsEditors\CheckBoxEditorFrame.lua
 Frames\SettingsEditors\BarTextureEditorFrame.lua
 Frames\SettingsEditors\ButtonActionEditorFrame.lua
+Frames\SettingsEditors\FontPickerEditorFrame.lua
 
 Frames\SettingsPages\GenericOptionsSettingsPage.lua
 Frames\SettingsPages\AuraBlacklistSettingsPage.lua

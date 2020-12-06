@@ -31,7 +31,7 @@ local CreateWrapper, NewWrapper, NewArrayWrapper;
 do
     local function Wrapper_OnPropertyChanged(self, key, value)
         for callback, _ in pairs(self._propertyChangedListeners) do
-            callback(key, value);
+            callback(key, value, self._pathToMe);
         end
     end
     local function Wrapper_RegisterPropertyChanged(self, callback)
@@ -64,8 +64,9 @@ do
         if (result == nil) then
             local default = self._defaults[key];
             if (default ~= nil) then
-                Log("Loading default ("..key.."): "..tostring(default));
-                result = CreateWrapper(default, default);
+                local fullPath = self._pathToMe .. "." .. key;
+                Log("Loading default ", fullPath, "): ", tostring(default));
+                result = CreateWrapper(default, default, fullPath);
                 self._settings[key] = result;
             end
         end
@@ -79,7 +80,7 @@ do
             error("Cannot change settings in combat!");
         end
         if (self._settings[key] ~= value) then
-            Log("Changing ", key, " value: ", value);
+            Log("Changing '", self._pathToMe, ".", key, "' to value: ", tostring(value));
             self._settings[key] = value;
             self:OnPropertyChanged(key, value);
         end
@@ -89,7 +90,7 @@ do
         if (type(key) ~= "number" or key ~= math.floor(key)) then
             error("Only integers can be used on array settings!");
         end
-        Log("Changing ", key, " value: ", tostring(value));
+        Log("Changing ", self._pathToMe, ".", key, " to value: ", tostring(value));
         self._settings[key] = value;
         self:OnPropertyChanged(key, value);
     end
@@ -110,11 +111,12 @@ do
             self:OnPropertyChanged(nil, nil);
         end
     end
-    NewWrapper = function(defaults)
+    NewWrapper = function(defaults, path)
         return setmetatable({
                 _defaults = defaults,
                 _settings = {},
                 _propertyChangedListeners = {},
+                _pathToMe = path,
                 _settingsType = ProfileSettingsTypes.Properties,
                 OnPropertyChanged = Wrapper_OnPropertyChanged,
                 RegisterPropertyChanged = Wrapper_RegisterPropertyChanged,
@@ -171,15 +173,15 @@ local function deepcopy(orig)
     return copy;
 end
 
-CreateWrapper = function(setting, defaults)
+CreateWrapper = function(setting, defaults, path)
     if (type(setting) == 'table') then
         local wrapper;
         local stype = setting._settingsType;
         if (stype == nil or stype == ProfileSettingsTypes.Properties) then
-            wrapper = NewWrapper(defaults);
+            wrapper = NewWrapper(defaults, path);
             for key, value in pairs(setting) do
                 if (string.find(key, "_.*") == nil) then    --skip all members with '_' at the beginning
-                    wrapper._settings[key] = CreateWrapper(value, defaults[key]);
+                    wrapper._settings[key] = CreateWrapper(value, defaults[key], path .. "." .. key);
                 end
             end
         elseif (stype == ProfileSettingsTypes.Array) then
@@ -250,7 +252,7 @@ end
 
 function Profile.Load(svars)
     UpdateProfileVersion(svars);
-    local profile = CreateWrapper(svars, _p.DefaultProfileSettings);
+    local profile = CreateWrapper(svars, _p.DefaultProfileSettings, "");
     profile.Version = svars.Version;
     return profile;
 end

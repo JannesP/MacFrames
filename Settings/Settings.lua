@@ -55,6 +55,7 @@ Settings.OptionType = {
     CheckBox = "CheckBox",
     BarTexture = "BarTexture",
     ButtonAction = "ButtonAction",
+    FontPicker = "FontPicker",
     NotYetImplemented = "NotYetImplemented",
 }
 local OptionType = Settings.OptionType;
@@ -226,16 +227,6 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
     });
     tinsert(frameLayoutOptions.Options, {
-        Name = L["Bar Texture"],
-        Type = OptionType.BarTexture,
-        Set = function(value)
-            PS().Frames.HealthBarTextureName = value;
-        end,
-        Get = function()
-            return PS().Frames.HealthBarTextureName;
-        end,
-    });
-    tinsert(frameLayoutOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
         Min = Constants.UnitFrame.MinWidth,
@@ -329,16 +320,6 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
     });
     tinsert(subSectionPowerBar.Options, {
-        Name = L["Bar Texture"],
-        Type = OptionType.BarTexture,
-        Set = function(value)
-            PS().Frames.PowerBarTextureName = value;
-        end,
-        Get = function()
-            return PS().Frames.PowerBarTextureName;
-        end,
-    });
-    tinsert(subSectionPowerBar.Options, {
         Name = L["Height"],
         Type = OptionType.SliderValue,
         Min = 1,
@@ -366,6 +347,83 @@ local function AddUnitFrameOptions(targetSections, PS)
         end,
     });
     
+    local lookAndFeelOptions = CreateSection(L["Look & Feel"]);
+    tinsert(unitFrameOptions, lookAndFeelOptions);
+    tinsert(lookAndFeelOptions.Options, {
+        Name = L["Health Bar Texture"],
+        Type = OptionType.BarTexture,
+        Set = function(value)
+            PS().Frames.HealthBarTextureName = value;
+        end,
+        Get = function()
+            return PS().Frames.HealthBarTextureName;
+        end,
+    });
+    tinsert(lookAndFeelOptions.Options, {
+        Name = L["Power Bar Texture"],
+        Type = OptionType.BarTexture,
+        Set = function(value)
+            PS().Frames.PowerBarTextureName = value;
+        end,
+        Get = function()
+            return PS().Frames.PowerBarTextureName;
+        end,
+    });
+
+    local nameFontSection = CreateSection(L["Name Font"]);
+    tinsert(lookAndFeelOptions.Sections, nameFontSection);
+    tinsert(nameFontSection.Options, {
+        Name = L["Font"],
+        Type = OptionType.FontPicker,
+        Set = function(value)
+            PS().Frames.NameFont.Name = value;
+        end,
+        Get = function()
+            return PS().Frames.NameFont.Name;
+        end,
+    });
+    tinsert(nameFontSection.Options, {
+        Name = L["Font Size"],
+        Type = OptionType.SliderValue,
+        Min = 6,
+        SoftMax = 30,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.NameFont.Size = value;
+        end,
+        Get = function()
+            return PS().Frames.NameFont.Size;
+        end,
+    });
+
+    local statusTextFontSection = CreateSection(L["Status Text Font"]);
+    tinsert(lookAndFeelOptions.Sections, statusTextFontSection);
+    tinsert(statusTextFontSection.Options, {
+        Name = L["Font"],
+        Description = L["The font in the middle if someone is AFK or dead."],
+        Type = OptionType.FontPicker,
+        Set = function(value)
+            PS().Frames.StatusTextFont.Name = value;
+        end,
+        Get = function()
+            return PS().Frames.StatusTextFont.Name;
+        end,
+    });
+    tinsert(statusTextFontSection.Options, {
+        Name = L["Font Size"],
+        Description = L["The font in the middle if someone is AFK or dead."],
+        Type = OptionType.SliderValue,
+        Min = 6,
+        SoftMax = 30,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.StatusTextFont.Size = value;
+        end,
+        Get = function()
+            return PS().Frames.StatusTextFont.Size;
+        end,
+    });
+
     local classDisplayOptions = CreateSection(L["Class Displays"]);
     tinsert(unitFrameOptions, classDisplayOptions);
     local classDisplayCategoryConfigureAuras = CreateSection(L["Displayed Auras"]);

@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 
 local BaseEditorFrame = _p.BaseEditorFrame;
 local OptionType = _p.Settings.OptionType;
+local FrameUtil = _p.FrameUtil;
 
 _p.SliderEditorFrame = {};
 local SliderEditorFrame = _p.SliderEditorFrame;

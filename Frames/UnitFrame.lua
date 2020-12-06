@@ -31,6 +31,9 @@ local AuraManager = _p.AuraManager;
 local ProfileManager = _p.ProfileManager;
 local FrameUtil = _p.FrameUtil;
 local FramePool = _p.FramePool;
+local StringUtil = _p.StringUtil;
+
+local String_EndsWith = StringUtil.EndsWith;
 
 local _classColorsByIndex = {};
 for key, value in pairs(RAID_CLASS_COLORS) do
@@ -68,9 +71,13 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
     LoadMouseActionsForSpec();
 end);
 
-function UnitFrame.OnSettingChanged(self, key)
+function UnitFrame.OnSettingChanged(self, key, _, path)
     if (self == nil or self.isChangingSettings == true) then return; end
-    if (key == "HealthBarTextureName") then
+    if (String_EndsWith(path, ".NameFont")) then
+        UnitFrame.UpdateNameFontFromSettings(self);
+    elseif (String_EndsWith(path, ".StatusTextFont")) then
+        UnitFrame.UpdateStatusTextFontFromSettings(self);
+    elseif (key == "HealthBarTextureName") then
         UnitFrame.UpdateHealthBarTextureFromSettings(self);
     elseif (key == "PowerBarTextureName") then
         UnitFrame.UpdatePowerBarTextureFromSettings(self);
@@ -120,11 +127,11 @@ do
             end
         end
     end
-    local function E(self, eventHandler, forwardKey)
-        if (forwardKey) then
-            return function(key)
+    local function E(self, eventHandler, forwardArgs)
+        if (forwardArgs) then
+            return function(...)
                 if (self == nil or self.isChangingSettings == true) then return; end
-                eventHandler(self, key);
+                eventHandler(self, ...);
             end
         else
             return function(key)
@@ -153,7 +160,7 @@ do
 
         if (self.settings ~= nil) then
             local oldSettings = self.settings;
-            oldSettings.Frames:UnregisterPropertyChanged(handlers.Frames);
+            oldSettings.Frames:UnregisterAllPropertyChanged(handlers.Frames);
             oldSettings.DispellableDebuffs:UnregisterPropertyChanged(handlers.DispellableDebuffs);
             oldSettings.OtherDebuffs:UnregisterPropertyChanged(handlers.OtherDebuffs);
             oldSettings.BossAuras:UnregisterPropertyChanged(handlers.BossAuras);
@@ -164,7 +171,7 @@ do
 
         self.settings = settings;
         local newSettings = settings;
-        newSettings.Frames:RegisterPropertyChanged(handlers.Frames);
+        newSettings.Frames:RegisterAllPropertyChanged(handlers.Frames);
         newSettings.DispellableDebuffs:RegisterPropertyChanged(handlers.DispellableDebuffs);
         newSettings.OtherDebuffs:RegisterPropertyChanged(handlers.OtherDebuffs);
         newSettings.BossAuras:RegisterPropertyChanged(handlers.BossAuras);
@@ -246,8 +253,8 @@ function UnitFrame.Setup(self)
     self.name:SetJustifyH("LEFT");
     
     local sic = self.statusIconContainer;
-    sic.statusText.defaultHeight = select(2, sic.statusText:GetFont());
-    PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
+    sic.statusText.fontHeight = select(2, sic.statusText:GetFont());
+    PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
     PixelUtil.SetPoint(sic, "LEFT", self, "LEFT", 0, -(nameFontSize / 2));
     PixelUtil.SetPoint(sic, "RIGHT", self, "RIGHT", 0, -(nameFontSize / 2));
     sic:Show();
@@ -292,6 +299,16 @@ function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
         end
     end
     return texturePath, usedName;
+end
+
+function UnitFrame.GetFontFromSettings(lsmName)
+    local usedName = lsmName;
+    local lsmEntry = LSM:Fetch("font", lsmName, true);
+    if (lsmEntry == nil) then
+        usedName = LSM:GetDefault("font");
+        lsmEntry = LSM:Fetch("font", usedName);
+    end
+    return lsmEntry, usedName;
 end
 
 function UnitFrame.UpdateTargetHighlightTextureFromSettings(self)
@@ -381,12 +398,32 @@ function UnitFrame.LayoutHealthAndPowerBar(self)
     end
 end
 
+function UnitFrame.UpdateNameFontFromSettings(self)
+    local fontPath, usedLsmName = UnitFrame.GetFontFromSettings(self.settings.Frames.NameFont.Name);
+    self.settings.Frames.NameFont.Name = usedLsmName;
+    self.name:SetFont(fontPath, self.settings.Frames.NameFont.Size);
+    self.name:ClearAllPoints();
+    PixelUtil.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
+    PixelUtil.SetPoint(self.name, "RIGHT", self, "RIGHT", -2, 0);
+end
+
+function UnitFrame.UpdateStatusTextFontFromSettings(self)
+    local fontPath, usedLsmName = UnitFrame.GetFontFromSettings(self.settings.Frames.StatusTextFont.Name);
+    self.settings.Frames.StatusTextFont.Name = usedLsmName;
+    self.statusIconContainer.statusText:SetFont(fontPath, self.settings.Frames.StatusTextFont.Size);
+    UnitFrame.LayoutStatusIcons(self);
+end
+
 function UnitFrame.UpdateAllSettings(self)
     UnitFrame.UpdateHealthBarTextureFromSettings(self);
     UnitFrame.UpdatePowerBarTextureFromSettings(self);
     UnitFrame.LayoutHealthAndPowerBar(self);
+
     UnitFrame.UpdateTargetHighlightTextureFromSettings(self);
     UnitFrame.UpdateAggroHighlightTextureFromSettings(self);
+
+    UnitFrame.UpdateNameFontFromSettings(self);
+    UnitFrame.UpdateStatusTextFontFromSettings(self);
 
     UnitFrame.CreateAuraDisplays(self);
 end
@@ -466,7 +503,7 @@ do
         local visibleFrames = _visibleFrames;
         wipe(visibleFrames);
 
-        PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.defaultHeight);
+        PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
 
         ProcessIcon(sic.readyCheckIcon);
         ProcessIcon(sic.summonIcon);
