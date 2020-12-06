@@ -20,6 +20,8 @@ local ADDON_NAME, _p = ...;
 local LSM = LibStub("LibSharedMedia-3.0");
 local L = _p.L;
 
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost;
+
 local Constants = _p.Constants;
 local Resources = _p.Resources;
 local PlayerInfo = _p.PlayerInfo;
@@ -888,12 +890,13 @@ function UnitFrame.OnEvent(self, event, ...)
         if (eventUnit == self.unit or eventUnit == self.displayUnit) then
             if (event == "UNIT_HEALTH") then
                 UnitFrame.UpdateHealth(self);
-                UnitFrame.UpdateStatusText(self);
                 UnitFrame.UpdateHealthBarExtraInfo(self)
+                UnitFrame.UpdateStatusText(self);
             elseif (event == "UNIT_MAXHEALTH") then
                 UnitFrame.UpdateMaxHealth(self);
                 UnitFrame.UpdateHealth(self);
                 UnitFrame.UpdateHealthBarExtraInfo(self);
+                UnitFrame.UpdateStatusText(self);
             elseif (event == "UNIT_ABSORB_AMOUNT_CHANGED" or event == "UNIT_HEAL_PREDICTION" or event == "UNIT_HEAL_ABSORB_AMOUNT_CHANGED") then
                 UnitFrame.UpdateHealthBarExtraInfo(self);
             elseif (event == "UNIT_POWER_UPDATE") then
@@ -925,6 +928,7 @@ function UnitFrame.OnEvent(self, event, ...)
                 UnitFrame.UpdateLFGStatus(self);
                 self.statusIconContainer.disableLayouting = false;
                 UnitFrame.LayoutStatusIcons(self);
+                UnitFrame.UpdateStatusText(self);
             elseif (event == "UNIT_THREAT_SITUATION_UPDATE") then
                 UnitFrame.UpdateAggroHighlight(self);
             elseif (event == "INCOMING_RESURRECT_CHANGED") then
