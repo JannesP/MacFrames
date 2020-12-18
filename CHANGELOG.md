@@ -3,7 +3,8 @@
 ## v0.0.9a (2020/12/18)
 * BUG: pet frames don't always have the correct health color, just target them! UnitFrames also like some attention :)
 * NEW: pet frames are now a thing ... if anybody else is yelled at by warlocks or hunters in the maw :( (only in groups for now)
-* FIX: sometimes when fiddling with the options the target/aggro markers got stuck
+* FIX: target/aggro markers don't get stuck anymore while fiddling with the settings
+* FIX: the correct (party) layout is now used in rated arenas
 
 ## v0.0.8a (2020/12/06)
 * NEW: power bars for everyone! (by default enabled in party and disabled in raid)
