@@ -281,6 +281,13 @@ Alternatively you can report this error on github, please attach your MacFrames.
             ProcessArenaPartyLayout();
         end
     end
+    --for some reason PLAYER_ENTERING_WORLD doesn't fire when entering rated arena matches, so this is a temporary fix
+    --this is not optimal though, because it only updates the layout after at least one enemy appears
+    function _events:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
+        if (PlayerInfo.specId ~= nil) then
+            ProcessArenaPartyLayout();
+        end
+    end
 end
 function _events:PLAYER_REGEN_DISABLED()
     Addon.EnteringCombat();
