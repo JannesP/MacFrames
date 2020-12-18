@@ -33,6 +33,7 @@ local LibDataBroker = LibStub("LibDataBroker-1.1");
 local LibMinimapIcon = LibStub("LibDBIcon-1.0");
 local LdbDataObject;
 
+local _focusFrame;
 local _partyFrame;
 local _raidFrame;
 
@@ -221,7 +222,7 @@ do
                 RaidFrame.SetForcedVisibility(nil);
             end
         else
-            error("I thought this wouldnt happen :( Please report this.");
+            --error("I thought this wouldnt happen :( Please report this.");
         end
     end
     local function ProfileLoadError(err)
@@ -263,9 +264,19 @@ Alternatively you can report this error on github, please attach your MacFrames.
             else
                 _partyFrame = PartyFrame.create();
                 _raidFrame = RaidFrame.create();
+                _focusFrame = UnitFrame.new("focus", UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
+                _focusFrame:SetSize(100, 50);
+                _focusFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 720);
+                _focusFrame:Show();
                 Addon.SetupMinimapIcon();
             end
         end
+        --_p.Log("PLAYER_ENTERING_WORLD", ProcessArenaPartyLayout());
+        if (PlayerInfo.specId ~= nil) then
+            ProcessArenaPartyLayout();
+        end
+    end
+    function _events:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
         if (PlayerInfo.specId ~= nil) then
             ProcessArenaPartyLayout();
         end

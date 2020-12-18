@@ -18,6 +18,7 @@
 
 local ADDON_NAME, _p = ...;
 local Constants = _p.Constants;
+local MacEnum = _p.MacEnum;
 
 local LSM = LibStub("LibSharedMedia-3.0");
 --fonts (especially size) might need tweaking for other locales, but you can change them in the settings anyways
@@ -52,6 +53,57 @@ _p.DefaultProfileSettings = {
         FrameHeight = 50,
         FrameSpacing = 2,
         Margin = 0,
+        PetFrames = {
+            Enabled = true,
+            PositionTo = MacEnum.Settings.PetFramePosition.Right,
+            AlignWithPlayer = MacEnum.Settings.PetFramePartyAlignment.Beginning,
+            FrameWidth = 80,
+            FrameHeight = 35,
+            Frames = {
+                RangeCheckThrottleSeconds = 0.200,  --The minimum time between range checks in seconds (used with C_Timer)
+                OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
+                DisplayServerNames = false,  --display the server name for people on a different server or display "(*)"
+                HealthBarTextureName = Constants.HealthBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
+                PowerBarTextureName = Constants.PowerBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
+                PowerBarEnabled = false,
+                PowerBarHeight = 5,
+                RoleIconSize = 10,
+                StatusIconSize = 14,
+                BlendToDangerColors = false,
+                BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
+                BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
+                BlendToDangerColorsMaximum = 0.8,   --the maximum point for blending, above this everything is normal
+                Padding = 2,
+                TargetBorderWidth = 2,
+                AggroBorderWidth = 1,
+                NameFont = {
+                    Name = _defaultFont,
+                    Size = _defaultFontSizeSmall,
+                },
+                StatusTextFont = {
+                    Name = _defaultFont,
+                    Size = _defaultFontSizeNormal,
+                },
+            },
+            SpecialClassDisplay = {
+                enabled = false,
+            },
+            DispellableDebuffs = {
+                Enabled = false,
+            },
+            OtherDebuffs = {
+                Enabled = false,
+            },
+            BossAuras = {
+                Enabled = false,
+            },
+            DefensiveBuff = {
+                Enabled = false,
+            },
+            Buffs = {
+                Enabled = false,
+            },
+        },
         Frames = {
             RangeCheckThrottleSeconds = 0.100,  --The minimum time between range checks in seconds (used with C_Timer)
             OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
@@ -240,6 +292,56 @@ _p.DefaultProfileSettings = {
             useBlizzardAuraFilter = true,
             EnableAuraTooltips = false,
             Enabled = true,
+        },
+        PetFrames = {
+            Enabled = false,
+            PositionTo = MacEnum.Settings.PetFramePosition.Top,
+            FrameWidth = 90,
+            FrameHeight = 20,
+            Frames = {
+                RangeCheckThrottleSeconds = 0.200,  --The minimum time between range checks in seconds (used with C_Timer)
+                OutOfRangeAlpha = 0.4,  --The alpha (0.0 to 1.0) for out of range units.
+                DisplayServerNames = false,  --display the server name for people on a different server or display "(*)"
+                HealthBarTextureName = Constants.HealthBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
+                PowerBarTextureName = Constants.PowerBarDefaultTextureName, --resource key for statusbar type in LibSharedResource
+                PowerBarEnabled = false,
+                PowerBarHeight = 5,
+                RoleIconSize = 10,
+                StatusIconSize = 14,
+                BlendToDangerColors = false,
+                BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
+                BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
+                BlendToDangerColorsMaximum = 0.8,   --the maximum point for blending, above this everything is normal
+                Padding = 2,
+                TargetBorderWidth = 2,
+                AggroBorderWidth = 1,
+                NameFont = {
+                    Name = _defaultFont,
+                    Size = _defaultFontSizeSmall,
+                },
+                StatusTextFont = {
+                    Name = _defaultFont,
+                    Size = _defaultFontSizeNormal,
+                },
+            },
+            SpecialClassDisplay = {
+                enabled = false,
+            },
+            DispellableDebuffs = {
+                Enabled = false,
+            },
+            OtherDebuffs = {
+                Enabled = false,
+            },
+            BossAuras = {
+                Enabled = false,
+            },
+            DefensiveBuff = {
+                Enabled = false,
+            },
+            Buffs = {
+                Enabled = false,
+            },
         },
     },
     SpecialClassDisplays = {    --shown in top right in order of appearance here (top right to top left)

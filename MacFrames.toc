@@ -30,10 +30,11 @@
 
 Libs\Embeds.xml
 
+Init.lua
+
+MacEnum.lua
 Constants.lua
 Resources.lua
-
-Init.lua
 
 SavedVariables\DefaultProfileSettings.lua
 SavedVariables\Profile.lua
@@ -71,6 +72,7 @@ Frames\SettingsEditors\CheckBoxEditorFrame.lua
 Frames\SettingsEditors\BarTextureEditorFrame.lua
 Frames\SettingsEditors\ButtonActionEditorFrame.lua
 Frames\SettingsEditors\FontPickerEditorFrame.lua
+Frames\SettingsEditors\EnumDropDownEditorFrame.lua
 
 Frames\SettingsPages\GenericOptionsSettingsPage.lua
 Frames\SettingsPages\AuraBlacklistSettingsPage.lua

@@ -200,8 +200,21 @@ UnitFrame.new = function(unit, parent, namePrefix, settings)
     if (frame == nil) then
         frame = CreateFrame("Button", frameName, parent, "MacFramesUnitFrameTemplate");
         frame.statusIconsFrame = CreateFrame("Frame", nil, frame);
+
+        frame.targetBorder = CreateFrame("Frame", nil, frame);
+        frame.targetBorder:SetAllPoints();
+        frame.targetBorder.children = FrameUtil.CreateSolidBorder(frame.targetBorder, 2, 1, 1, 1, 1);
+
+        frame.aggroBorder = CreateFrame("Frame", nil, frame);
+        frame.aggroBorder:SetAllPoints();
+        frame.aggroBorder.children = FrameUtil.CreateSolidBorder(frame.aggroBorder, 1, 1, 0, 0, 1);
+
         _unitFrames[frameName] = frame;
     end
+
+    
+
+
     frame.isChangingSettings = false;
     frame.displayUnit = unit;
     frame.unit = unit;
@@ -228,15 +241,8 @@ function UnitFrame.Setup(self)
     self:SetAlpha(1);
     self.background:SetTexture(Resources.SB_HEALTH_BACKGROUND);
     
-    self.targetBorder = CreateFrame("Frame", nil, self);
-    self.targetBorder:SetAllPoints();
     self.targetBorder:Hide();
-    self.targetBorder.children = FrameUtil.CreateSolidBorder(self.targetBorder, 2, 1, 1, 1, 1);
-
-    self.aggroBorder = CreateFrame("Frame", nil, self);
-    self.aggroBorder:SetAllPoints();
     self.aggroBorder:Hide();
-    self.aggroBorder.children = FrameUtil.CreateSolidBorder(self.aggroBorder, 1, 1, 0, 0, 1);
 
     self.rankIcon:ClearAllPoints();
     PixelUtil.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
@@ -383,6 +389,7 @@ function UnitFrame.LayoutHealthAndPowerBar(self)
         powerBar:SetPoint("TOP", self, "BOTTOM", 0, powerBarHeightPixelized + 1);
         powerBar:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 1, 1);
         powerBar:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
+        powerBar:Show();
 
         healthBar:ClearAllPoints();
         healthBar:SetPoint("TOP", self, "TOP", 0, -1);
@@ -734,6 +741,7 @@ function UnitFrame.SetUnit(self, unit)
     UnitFrame.RemoveMyAttributes(self);
     self.displayUnit = unit;
     self.unit = unit;
+    self.isPet = string.match(self.unit, "pet[0-9]*") ~= nil;
     UnitFrame.SetAttribute(self, "unit", unit);
     UnitFrame.RegisterUnitEvents(self)
     UnitFrame.SetupMouseActions(self);
@@ -1172,7 +1180,9 @@ end
 
 function UnitFrame.UpdateStatusText(self)
     local text = self.statusIconContainer.statusText;
-    if not UnitIsConnected(self.unit) then
+    if (self.isPet) then
+        text:Hide();
+    elseif not UnitIsConnected(self.unit) then
         text:SetText(L["Offline"]);
         text:Show();
     elseif UnitIsDeadOrGhost(self.unit) then
@@ -1399,6 +1409,8 @@ function UnitFrame.UpdateHealthColor(self)
         elseif (UnitFrame.IsTapDenied(self)) then
             -- Use grey if not a player and can't get tap on unit
             r, g, b = 0.9, 0.9, 0.9;
+        elseif (self.isPet) then
+            r, g, b = 0.0, 0.75, 0.0;
         elseif (not UnitIsPlayer(self.unit) and UnitIsFriend("player", self.unit)) then
             r, g, b = UnitSelectionColor(self.unit, true);
         else

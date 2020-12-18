@@ -21,6 +21,7 @@ local L = _p.L;
 local ProfileManager = _p.ProfileManager;
 local Constants = _p.Constants;
 local Addon = _p.Addon;
+local MacEnum = _p.MacEnum;
 
 _p.Settings = {};
 local Settings = _p.Settings;
@@ -56,6 +57,7 @@ Settings.OptionType = {
     BarTexture = "BarTexture",
     ButtonAction = "ButtonAction",
     FontPicker = "FontPicker",
+    EnumDropDown = "EnumDropDown",
     NotYetImplemented = "NotYetImplemented",
 }
 local OptionType = Settings.OptionType;
@@ -182,10 +184,63 @@ local function CreateAuraGroupOptionsWithBlizzardFilter(name, GetAuraSettings)
     return options;
 end
 
-local function AddUnitFrameOptions(targetSections, PS)
+local function CreatePetSection(GetUnitFrameSettings)
+    local sectionPets = CreateSection(L["Pets"]);
+    tinsert(sectionPets.Options, {
+        Name = L["Enabled"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            GetUnitFrameSettings().PetFrames.Enabled = value;
+        end,
+        Get = function()
+            return GetUnitFrameSettings().PetFrames.Enabled;
+        end,
+    });
+    tinsert(sectionPets.Options, {
+        Name = L["Position"],
+        Type = OptionType.EnumDropDown,
+        EnumValues = MacEnum.Settings.PetFramePosition,
+        Set = function(value)
+            GetUnitFrameSettings().PetFrames.PositionTo = value;
+        end,
+        Get = function()
+            return GetUnitFrameSettings().PetFrames.PositionTo;
+        end,
+    });
+    tinsert(sectionPets.Options, {
+        Name = L["Width"],
+        Type = OptionType.SliderValue,
+        Min = Constants.UnitFrame.MinWidth,
+        SoftMax = 400,
+        Set = function(value)
+            GetUnitFrameSettings().PetFrames.FrameWidth = value;
+        end,
+        Get = function()
+            return GetUnitFrameSettings().PetFrames.FrameWidth;
+        end,
+    });
+    tinsert(sectionPets.Options, {
+        Name = L["Height"],
+        Type = OptionType.SliderValue,
+        Min = Constants.UnitFrame.MinHeight,
+        SoftMax = 200,
+        Set = function(value)
+            GetUnitFrameSettings().PetFrames.FrameHeight = value;
+        end,
+        Get = function()
+            return GetUnitFrameSettings().PetFrames.FrameHeight;
+        end,
+    });
+    return sectionPets;
+end
+
+local function AddUnitFrameOptions(targetSections, PS, addPets)
     local unitFrameOptions = {};
     local frameLayoutOptions = CreateSection(L["Frame Layout"]);
-    
+    if (addPets == true) then
+        local subSectionPets = CreatePetSection(PS);
+        tinsert(frameLayoutOptions.Sections, subSectionPets);
+    end
     local subSectionIndicators = CreateSection(L["Indicators"]);
     tinsert(frameLayoutOptions.Sections, subSectionIndicators);
     local subSectionPowerBar = CreateSection(L["Power Bar"]);
@@ -561,7 +616,7 @@ local _raidFrames = {
     GetProfile = P,
     Sections = {},
 };
-AddUnitFrameOptions(_raidFrames.Sections, function() return P().RaidFrame; end);
+AddUnitFrameOptions(_raidFrames.Sections, function() return P().RaidFrame; end, false);
 tinsert(Settings.Categories, _raidFrames);
 
 local _partyFrames = {
@@ -570,7 +625,7 @@ local _partyFrames = {
     GetProfile = P,
     Sections = {},
 };
-AddUnitFrameOptions(_partyFrames.Sections, function() return P().PartyFrame; end);
+AddUnitFrameOptions(_partyFrames.Sections, function() return P().PartyFrame; end, true);
 tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
     Name = L["Always Show Player"],
     Description = L["Shows the player frame if you're not in a group at all."],
@@ -590,6 +645,18 @@ tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
     end,
     Get = function()
         return P().PartyFrame.Vertical;
+    end,
+});
+
+tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Sections[1].Options, {
+    Name = L["Alignment"],
+    Type = OptionType.EnumDropDown,
+    EnumValues = MacEnum.Settings.PetFramePartyAlignment,
+    Set = function(value)
+        P().PartyFrame.PetFrames.AlignWithPlayer = value;
+    end,
+    Get = function()
+        return P().PartyFrame.PetFrames.AlignWithPlayer;
     end,
 });
 tinsert(Settings.Categories, _partyFrames);
