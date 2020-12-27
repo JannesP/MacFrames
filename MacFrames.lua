@@ -33,7 +33,9 @@ local LibDataBroker = LibStub("LibDataBroker-1.1");
 local LibMinimapIcon = LibStub("LibDBIcon-1.0");
 local LdbDataObject;
 
+--@do-not-package@
 local _focusFrame;
+--@end-do-not-package@
 local _partyFrame;
 local _raidFrame;
 
@@ -264,10 +266,12 @@ Alternatively you can report this error on github, please attach your MacFrames.
             else
                 _partyFrame = PartyFrame.create();
                 _raidFrame = RaidFrame.create();
+                --@do-not-package@
                 _focusFrame = UnitFrame.new("focus", UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
                 _focusFrame:SetSize(100, 50);
                 _focusFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 720);
                 _focusFrame:Show();
+                --@end-do-not-package@
                 Addon.SetupMinimapIcon();
             end
         end
