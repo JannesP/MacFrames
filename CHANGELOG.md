@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.0.9c (2020/03/10)
+* FIX: update for patch 9.0.5
+
 ## v0.0.9b (2020/12/27)
 * FIX: removed non configurable focus frame, sorry I needed to be able to heal sunking and forgot it :) (this is coming as a feature soonTM)
 
