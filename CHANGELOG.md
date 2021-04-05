@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.0.9d (2020/04/05)
+* FIX: error for some classes
+
 ## v0.0.9c (2020/03/10)
 * FIX: update for patch 9.0.5
 
