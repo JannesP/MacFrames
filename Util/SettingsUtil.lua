@@ -23,17 +23,23 @@ local L = _p.L;
 
 _p.SettingsUtil = {};
 local SettingsUtil = _p.SettingsUtil;
+
+local _emptyObject = {};
 function SettingsUtil.GetSpecialClassDisplays()
-    if (PlayerInfo.class == nil or PlayerInfo.specId == nil) then
-        return nil;
+    local result = _emptyObject;
+
+    if (PlayerInfo.class ~= nil and PlayerInfo.specId ~= nil) then
+        local classDisplays = ProfileManager.GetCurrent().SpecialClassDisplays[PlayerInfo.class];
+    
+        if (classDisplays ~= nil) then
+            local specDisplay = classDisplays[PlayerInfo.specId];
+            if (specDisplay ~= nil) then
+                result = specDisplay:GetRawEntries();
+            end
+        end
     end
-    local classDisplay = ProfileManager.GetCurrent().SpecialClassDisplays[PlayerInfo.class][PlayerInfo.specId];
-    if (classDisplay ~= nil) then
-        classDisplay = classDisplay:GetRawEntries();
-    else
-        classDisplay = nil;
-    end
-    return classDisplay;
+    
+    return result;
 end
 
 --[[
