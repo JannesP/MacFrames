@@ -1,9 +1,12 @@
 # MacFrames Changelog
 
-## v0.0.9d (2020/04/05)
+## v0.0.9e (2021/06/29)
+* FIX: bump supported game version for patch 9.1
+
+## v0.0.9d (2021/04/05)
 * FIX: error for some classes
 
-## v0.0.9c (2020/03/10)
+## v0.0.9c (2021/03/10)
 * FIX: update for patch 9.0.5
 
 ## v0.0.9b (2020/12/27)
