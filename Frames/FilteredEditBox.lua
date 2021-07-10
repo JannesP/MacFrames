@@ -36,7 +36,7 @@ end
 local function ValidateText(self)
     local text = gsub(self:GetText(), "|c0ff00000(.-)|r", "%1");
     if (self.validateOnTextChange) then
-        if (self.filterFunc(self, ...) == false) then
+        if (self.filterFunc(self) == false) then
             self:SetText("|c0ff00000" .. text .. "|r");
         end
     else
@@ -45,9 +45,9 @@ local function ValidateText(self)
 end
 
 local function OnEditFocusLost(self)
-    if (self.filterFunc(self, ...)) then
+    if (self.filterFunc(self)) then
         local text = gsub(self:GetText(), "")
-        self.filteredListener(self, ...);
+        self.filteredListener(self);
     else
         self:SetText("");
     end
@@ -57,7 +57,6 @@ function FilteredEditBox.Create(parent)
     local editBox = CreateFrame("EditBox", nil, parent, "InputBoxTemplate");
     editBox.SetFilter = SetFilter;
     editBox.SetOnFilteredValueSet = SetOnFilteredValueSet;
-    editBox.SetFilterOnTextChange = SetFilterOnTextChange;
 
     editBox:SetScript("OnEnterPressed", EditBox_ClearFocus);
     editBox:SetScript("OnTabPressed", EditBox_ClearFocus);

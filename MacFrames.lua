@@ -18,6 +18,7 @@
 
 local ADDON_NAME, _p = ...;
 _p.Log(ADDON_NAME .. " loaded.");
+local L = _p.L;
 local UnitFrame = _p.UnitFrame;
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
@@ -271,16 +272,18 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 _focusFrame:SetSize(100, 50);
                 _focusFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 720);
                 _focusFrame:Show();
+                local bossCount = 5;
+                for i=1,bossCount do
+                    local bossFrame = UnitFrame.new("boss" .. i, UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
+                    bossFrame:SetSize(100, 50);
+                    bossFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 830 + 50 * (i - 1));
+                    bossFrame:Show();
+                end
                 --@end-do-not-package@
                 Addon.SetupMinimapIcon();
             end
         end
         --_p.Log("PLAYER_ENTERING_WORLD", ProcessArenaPartyLayout());
-        if (PlayerInfo.specId ~= nil) then
-            ProcessArenaPartyLayout();
-        end
-    end
-    function _events:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
         if (PlayerInfo.specId ~= nil) then
             ProcessArenaPartyLayout();
         end

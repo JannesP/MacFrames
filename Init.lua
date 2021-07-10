@@ -21,7 +21,7 @@ local ADDON_NAME, _p = ...;
 _p.isDevMode = false;
 --@do-not-package@
 _p.isDevMode = true;
-mf = _p;
+MF = _p;
 --@end-do-not-package@
 
 _p.Noop = function() end;

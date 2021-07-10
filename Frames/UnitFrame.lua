@@ -43,7 +43,7 @@ for key, value in pairs(RAID_CLASS_COLORS) do
 end
 
 local _currentProfile = nil;
-_mouseActions = nil;
+local _mouseActions = nil;
 local _auraTooltipHostPool = FramePool.Create();
 local _auraTooltipHostList = {};
 
@@ -826,6 +826,7 @@ do
         self:RegisterEvent("GROUP_ROSTER_UPDATE");
         self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
         self:RegisterEvent("PLAYER_TARGET_CHANGED");
+        self:RegisterEvent("PLAYER_FOCUS_CHANGED");
         self:RegisterEvent("READY_CHECK");
         self:RegisterEvent("READY_CHECK_FINISHED");
         self:RegisterEvent("PARTY_LEADER_CHANGED");
@@ -875,6 +876,14 @@ function UnitFrame.OnEvent(self, event, ...)
             UnitFrame.UpdateName(self);
         end
         UnitFrame.UpdateTargetHighlight(self);
+    elseif (event == "PLAYER_FOCUS_CHANGED") then
+        if (UnitIsUnit("focus", self.unit) or UnitIsUnit("focus", self.displayUnit)) then
+            UnitFrame.UpdateMaxHealth(self);
+            UnitFrame.UpdateHealth(self);
+            UnitFrame.UpdateHealthColor(self);
+            UnitFrame.UpdateHealthBarExtraInfo(self);
+            UnitFrame.UpdateName(self);
+        end
     elseif (event == "PLAYER_ROLES_ASSIGNED") then
         UnitFrame.UpdateRoleIcon(self);
     elseif (event == "PARTY_LEADER_CHANGED") then
@@ -979,7 +988,7 @@ function UnitFrame.UpdateAll(self)
 end
 
 function UnitFrame.UpdateDistance(self)
-	local distance, checkedDistance = UnitDistanceSquared(frame.displayUnit);
+	local distance, checkedDistance = UnitDistanceSquared(self.displayUnit);
 
 	if (checkedDistance == true) then
 		local inDistance = distance < DISTANCE_THRESHOLD_SQUARED;
@@ -1339,6 +1348,7 @@ function UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomin
         self.healPrediction:Hide();
         self.overAbsorb:Hide();
     else
+        local nextAnchorFrame, overAmount;
         local remainingEmptyHealth = maxHealth - currentHealth;
         remainingEmptyHealth, nextAnchorFrame, overAmount = UnitFrame.ProcessHealthBarExtraInfoBar(self.healPrediction, incomingHeal, self.healthBar:GetStatusBarTexture(), remainingEmptyHealth, maxHealth, totalWidth);
         if (overAmount > 0) then
@@ -1403,7 +1413,12 @@ function UnitFrame.UpdateHealthColor(self)
         --Try to color it by class.
         local _, englishClass = UnitClass(self.unit);
         local classColor = RAID_CLASS_COLORS[englishClass];
-        if ((UnitIsPlayer(self.unit) or UnitTreatAsPlayerForDisplay(self.unit)) and classColor) then
+        local isPlayer = UnitIsPlayer(self.unit);
+        
+        if (isPlayer and UnitIsEnemy("player", self.unit)) then
+            -- e.g. Mind Controlled
+            r, g, b = 1.0, 0.0, 0.0;
+        elseif ((isPlayer or UnitTreatAsPlayerForDisplay(self.unit)) and classColor) then
             -- Use class colors for players if class color option is turned on
             r, g, b = classColor.r, classColor.g, classColor.b;
         elseif (UnitFrame.IsTapDenied(self)) then
@@ -1411,7 +1426,7 @@ function UnitFrame.UpdateHealthColor(self)
             r, g, b = 0.9, 0.9, 0.9;
         elseif (self.isPet) then
             r, g, b = 0.0, 0.75, 0.0;
-        elseif (not UnitIsPlayer(self.unit) and UnitIsFriend("player", self.unit)) then
+        elseif (not isPlayer and UnitIsFriend("player", self.unit)) then
             r, g, b = UnitSelectionColor(self.unit, true);
         else
             r, g, b = 1.0, 0.0, 0.0;

@@ -43,7 +43,7 @@ function ButtonActionEditorFrame.Create(parent, option)
     buttonCenterFrame:SetPoint("RIGHT");
     buttonCenterFrame:SetPoint("LEFT");
     local button = FrameUtil.CreateTextButton(buttonCenterFrame, nil, option.ButtonText, BaseEditorFrame.CreateEditorOnChange(frame, Button_OnClick));
-    frame.button = checkBox;
+    frame.button = button;
     button.editorFrame = frame;
     button:SetPoint("RIGHT");
     button:SetPoint("LEFT");

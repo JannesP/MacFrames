@@ -27,15 +27,15 @@ local function DisableFrames(taint, ...)
 		frame:UnregisterAllEvents();
 		frame:Hide();
 
-		if( frame.manabar ) then frame.manabar:UnregisterAllEvents() end
-		if( frame.healthbar ) then frame.healthbar:UnregisterAllEvents() end
-		if( frame.spellbar ) then frame.spellbar:UnregisterAllEvents() end
-		if( frame.powerBarAlt ) then frame.powerBarAlt:UnregisterAllEvents() end
+		if(frame.manabar) then frame.manabar:UnregisterAllEvents() end
+		if(frame.healthbar) then frame.healthbar:UnregisterAllEvents() end
+		if(frame.spellbar) then frame.spellbar:UnregisterAllEvents() end
+		if(frame.powerBarAlt) then frame.powerBarAlt:UnregisterAllEvents() end
 
 		if(taint) then
 			frame.Show = Noop;
 		else
-			frame:SetParent(_hiddenFrame)
+			frame:SetParent(HiddenFrame)
 			frame:HookScript("OnShow", HideFrame)
 		end
 	end
