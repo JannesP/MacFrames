@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.0.9d (2021/07/27)
+* FIX: add barkskin to cooldown display
+
 ## v0.0.9e (2021/06/29)
 * FIX: bump supported game version for patch 9.1
 

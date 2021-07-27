@@ -62,7 +62,7 @@ _p.Defensives = {   --priority is the number to the right (higher is a higher pr
     [122278] = 100,     --Dampen Harm
     [122783] = 100,     --Diffuse Magic
 
-    [22182] = 100,      --Barkskin
+    [22812] = 100,      --Barkskin
     [22842] = 100,      --Frenzied Regen
     [61336] = 101,      --Survival Instincts
     [102558] = 100,     --Incarnation
