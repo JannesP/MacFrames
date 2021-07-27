@@ -1,6 +1,6 @@
 # MacFrames Changelog
 
-## v0.0.9d (2021/07/27)
+## v0.0.9f (2021/07/27)
 * FIX: add barkskin to cooldown display
 
 ## v0.0.9e (2021/06/29)
