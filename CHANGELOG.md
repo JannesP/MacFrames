@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.0.9h (2021/11/05)
+* FIX: update for patch 9.2
+
 ## v0.0.9g (2021/11/05)
 * FIX: update for patch 9.1.5
 

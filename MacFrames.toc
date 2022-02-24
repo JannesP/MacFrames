@@ -17,7 +17,7 @@
 #
 
 
-## Interface: 90105
+## Interface: 90200
 ## Title: MacFrames: Raid and Party Frames
 ## Notes: Simple Raid and Party frame addon.
 ## Version: @project-version@
