@@ -272,7 +272,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 _focusFrame:SetSize(100, 50);
                 _focusFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 720);
                 _focusFrame:Show();
-                local bossCount = 5;
+                local bossCount = 8;
                 for i=1,bossCount do
                     local bossFrame = UnitFrame.new("boss" .. i, UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
                     bossFrame:SetSize(100, 50);

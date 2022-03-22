@@ -96,6 +96,8 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
         UnitFrame.LayoutStatusIcons(self);
     elseif (key == "RangeCheckThrottleSeconds") then
         UnitFrame.UpdateRangeCheckTicker(self);
+    elseif (key == "BossPollingThrottleSeconds") then
+        UnitFrame.UpdateBossPollingTicker(self);
     elseif (key == "Padding") then
         UnitFrame.CreateAuraDisplays(self);
         if self.isTestMode then
@@ -742,6 +744,7 @@ function UnitFrame.SetUnit(self, unit)
     self.displayUnit = unit;
     self.unit = unit;
     self.isPet = string.match(self.unit, "pet[0-9]*") ~= nil;
+    self.isBoss = string.match(self.unit, "boss[0-9]*") ~= nil;
     UnitFrame.SetAttribute(self, "unit", unit);
     UnitFrame.RegisterUnitEvents(self)
     UnitFrame.SetupMouseActions(self);
@@ -756,6 +759,7 @@ end
 function UnitFrame.EnableScripts(self)
     self:SetScript("OnEvent", UnitFrame.OnEvent);
     --self:SetScript("OnUpdate", UnitFrame.OnUpdate); --currently not required, just left here for quick reimplementation
+    UnitFrame.CreateBossPollingTicker(self);
     UnitFrame.CreateRangeCheckTicker(self);
     local readyCheckIcon = self.statusIconContainer.readyCheckIcon;
     if (readyCheckIcon.timerDecay ~= nil) then
@@ -768,10 +772,9 @@ end
 function UnitFrame.DisableScripts(self)
     self:SetScript("OnEvent", nil);
     --self:SetScript("OnUpdate", UnitFrame.OnUpdate); --currently not required, just left here for quick reimplementation
-    if (self.rangeCheckTicker ~= nil) then
-        self.rangeCheckTicker:Cancel();
-        self.rangeCheckTicker = nil;
-    end
+    UnitFrame.DisableRangeCheckTicker(self);
+    UnitFrame.DisableBossPollingTicker(self);
+    
     local readyCheckIcon = self.statusIconContainer.readyCheckIcon;
     if (readyCheckIcon.timerDecay ~= nil) then
         readyCheckIcon.timerDecay:Cancel();
@@ -797,6 +800,14 @@ function UnitFrame.UpdateRangeCheckTicker(self)
         UnitFrame.CreateRangeCheckTicker(self);
     end
 end
+
+function UnitFrame.DisableRangeCheckTicker(self)
+    if (self.rangeCheckTicker ~= nil) then
+        self.rangeCheckTicker:Cancel();
+        self.rangeCheckTicker = nil;
+    end
+end
+
 do
     local function UnitFrame_OnShow(self)
         if (not self.isTestMode) then 
@@ -907,7 +918,7 @@ function UnitFrame.OnEvent(self, event, ...)
         if (eventUnit == self.unit or eventUnit == self.displayUnit) then
             if (event == "UNIT_HEALTH") then
                 UnitFrame.UpdateHealth(self);
-                UnitFrame.UpdateHealthBarExtraInfo(self)
+                UnitFrame.UpdateHealthBarExtraInfo(self);
                 UnitFrame.UpdateStatusText(self);
             elseif (event == "UNIT_MAXHEALTH") then
                 UnitFrame.UpdateMaxHealth(self);
@@ -1485,6 +1496,39 @@ function UnitFrame.CreateSpecialClassDisplays()
     if (requiredDisplays == nil) then return end
     for _, frame in pairs(_unitFrames) do
         UnitFrame.CreateSpecialClassDisplayFromSettings(frame, requiredDisplays);
+    end
+end
+
+function UnitFrame.CreateBossPollingTicker(self)
+    if (not self.isBoss) then
+        return;
+    end
+    if (self.bossUpdateTickerCallback == nil) then
+        self.bossUpdateTickerCallback = function() 
+            if (UnitExists(self.unit)) then
+                UnitFrame.UpdateMaxHealth(self);
+                UnitFrame.UpdateHealth(self);
+                UnitFrame.UpdateHealthColor(self);
+                UnitFrame.UpdateHealthBarExtraInfo(self);
+                UnitFrame.UpdateAuras(self);
+            end
+        end
+    end
+
+    if (self.bossUpdateTicker ~= nil) then
+        self.bossUpdateTicker = C_Timer.NewTicker(self.settings.Frames.BossUpdateThrottleSeconds, self.bossUpdateTickerCallback);
+    end
+end
+
+function UnitFrame.UpdateBossPollingTicker(self)
+    UnitFrame.DisableBossPollingTicker(self);
+    UnitFrame.CreateBossPollingTicker(self);
+end
+
+function UnitFrame.DisableBossPollingTicker(self)
+    if (self.bossUpdateTicker ~= nil) then
+        self.bossUpdateTicker:Cancel();
+        self.bossUpdateTicker = nil;
     end
 end
 
