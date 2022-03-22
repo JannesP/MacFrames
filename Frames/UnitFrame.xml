@@ -67,6 +67,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 					</Layer>
 				</Layers>
 			</Frame>
+			<Frame name="$parentRaidTargetIcon" parentKey="raidTargetIcon" useParentLevel="true">
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture name="$parentTexture" parentKey="texture" ignoreParentAlpha="true"/>
+					</Layer>
+				</Layers>
+			</Frame>
         </Frames>
 		<Scripts>
 			<OnEnter function="UnitFrame_OnEnter"/>

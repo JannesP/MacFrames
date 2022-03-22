@@ -1,6 +1,9 @@
 # MacFrames Changelog
 
-## v0.0.9h (2021/11/05)
+## v0.1.0 (2022/03/22)
+* NEW: Add Raid Target Icon indicator for both raid and party frames. You can disable these in the options.
+
+## v0.0.9h (2022/24/02)
 * FIX: update for patch 9.2
 
 ## v0.0.9g (2021/11/05)

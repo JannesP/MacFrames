@@ -245,6 +245,8 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(frameLayoutOptions.Sections, subSectionIndicators);
     local subSectionPowerBar = CreateSection(L["Power Bar"]);
     tinsert(frameLayoutOptions.Sections, subSectionPowerBar);
+    local subSectionRaidTargetIcon = CreateSection(L["Raid Target Icon"]);
+    tinsert(frameLayoutOptions.Sections, subSectionRaidTargetIcon);
     local subSectionPerformance = CreateSection(L["Performance"]);
     tinsert(frameLayoutOptions.Sections, subSectionPerformance);
 
@@ -401,7 +403,60 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
             return 1 / PS().Frames.RangeCheckThrottleSeconds;
         end,
     });
-    
+
+    tinsert(subSectionPerformance.Options, {
+        Name = L["Boss Updates per Second"],
+        Type = OptionType.SliderValue,
+        Min = 1,
+        SoftMax = 144,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.BossPollingThrottleSeconds = 1 / value;
+        end,
+        Get = function()
+            return 1 / PS().Frames.BossPollingThrottleSeconds;
+        end,
+    });
+
+    tinsert(subSectionRaidTargetIcon.Options, {
+        Name = L["Enabled"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.RaidTargetIconEnabled = value;
+        end,
+        Get = function()
+            return PS().Frames.RaidTargetIconEnabled;
+        end,
+    });
+
+    tinsert(subSectionRaidTargetIcon.Options, {
+        Name = L["Icon Size"],
+        Type = OptionType.SliderValue,
+        Min = 5,
+        SoftMax = 40,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.RaidTargetIconSize = value;
+        end,
+        Get = function()
+            return PS().Frames.RaidTargetIconSize;
+        end,
+    });
+
+    tinsert(subSectionRaidTargetIcon.Options, {
+        Name = L["Alpha %"],
+        Type = OptionType.SliderValue,
+        Min = 1,
+        Max = 100,
+        StepSize = 1,
+        Set = function(value)
+            PS().Frames.RaidTargetIconAlpha = value / 100;
+        end,
+        Get = function()
+            return PS().Frames.RaidTargetIconAlpha * 100;
+        end,
+    });
+
     local lookAndFeelOptions = CreateSection(L["Look & Feel"]);
     tinsert(unitFrameOptions, lookAndFeelOptions);
     tinsert(lookAndFeelOptions.Options, {

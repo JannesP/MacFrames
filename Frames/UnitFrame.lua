@@ -98,6 +98,13 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
         UnitFrame.UpdateRangeCheckTicker(self);
     elseif (key == "BossPollingThrottleSeconds") then
         UnitFrame.UpdateBossPollingTicker(self);
+    elseif (key == "RaidTargetIconSize") then
+        UnitFrame.UpdateRaidTargetIconSizeFromSettings(self);
+    elseif (key == "RaidTargetIconAlpha") then
+        UnitFrame.UpdateRaidTargetIconAlphaFromSettings(self);
+    elseif (key == "RaidTargetIconEnabled") then
+        UnitFrame.UpdateRaidTargetIconEnabledFromSettings(self);
+        UnitFrame.UpdateRaidTargetIcon(self);
     elseif (key == "Padding") then
         UnitFrame.CreateAuraDisplays(self);
         if self.isTestMode then
@@ -214,9 +221,6 @@ UnitFrame.new = function(unit, parent, namePrefix, settings)
         _unitFrames[frameName] = frame;
     end
 
-    
-
-
     frame.isChangingSettings = false;
     frame.displayUnit = unit;
     frame.unit = unit;
@@ -294,6 +298,40 @@ function UnitFrame.Setup(self)
     sic.lfgIcon:SetTexture("Interface\\LFGFrame\\LFG-Eye");
     sic.lfgIcon:SetTexCoord(0.125, 0.25, 0.25, 0.5);
     sic.lfgIcon:Hide();
+
+    local rti = self.raidTargetIcon;
+    local iconTexture = rti.texture;
+    PixelUtil.SetPoint(rti, "CENTER", self, "CENTER", 0, 0);
+    iconTexture:SetAllPoints();
+    iconTexture:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons");
+    UnitFrame.UpdateRaidTargetIconSizeFromSettings(self);
+    UnitFrame.UpdateRaidTargetIconAlphaFromSettings(self);
+    UnitFrame.UpdateRaidTargetIconEnabledFromSettings(self);
+    iconTexture:Show();
+    rti:Hide();
+end
+
+function UnitFrame.UpdateRaidTargetIcon(self)
+    if (not self.raidTargetIcon.enabled) then
+        self.raidTargetIcon:Hide();
+        return;
+    end
+    local usedIconIndex = GetRaidTargetIndex(self.unit);
+    if (usedIconIndex ~= nil) then
+        UnitFrame.SetRaidTargetIconByIndex(self, usedIconIndex);
+    else
+        self.raidTargetIcon:Hide();
+    end
+end
+
+function UnitFrame.SetRaidTargetIconByIndex(self, index)
+    local left = mod((index-1)/4, 1);
+    local right = left + 0.25;
+    local top = floor((index-1)/4) * 0.25;
+    local bottom = top + 0.25;
+
+    self.raidTargetIcon.texture:SetTexCoord(left, right, top, bottom);
+    self.raidTargetIcon:Show();
 end
 
 function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
@@ -327,6 +365,18 @@ end
 
 function UnitFrame.UpdateAggroHighlightTextureFromSettings(self)
     self.aggroBorder.children:Resize(self.settings.Frames.AggroBorderWidth)
+end
+
+function UnitFrame.UpdateRaidTargetIconEnabledFromSettings(self)
+    self.raidTargetIcon.enabled = self.settings.Frames.RaidTargetIconEnabled;
+end
+
+function UnitFrame.UpdateRaidTargetIconSizeFromSettings(self)
+    PixelUtil.SetSize(self.raidTargetIcon, self.settings.Frames.RaidTargetIconSize, self.settings.Frames.RaidTargetIconSize);
+end
+
+function UnitFrame.UpdateRaidTargetIconAlphaFromSettings(self)
+    self.raidTargetIcon.texture:SetAlpha(self.settings.Frames.RaidTargetIconAlpha);
 end
 
 function UnitFrame.UpdateHealthBarTextureFromSettings(self)
@@ -437,6 +487,11 @@ function UnitFrame.UpdateAllSettings(self)
     UnitFrame.UpdateStatusTextFontFromSettings(self);
 
     UnitFrame.CreateAuraDisplays(self);
+
+    UnitFrame.UpdateRaidTargetIconSizeFromSettings(self);
+    UnitFrame.UpdateRaidTargetIconAlphaFromSettings(self);
+    UnitFrame.UpdateRaidTargetIconEnabledFromSettings(self);
+    UnitFrame.UpdateRaidTargetIcon(self);
 end
 do
     function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
@@ -465,6 +520,7 @@ do
                 self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
                 self.testModeData.isInRange = (math.random(0, 3) > 0);
                 self.testModeData.name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
+                self.testModeData.raidTargetIconIndex = math.random(1, 8);
             end
             
             UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
@@ -498,6 +554,7 @@ function UnitFrame.UpdateTestDisplay(self)
     UnitFrame.SetHealth(self, data.health);
     self.powerBar:SetMinMaxValues(0, data.maxPower);
     UnitFrame.SetPower(self, data.power);
+    UnitFrame.SetRaidTargetIconByIndex(self, data.raidTargetIconIndex);
 end
 do
     local _visibleFrames = {};
@@ -845,6 +902,7 @@ do
         self:RegisterEvent("PLAYER_REGEN_ENABLED");
         self:RegisterEvent("PARTY_MEMBER_DISABLE");
 	    self:RegisterEvent("PARTY_MEMBER_ENABLE");
+        self:RegisterEvent("RAID_TARGET_UPDATE");
     end
 end
 
@@ -909,10 +967,12 @@ function UnitFrame.OnEvent(self, event, ...)
     elseif (event == "PLAYER_REGEN_ENABLED") then
         --leaving combat
         UnitFrame.UpdateAuras(self);    --some auras can be filtered to be hidden in combat
-    elseif ( event == "PARTY_MEMBER_DISABLE" or event == "PARTY_MEMBER_ENABLE" ) then	--Alternate power info may now be available.
+    elseif (event == "PARTY_MEMBER_DISABLE" or event == "PARTY_MEMBER_ENABLE") then	--Alternate power info may now be available.
 		UnitFrame.UpdatePowerMax(self);
         UnitFrame.UpdatePower(self);
         UnitFrame.UpdatePowerColor(self);
+    elseif (event == "RAID_TARGET_UPDATE") then
+        UnitFrame.UpdateRaidTargetIcon(self);
     else
         local eventUnit = arg1;
         if (eventUnit == self.unit or eventUnit == self.displayUnit) then
@@ -986,6 +1046,7 @@ function UnitFrame.UpdateAll(self)
         UnitFrame.UpdateAggroHighlight(self);
         UnitFrame.UpdateAuras(self);
         UnitFrame.UpdateStatusText(self);
+        UnitFrame.UpdateRaidTargetIcon(self);
 
         self.statusIconContainer.disableLayouting = true;
         UnitFrame.UpdateSummonStatus(self);
