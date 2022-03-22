@@ -1,6 +1,6 @@
 --[[
 -- MacFrames - WoW Raid and Party Frames <https://github.com/JannesP/MacFrames>
---Copyright (C) 2020  Jannes Peters
+--Copyright (C) 2022  Jannes Peters
 --
 --This program is free software: you can redistribute it and/or modify
 --it under the terms of the GNU General Public License as published by
