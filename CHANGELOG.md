@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.1 (2022/03/30)
+* NEW: OmniCD support added
+
 ## v0.1.0 (2022/03/22)
 * NEW: Add Raid Target Icon indicator for both raid and party frames. You can disable these in the options.
 

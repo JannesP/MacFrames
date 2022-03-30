@@ -197,14 +197,19 @@ do
     end
 end
 
-UnitFrame.new = function(unit, parent, namePrefix, settings)
-    if (namePrefix == nil) then
-        namePrefix = parent:GetName();
+UnitFrame.new = function(unit, parent, namePrefix, settings, frameNameOverride)
+    local frameName;
+    if (frameNameOverride == nil) then
         if (namePrefix == nil) then
-            error("A prefix for the unit frames is required.");
+            namePrefix = parent:GetName();
+            if (namePrefix == nil) then
+                error("A prefix for the unit frames is required.");
+            end
         end
+        frameName = namePrefix .. "_" .. unit;
+    else
+        frameName = frameNameOverride;
     end
-    local frameName = namePrefix .. "_" .. unit;
     local frame = _unitFrames[frameName];
     if (frame == nil) then
         frame = CreateFrame("Button", frameName, parent, "MacFramesUnitFrameTemplate");
@@ -803,7 +808,7 @@ function UnitFrame.SetUnit(self, unit)
     self.isPet = string.match(self.unit, "pet[0-9]*") ~= nil;
     self.isBoss = string.match(self.unit, "boss[0-9]*") ~= nil;
     UnitFrame.SetAttribute(self, "unit", unit);
-    UnitFrame.RegisterUnitEvents(self)
+    UnitFrame.RegisterUnitEvents(self);
     UnitFrame.SetupMouseActions(self);
     for _, group in pairs(self.auraGroups) do
         AuraGroup.SetUnit(group, unit);
@@ -930,6 +935,9 @@ function UnitFrame.RegisterUnitEvents(self)
     self:RegisterUnitEvent("UNIT_MAXPOWER", unit, displayUnit);
     self:RegisterUnitEvent("UNIT_DISPLAYPOWER", unit, displayUnit);
     self:RegisterUnitEvent("UNIT_POWER_UPDATE", unit, displayUnit);
+    self:RegisterUnitEvent("UNIT_THREAT_LIST_UPDATE", unit, displayUnit);
+    self:RegisterUnitEvent("UNIT_PET", unit, displayUnit);
+    self:RegisterUnitEvent("UNIT_CTR_OPTIONS", unit, displayUnit);
 end
 
 function UnitFrame.OnEvent(self, event, ...)
@@ -1010,7 +1018,7 @@ function UnitFrame.OnEvent(self, event, ...)
                 UnitFrame.UpdateAuras(self);
             elseif (event == "PLAYER_FLAGS_CHANGED") then
                 UnitFrame.UpdateStatusText(self);
-            elseif (event == "UNIT_PHASE" or event == "UNIT_FLAGS") then
+            elseif (event == "UNIT_PHASE" or event == "UNIT_FLAGS" or event == "UNIT_CTR_OPTIONS") then
                 self.statusIconContainer.disableLayouting = true;
                 UnitFrame.UpdatePhasingStatus(self);
                 UnitFrame.UpdateLFGStatus(self);
@@ -1025,6 +1033,11 @@ function UnitFrame.OnEvent(self, event, ...)
                 UnitFrame.UpdateSummonStatus(self);
             elseif (event == "READY_CHECK_CONFIRM") then
                 UnitFrame.UpdateReadyCheckStatus(self);
+            elseif (event == "UNIT_THREAT_LIST_UPDATE") then
+                UnitFrame.UpdateHealthColor(self);
+                UnitFrame.UpdateName(self);
+            elseif (event == "UNIT_PET") then
+                UnitFrame.UpdateAll(self);
             end
         end
     end
@@ -1576,8 +1589,8 @@ function UnitFrame.CreateBossPollingTicker(self)
         end
     end
 
-    if (self.bossUpdateTicker ~= nil) then
-        self.bossUpdateTicker = C_Timer.NewTicker(self.settings.Frames.BossUpdateThrottleSeconds, self.bossUpdateTickerCallback);
+    if (self.bossUpdateTicker == nil) then
+        self.bossUpdateTicker = C_Timer.NewTicker(self.settings.Frames.BossPollingThrottleSeconds, self.bossUpdateTickerCallback);
     end
 end
 

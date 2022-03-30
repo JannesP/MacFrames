@@ -169,7 +169,8 @@ do
 
         _unitFrames = {};
         _frame.unitFrames = _unitFrames;
-        tinsert(_unitFrames, UnitFrame.new("player", _frame, nil, _partySettings));
+        --ugly name for the party player frame but OmniCD doesn't work otherwise
+        tinsert(_unitFrames, UnitFrame.new("player", _frame, nil, _partySettings, frameName .. "_" .. "party5"));
         for i=1,4 do
             tinsert(_unitFrames, UnitFrame.new("party" .. i, _frame, nil, _partySettings));
         end

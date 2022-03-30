@@ -206,10 +206,22 @@ do
     end);
 end
 
+function Addon.EnableOmniCDSupport() 
+    local func = OmniCD and OmniCD.AddUnitFrameData;
+    if func then
+        func("MacFrames", "MacFramesParty_party", "unit");
+        -- Use a hyphen after your addon name to add additional frames
+        func("MacFrames-Raid", "MacFramesRaid_raid", "unit", nil, nil, 40);  -- unit 1-40
+    end
+end
+
 -- ########### EVENT HANDLING ############
 local _eventFrame, _events = CreateFrame("Frame"), {};
 function _events:ADDON_LOADED(addonName)
-    if (addonName == ADDON_NAME) then
+    if (addonName == "OmniCD") then
+        Addon.EnableOmniCDSupport();
+    elseif (addonName == ADDON_NAME) then
+        Addon.EnableOmniCDSupport();
         Addon.Loaded();
     end
 end
@@ -276,7 +288,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 for i=1,bossCount do
                     local bossFrame = UnitFrame.new("boss" .. i, UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
                     bossFrame:SetSize(100, 50);
-                    bossFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 830 + 50 * (i - 1));
+                    bossFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500 + (i / 4), 800 + 50 * (i - 1));
                     bossFrame:Show();
                 end
                 --@end-do-not-package@
