@@ -1492,7 +1492,7 @@ end
 function UnitFrame.UpdateHealthColor(self)
 	local r, g, b;
 	if (not UnitIsConnected(self.unit) ) then
-		--Color it gray
+		--Color it grey
 		r, g, b = 0.5, 0.5, 0.5;
 	else
         --Try to color it by class.
@@ -1500,9 +1500,10 @@ function UnitFrame.UpdateHealthColor(self)
         local classColor = RAID_CLASS_COLORS[englishClass];
         local isPlayer = UnitIsPlayer(self.unit);
         
-        if (isPlayer and UnitIsEnemy("player", self.unit)) then
+        if (isPlayer and UnitIsEnemy("player", self.unit) and classColor) then
             -- e.g. Mind Controlled
-            r, g, b = 1.0, 0.0, 0.0;
+            -- use class colors for now 
+            r, g, b = classColor.r, classColor.g, classColor.b;
         elseif ((isPlayer or UnitTreatAsPlayerForDisplay(self.unit)) and classColor) then
             -- Use class colors for players if class color option is turned on
             r, g, b = classColor.r, classColor.g, classColor.b;
@@ -1514,7 +1515,7 @@ function UnitFrame.UpdateHealthColor(self)
         elseif (not isPlayer and UnitIsFriend("player", self.unit)) then
             r, g, b = UnitSelectionColor(self.unit, true);
         else
-            r, g, b = 1.0, 0.0, 0.0;
+            r, g, b = 0.9, 0.0, 0.0;
         end
     end
     UnitFrame.SetHealthColor(self, r, g, b);

@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.1a (2022/03/30)
+* FIX: Red color of frame for people that were targeted during MC
+
 ## v0.1.1 (2022/03/30)
 * NEW: OmniCD support added
 
