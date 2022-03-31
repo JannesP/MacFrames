@@ -385,17 +385,29 @@ _p.DefaultProfileSettings = {
             },
             [257] = {   --holy
                 _settingsType = ProfileSettingsTypes.Array;
-                [1] = { --Weakened Soul
-                    spellId = 6788,
+                [1] = { --Renew
+                    spellId = 139,
                     enabled = true,
-                    debuff = true,
+                    debuff = false,
                     onlyByPlayer = true,
                 },
-                [2] = { --PI
+                [2] = { --PoM
+                    spellId = 41635, 
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [3] = { --PI
                     spellId = 10060, 
                     enabled = true,
                     debuff = false,
                     onlyByPlayer = false,
+                },
+                [4] = { --Weakened Soul
+                    spellId = 6788, 
+                    enabled = true,
+                    debuff = true,
+                    onlyByPlayer = true,
                 },
             },
             [258] = {   --shadow
