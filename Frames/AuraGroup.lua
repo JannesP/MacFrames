@@ -24,7 +24,6 @@ local AuraBlacklist = _p.AuraBlacklist;
 local TablePool = _p.TablePool;
 
 local math_min, table_sort = math.min, table.sort;
-local CompactUnitFrame_UtilShouldDisplayBuff, CompactUnitFrame_Util_ShouldDisplayDebuff = CompactUnitFrame_UtilShouldDisplayBuff, CompactUnitFrame_Util_ShouldDisplayDebuff;
 
 local _framePool = _p.FramePool.Create();
 
@@ -303,6 +302,28 @@ do
 end
 
 do
+    --The following two functions are literally copied from CompactUnitFrame_UtilShouldDisplayBuff and CompactUnitFrame_Util_ShouldDisplayDebuff.
+    --For some reason they work here but not in CompactUnitFrame.lua
+    local function ShouldDisplayDebuff(...)
+        local _, _, _, _, _, _, unitCaster, _, _, spellId, canApplyAura = ...;
+        local hasCustom, alwaysShowMine, showForMySpec = SpellGetVisibilityInfo(spellId, UnitAffectingCombat("player") and "RAID_INCOMBAT" or "RAID_OUTOFCOMBAT");
+        if (hasCustom) then
+            return showForMySpec or (alwaysShowMine and (unitCaster == "player" or unitCaster == "pet" or unitCaster == "vehicle"));	--Would only be "mine" in the case of something like forbearance.
+        else
+            return true;
+        end
+    end
+
+    local function ShouldDisplayBuff(...)
+        local _, _, _, _, _, _, unitCaster, _, _, spellId, canApplyAura = ...;
+        local hasCustom, alwaysShowMine, showForMySpec = SpellGetVisibilityInfo(spellId, UnitAffectingCombat("player") and "RAID_INCOMBAT" or "RAID_OUTOFCOMBAT");
+        if (hasCustom) then
+            return showForMySpec or (alwaysShowMine and (unitCaster == "player" or unitCaster == "pet" or unitCaster == "vehicle"));
+        else
+            return (unitCaster == "player" or unitCaster == "pet" or unitCaster == "vehicle") and canApplyAura and not SpellIsSelfBuff(spellId);
+        end
+    end
+
     local function IsAllowedBySettings(self, slot, info, ...)
         local result = true;
         if (not self.ignoreBlacklist and AuraBlacklist[select(10, ...)] == true) then
@@ -312,9 +333,9 @@ do
         else
             if (self.useBlizzardAuraFilter == true) then
                 if (info.isDebuff == true) then
-                    result = CompactUnitFrame_Util_ShouldDisplayDebuff(...);
+                    result = ShouldDisplayDebuff(...);
                 else
-                    result = CompactUnitFrame_UtilShouldDisplayBuff(...);
+                    result = ShouldDisplayBuff(...);
                 end
             end
         end

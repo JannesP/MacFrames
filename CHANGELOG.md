@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.1b (2022/04/14)
+* FIX: Blizzard aura filters should work again (eg. no more BL/Hero debuff in combat)
+
 ## v0.1.1a (2022/03/30)
 * FIX: Red color of frame for people that were targeted during MC
 
