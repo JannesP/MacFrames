@@ -960,6 +960,7 @@ function UnitFrame.OnEvent(self, event, ...)
             UnitFrame.UpdateHealthColor(self);
             UnitFrame.UpdateHealthBarExtraInfo(self);
             UnitFrame.UpdateName(self);
+            UnitFrame.UpdateAuras(self);
         end
     elseif (event == "PLAYER_ROLES_ASSIGNED") then
         UnitFrame.UpdateRoleIcon(self);
