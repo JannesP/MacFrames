@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.1c (2022/05/01)
+* FIX: The frames being overlayed by nameplates.
+
 ## v0.1.1b (2022/04/14)
 * FIX: Blizzard aura filters should work again (eg. no more BL/Hero debuff in combat)
 
