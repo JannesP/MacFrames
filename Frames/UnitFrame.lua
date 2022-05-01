@@ -1097,9 +1097,15 @@ function UnitFrame.UpdateSummonStatus(self)
         elseif( status == Enum.SummonStatus.Declined ) then
             icon:SetAtlas("Raid-Icon-SummonDeclined");
         end
-        icon:Show();
+        if (not icon:IsVisible()) then
+            icon:Show();
+            UnitFrame.LayoutStatusIcons(self);
+        end
     else
-        icon:Hide();
+        if (icon:IsVisible()) then
+            icon:Hide();
+            UnitFrame.LayoutStatusIcons(self);
+        end
     end
 end
 

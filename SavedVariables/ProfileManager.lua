@@ -30,7 +30,7 @@ ProfileManager.AddonDefaults = _defaultProfileMarker .. L["Addon Defaults"] .. _
 
 local _isErrorState = false;
 
-local _currentSettingsVersion = 3;
+local _currentSettingsVersion = 4;
 local _profileChangedListeners = {};
 local _profileListChangedListeners = {};
 local _characterProfileMapping;
@@ -127,6 +127,14 @@ do
                     profile.PartyFrame.StateDriverVisibility = "[group:raid] hide; [group:party] show; hide;";
                 end);
                 svars.Version = 3;
+            elseif (svars.Version == 3) then
+                ForEachProfile(svars, function(name, profile)
+                    profile.PartyFrame.FrameStrata = "MEDIUM";
+                    profile.PartyFrame.FrameLevel = 1000;
+                    profile.RaidFrame.FrameStrata = "MEDIUM";
+                    profile.RaidFrame.FrameLevel = 1000;
+                end);
+                svars.Version = 4;
             else
                 if (svars.Version ~= _currentSettingsVersion) then
                     error(_p.CreateError("No upgrade path from settings version " .. tostring(svars.Version) .. " to current version " .. tostring(_currentSettingsVersion) .. " could be found.", nil, true));

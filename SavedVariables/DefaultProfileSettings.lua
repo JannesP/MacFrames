@@ -36,8 +36,8 @@ _p.DefaultProfileSettings = {
     Version = 0,
     DisableCompactUnitFrameManager = false,
     PartyFrame = {
-        FrameStrata = "LOW",
-        FrameLevel = 100,
+        FrameStrata = "MEDIUM",
+        FrameLevel = 1000,
         StateDriverVisibility = "[group:raid] hide; [group:party] show; hide;",
         StateDriverVisibilityForcePlayer = "[group:raid] hide; show;",
         AlwaysShowPlayer = true,
@@ -200,8 +200,8 @@ _p.DefaultProfileSettings = {
         },
     },
     RaidFrame = {
-        FrameStrata = "LOW",
-        FrameLevel = 0,
+        FrameStrata = "MEDIUM",
+        FrameLevel = 1000,
         StateDriverVisibility = "[group:raid] show; hide;",
         DisableBlizzardFrames = true,
         Enabled = true,
