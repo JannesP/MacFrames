@@ -20,8 +20,8 @@ local ADDON_NAME, _p = ...;
 
 _p.Defensives = {   --priority is the number to the right (higher is a higher priority)
 --@do-not-package@
-    [111759] = 1,   --Levitate
-    [121557] = 2,   --Angelic Feather
+    --[111759] = 1,   --Levitate
+    --[121557] = 2,   --Angelic Feather
     --[17] = 3,       --PW: S
 --@end-do-not-package@
     
