@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.1d (2022/08/03)
+* NEW: Spirit of Redemption and Podtender will always be shown as a "Boss Aura".
+
 ## v0.1.1c (2022/05/01)
 * FIX: The frames being overlayed by nameplates.
 
