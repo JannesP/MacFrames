@@ -316,6 +316,8 @@ do
 
     local function ShouldDisplayBuff(...)
         local _, _, _, _, _, _, unitCaster, _, _, spellId, canApplyAura = ...;
+        if (spellId == 320224) then return true; end --Podtender
+        if (spellId == 27827) then return true; end --Spirit of Redemption
         local hasCustom, alwaysShowMine, showForMySpec = SpellGetVisibilityInfo(spellId, UnitAffectingCombat("player") and "RAID_INCOMBAT" or "RAID_OUTOFCOMBAT");
         if (hasCustom) then
             return showForMySpec or (alwaysShowMine and (unitCaster == "player" or unitCaster == "pet" or unitCaster == "vehicle"));
@@ -325,7 +327,7 @@ do
     end
 
     local function IsAllowedBySettings(self, slot, info, ...)
-        local result = true;
+        local result = true;        
         if (not self.ignoreBlacklist and AuraBlacklist[select(10, ...)] == true) then
             result = false;
         elseif (not self.allowDisplayed and info.displayed) then
@@ -373,8 +375,8 @@ do
         local function NormalDisplayAuraFunc(slot, info, ...)
             if (IsAllowedBySettings(frame, slot, info, ...)) then
                 --info.displayed = true;
-                DisplayInFrame(frame, displayedCount + 1, slot, ...);
                 displayedCount = displayedCount + 1;
+                DisplayInFrame(frame, displayedCount, slot, ...);
                 if (frameCount <= displayedCount) then
                     return true;
                 end

@@ -49,5 +49,8 @@ do
 end
 
 function MyAuraUtil.IsBossAura(...)
+   local spellId = select(10, ...);
+   if (spellId == 27827) then return true; end  --Spirit of Redemption
+   if (spellId == 320224) then return true; end --Podtender
    return select(12, ...);
 end
