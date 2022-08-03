@@ -101,6 +101,10 @@ _p.Log = function(...)
     end
 end
 
+_p.PrintCurrentTocVersion = function() 
+    return _p.Log(select(4, GetBuildInfo()));
+end
+
 --from https://wow.gamepedia.com/ItemLink
 --return values: startIndex, endIndex, Color, linkType, Id, Enchant, Gem1, Gem2, Gem3, Gem4, Suffix, Unique, LinkLvl, reforging, Name
 _p.ParseLink = function(link)
