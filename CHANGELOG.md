@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.2 (2022/09/08)
+* NEW: Compatibility with Dragonflight (Patch 10.0).
+
 ## v0.1.1d (2022/08/03)
 * NEW: Spirit of Redemption and Podtender will always be shown as a "Boss Aura".
 

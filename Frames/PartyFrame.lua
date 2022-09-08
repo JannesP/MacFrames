@@ -407,7 +407,11 @@ function PartyFrame.ProcessLayout(self, reanchor)
         end
 
         if (_partySettings.Vertical) then
-            self:SetMinResize(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
+            if (_p.IsDragonflight()) then
+                self:SetResizeBounds(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
+            else
+                self:SetMinResize(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
+            end
 
             local totalWidth = frameWidth + (2 * margin);
             local totalHeight = (#_unitFrames * frameHeight) + ((#_unitFrames - 1) * spacing) + (2 * margin);
@@ -443,7 +447,11 @@ function PartyFrame.ProcessLayout(self, reanchor)
                 self.petFrame:Show();
             end
         else
-            self:SetMinResize((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
+            if (_p.IsDragonflight()) then
+                self:SetResizeBounds((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
+            else
+                self:SetMinResize((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
+            end
 
             local totalWidth = (#_unitFrames * frameWidth) + ((#_unitFrames - 1) * spacing) + (2 * margin);
             local totalHeight = frameHeight + (2 * margin);

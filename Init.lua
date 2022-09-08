@@ -111,4 +111,8 @@ _p.ParseLink = function(link)
     return string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?");
 end
 
+_p.IsDragonflight = function()
+    return select(4, GetBuildInfo()) >= 100000;
+end
+
 _p.Log("Finished init.");

@@ -280,8 +280,14 @@ function RaidFrame.UpdateRect(self)
     local minUfWidth, minUfHeight = Constants.UnitFrame.MinWidth, Constants.UnitFrame.MinHeight;
     local minWidth = (Constants.GroupSize * minUfWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
     local minHeight = (Constants.RaidGroupCount * minUfHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
-    self:SetMinResize(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
-        PixelUtil.GetNearestPixelSize(minHeight, self:GetParent():GetEffectiveScale()));
+    
+    if (_p.IsDragonflight()) then
+        self:SetResizeBounds(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
+            PixelUtil.GetNearestPixelSize(minHeight, self:GetParent():GetEffectiveScale()));
+    else
+        self:SetMinResize(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
+            PixelUtil.GetNearestPixelSize(minHeight, self:GetParent():GetEffectiveScale()));
+    end
 
     self:ClearAllPoints();
     PixelUtil.SetPoint(self, anchorInfo.AnchorPoint, UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);

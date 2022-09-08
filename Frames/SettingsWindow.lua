@@ -86,8 +86,12 @@ do
                 FrameUtil.ConfigureDragDropHost(_window.heading, _window, nil, true);
 
                 FrameUtil.AddResizer(_window, _window);
-                _window:SetMinResize(600, 300);
-                _window:SetMaxResize(1000, 800);
+                if (_p.IsDragonflight()) then
+                    _window:SetResizeBounds(600, 300, 1000, 800);
+                else
+                    _window:SetMinResize(600, 300);
+                    _window:SetMaxResize(1000, 800);
+                end
                 _window:EnableMouse(true);
 
                 _window:SetSize(750, 500);
