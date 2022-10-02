@@ -58,7 +58,7 @@ local _gridLayoutDescriptor = {
     },
     [4] = {
         heading = L["Binding"],
-        width = "*",
+        width = 100,
         cellFramePropertyName = "cellTextKeybind",
         visible = true,
     },

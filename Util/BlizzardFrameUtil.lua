@@ -42,7 +42,7 @@ local function DisableFrames(taint, ...)
 end
 
 function BlizzardFrameUtil.DisablePartyFrames()
-    if (_p.IsDragonflight()) then return; end;
+    if (_p.isDragonflight) then return; end;
     if (not InCombatLockdown()) then
         if (_partyHidden == true) then return; end;
         _partyHidden = true;
@@ -81,7 +81,7 @@ do
     end
 
     function BlizzardFrameUtil.DisableCompactUnitFrames()
-        if (_p.IsDragonflight()) then return; end;
+        if (_p.isDragonflight) then return; end;
         if (not InCombatLockdown()) then
             if (_cufHidden == true) then return; end;
             _cufHidden = true;
@@ -99,7 +99,7 @@ do
     end
 
     function BlizzardFrameUtil.DisableCompactUnitFrameManager()
-        if (_p.IsDragonflight()) then return; end;
+        if (_p.isDragonflight) then return; end;
         if (not InCombatLockdown()) then
             if (_cufManagerHidden == true) then return; end;
             if (_cufHidden == false or _partyHidden == false) then _shouldHideCufManager = true; return; end;

@@ -786,7 +786,7 @@ function UnitFrame.SetupMouseActions(self)
 
             local suffix = binding.button;
             if (binding.type == "spell") then
-                UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.spellName);
+                UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.spellId);
             elseif (binding.type == "item") then
                 UnitFrame.SetAttribute(self, prefix .. binding.type .. suffix, binding.itemSelector);
             elseif (binding.type == "target") then

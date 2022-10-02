@@ -78,26 +78,30 @@ _p.CreateError = function(technicalMessage, userMessage, traceback)
     return err;
 end
 
+_p.Print = function(string)
+    DEFAULT_CHAT_FRAME:AddMessage(tostring(string));
+end
+
 _p.Log = function(...)
     if (not _p.isDevMode) then return; end
     
     local count = select('#', ...);
     if (count == 0) then
-        print("nil");
+        _p.Print("nil");
         return;
     elseif (count == 1) then
         local msg = select(1, ...);
         local msgType = type(msg);
         if (msg == nil) then
-            print("nil");
+            _p.Print("nil");
         elseif (msgType == "table") then
             local msg = { ... };
-            print(_p.tprint(msg));
+            _p.Print(_p.tprint(msg));
         else
-            print(msg);
+            _p.Print(msg);
         end
     else
-        print(...);
+        _p.Print(...);
     end
 end
 
@@ -111,8 +115,6 @@ _p.ParseLink = function(link)
     return string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?");
 end
 
-_p.IsDragonflight = function()
-    return select(4, GetBuildInfo()) >= 100000;
-end
+_p.isDragonflight = select(4, GetBuildInfo()) >= 100000;
 
 _p.Log("Finished init.");

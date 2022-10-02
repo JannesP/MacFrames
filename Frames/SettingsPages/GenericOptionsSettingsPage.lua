@@ -169,7 +169,7 @@ do
 end
 
 local function CreateTabSectionSelector(parent, tabIndex, text)
-    local button = CreateFrame("Button", parent:GetName() .. "Tab" .. tabIndex, parent, "OptionsFrameTabButtonTemplate");
+    local button = CreateFrame("Button", parent:GetName() .. "Tab" .. tabIndex, parent, (_p.isDragonflight and "PanelTopTabButtonTemplate") or "OptionsFrameTabButtonTemplate");
     button:SetText(text);
     PanelTemplates_TabResize(button, 2);
     button:SetID(tabIndex);
@@ -211,7 +211,9 @@ function GenericOptionsSettingsPage.Create(parent, category)
         else
             uiSection.tabButton:SetPoint("BOTTOMLEFT", lastTabButton, "BOTTOMRIGHT", -16, 0);
         end
-        tinsert(frame.tabPanelSectionSelector.Tabs, uiSection.tabButton);
+        if (not _p.isDragonflight) then
+            tinsert(frame.tabPanelSectionSelector.Tabs, uiSection.tabButton);
+        end
         lastTabButton = uiSection.tabButton;
         uiSection.tabButton:SetScript("OnClick", TabButton_OnClick);
 

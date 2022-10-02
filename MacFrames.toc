@@ -80,7 +80,6 @@ Frames\SettingsPages\ProfileEditorSettingsPage.lua
 Frames\SettingsPages\MouseActionsSettingsPage.lua
 Frames\SettingsPages\SettingsPageFactory.lua
 
-Frames\SettingsFrame.lua
 Frames\SettingsWindow.lua
 Api.lua
 SlashCommands.lua

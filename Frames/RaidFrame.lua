@@ -281,7 +281,7 @@ function RaidFrame.UpdateRect(self)
     local minWidth = (Constants.GroupSize * minUfWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
     local minHeight = (Constants.RaidGroupCount * minUfHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
     
-    if (_p.IsDragonflight()) then
+    if (_p.isDragonflight) then
         self:SetResizeBounds(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
             PixelUtil.GetNearestPixelSize(minHeight, self:GetParent():GetEffectiveScale()));
     else

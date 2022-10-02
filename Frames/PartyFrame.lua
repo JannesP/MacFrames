@@ -407,7 +407,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
         end
 
         if (_partySettings.Vertical) then
-            if (_p.IsDragonflight()) then
+            if (_p.isDragonflight) then
                 self:SetResizeBounds(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
             else
                 self:SetMinResize(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
@@ -447,7 +447,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
                 self.petFrame:Show();
             end
         else
-            if (_p.IsDragonflight()) then
+            if (_p.isDragonflight) then
                 self:SetResizeBounds((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
             else
                 self:SetMinResize((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
