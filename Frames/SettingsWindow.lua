@@ -167,7 +167,11 @@ function SettingsWindow.Open()
                 _window.closeButton = CreateFrame("Button", nil, _window, "UIPanelCloseButtonDefaultAnchors");
                 _window.closeButton:SetScript("OnClick", SettingsWindow.Close);
 
-                FrameUtil.ConfigureDragDropHost(_window.TitleContainer, _window, nil, true);
+                _window.dragDropHost = CreateFrame("Frame", nil, _window.TitleContainer);
+                _window.dragDropHost:SetPoint("TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
+                _window.dragDropHost:SetPoint("BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
+
+                FrameUtil.ConfigureDragDropHost(_window.dragDropHost, _window, nil, true);
             end
 
             local padding = 5;
