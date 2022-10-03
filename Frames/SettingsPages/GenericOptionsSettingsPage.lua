@@ -103,19 +103,12 @@ local function CreateSection(parent, section, depth)
     s.Layout = Section_Layout;
     return s;
 end
-local function TabPanel_Reflow(self)
-    local tabs = self.Tabs;
-    for i=1, #tabs do
-        PanelTemplates_TabResize(tabs[i], 4);
-    end
-    PanelTemplates_ResizeTabsToFit(self, self:GetWidth() + ((#tabs - 1) * 16));
-end
 
-local function SectionSelected(self)
-    local tabIndex = PanelTemplates_GetSelectedTab(self.tabPanelSectionSelector);
+local function OnSectionSelected(self)
+    local sectionIndex = GenericOptionsSettingsPage.GetSelectedSectionIndex(self);
     for i=1, #self.optionSections do
         local section = self.optionSections[i];
-        if (i == tabIndex) then
+        if (i == sectionIndex) then
             section.content:Layout();
             section.scrollFrame:Show();
             section.scrollFrame:RefreshScrollBarVisibility();
@@ -123,14 +116,6 @@ local function SectionSelected(self)
             section.scrollFrame:Hide();
         end
     end
-end
-
-local function TabButton_OnClick(self)
-    local parent = self:GetParent();
-    PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB);
-    PanelTemplates_Tab_OnClick(self, parent);
-    SectionSelected(self.optionsPage);
-    TabPanel_Reflow(parent);
 end
 
 local ForEachEditor;
@@ -168,30 +153,139 @@ do
     end
 end
 
-local function CreateTabSectionSelector(parent, tabIndex, text)
-    local button = CreateFrame("Button", parent:GetName() .. "Tab" .. tabIndex, parent, (_p.isDragonflight and "PanelTopTabButtonTemplate") or "OptionsFrameTabButtonTemplate");
-    button:SetText(text);
-    PanelTemplates_TabResize(button, 2);
-    button:SetID(tabIndex);
-    return button;
+local CreateCategoryButton;
+do
+    local function Button_UpdateState(self)
+        if (self.selected) then
+            self.Label:SetFontObject("GameFontHighlight");
+            if (_p.isDragonflight) then
+                self.Texture:SetAtlas("Options_List_Active", TextureKitConstants.UseAtlasSize);
+            else
+                self.Texture:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight");
+                self.Texture:SetBlendMode("ADD");
+                self.Texture:SetVertexColor(1, 1, 0);
+            end
+            self.Texture:Show();
+        else
+            self.Label:SetFontObject("GameFontNormal");
+            if (self.over) then
+                if (_p.isDragonflight) then
+                    self.Texture:SetAtlas("Options_List_Hover", TextureKitConstants.UseAtlasSize);
+                else
+                    self.Texture:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight");
+                    self.Texture:SetBlendMode("ADD");
+                end
+                self.Texture:Show();
+            else
+                self.Texture:Hide();
+            end
+        end
+    end
+
+    local function Button_OnEnter(self)
+        self.over = true;
+        Button_UpdateState(self);
+    end
+
+    local function Button_OnLeave(self)
+        self.over = false;
+        Button_UpdateState(self);
+    end
+
+    local function Button_SetSelected(self, selected)
+        self.selected = selected;
+        Button_UpdateState(self);
+    end
+
+    local function Button_IsSelected(self)
+        return self.selected;
+    end
+
+    CreateCategoryButton = function(parent, categoryIndex, text)
+        local button = CreateFrame("Button", parent:GetName() .. "CategoryButton" .. categoryIndex, parent);
+        
+        button.Texture = button:CreateTexture(nil, "BACKGROUND");
+        button.Texture:SetAllPoints(button);
+        button.Texture:Hide();
+
+        button.Label = FrameUtil.CreateText(button, text);
+        button.Label:SetPoint("CENTER", button, "CENTER");
+        button.Label:Show();
+
+        button.SetSelected = Button_SetSelected;
+        button.IsSelected = Button_IsSelected;
+        
+        button:SetScript("OnEnter", Button_OnEnter);
+        button:SetScript("OnLeave", Button_OnLeave);
+        Button_UpdateState(button);
+        
+        button:SetID(categoryIndex);
+        button:SetScript("OnClick", function(b) b.selected = not b.selected; end);
+        return button;
+    end
+end
+
+local function GetSelectedCategory(categoryList)
+    for i=1, #categoryList.Buttons do
+        local button = categoryList.Buttons[i];
+        if (button:IsSelected()) then
+            return button;
+        end
+    end
+    return nil;
+end
+
+local function SetupCategoryList(categoryList)
+    local lastButton = nil;
+    for i=1, #categoryList.Buttons do
+        local button = categoryList.Buttons[i];
+        if (lastButton == nil) then
+            button:SetPoint("TOPLEFT", categoryList, "TOPLEFT");
+            button:SetPoint("TOPRIGHT", categoryList, "TOPRIGHT");
+        else
+            button:SetPoint("TOPLEFT", lastButton, "BOTTOMLEFT", 0, -2);
+            button:SetPoint("TOPRIGHT", lastButton, "BOTTOMRIGHT", 0, -2);
+        end
+        button:SetHeight(20);
+        button:SetScript("OnClick", function(self)
+            if (self:IsSelected()) then
+                return;
+            end
+            for i=1, #categoryList.Buttons do
+                local button = categoryList.Buttons[i];
+                button:SetSelected(false);
+            end
+            self:SetSelected(true);
+            OnSectionSelected(self.optionsPage);
+            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+        end);
+        lastButton = button;
+    end
+end
+
+function GenericOptionsSettingsPage.GetSelectedSectionIndex(self)
+    local selectedButton = GetSelectedCategory(self.categoryList);
+    return (selectedButton and selectedButton:GetID()) or nil;
 end
 
 local _numGenericOptionsPage = 0;
 function GenericOptionsSettingsPage.Create(parent, category)
     _numGenericOptionsPage = _numGenericOptionsPage + 1;
-    local frame = CreateFrame("Frame", "MacFramesGenericOptionsPage" .. _numGenericOptionsPage .. category.Name, parent);
+    local frame = CreateFrame("Frame", parent:GetName() .. "GenericOptionsPage" .. _numGenericOptionsPage .. category.Name, parent);
 
     _tabPanelCount = _tabPanelCount + 1;
-    frame.tabPanelSectionSelector = CreateFrame("Frame", frame:GetName() .. "TabPanelSectionSelector" .. _tabPanelCount, frame);
-    frame.tabPanelSectionSelector:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-    frame.tabPanelSectionSelector:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
-    frame.tabPanelSectionSelector:SetHeight(22);
-    frame.tabPanelSectionSelector.Tabs = {};
-    frame.tabPanelSectionSelector:SetScript("OnSizeChanged", TabPanel_Reflow);
-    frame.tabPanelSectionSelector:SetScript("OnShow", TabPanel_Reflow);
+    frame.categoryList = CreateFrame("Frame", frame:GetName() .. "CategoryList" .. _tabPanelCount, frame);
+    frame.categoryList:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
+    frame.categoryList:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
+    frame.categoryList:SetWidth(160);
+    frame.categoryList.Buttons = {};
 
-    frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame, "TooltipBorderBackdropTemplate");
-    frame.contentContainer:SetPoint("TOPLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
+    frame.seperator = FrameUtil.CreateSolidTexture(frame, 0.6, 0.6, 0.6, 0.35);
+    frame.seperator:SetPoint("TOPLEFT", frame.categoryList, "TOPRIGHT");
+    frame.seperator:SetPoint("BOTTOMRIGHT", frame.categoryList, "BOTTOMRIGHT", 2, 0);
+
+    frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame);
+    frame.contentContainer:SetPoint("TOPLEFT", frame.seperator, "TOPRIGHT", 0, 0);
     frame.contentContainer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
 
     frame.contentHost = CreateFrame("Frame", frame:GetName() .. "ContentHost", frame.contentContainer);
@@ -204,18 +298,10 @@ function GenericOptionsSettingsPage.Create(parent, category)
     for n=1, #category.Sections do
         local section = category.Sections[n];
         local uiSection = {};
-        uiSection.tabButton = CreateTabSectionSelector(frame.tabPanelSectionSelector, n, section.Name);
-        uiSection.tabButton.optionsPage = frame;
-        if (lastTabButton == nil) then
-            uiSection.tabButton:SetPoint("BOTTOMLEFT", frame.tabPanelSectionSelector, "BOTTOMLEFT", 0, 0);
-        else
-            uiSection.tabButton:SetPoint("BOTTOMLEFT", lastTabButton, "BOTTOMRIGHT", -16, 0);
-        end
-        if (not _p.isDragonflight) then
-            tinsert(frame.tabPanelSectionSelector.Tabs, uiSection.tabButton);
-        end
-        lastTabButton = uiSection.tabButton;
-        uiSection.tabButton:SetScript("OnClick", TabButton_OnClick);
+
+        uiSection.categoryButton = CreateCategoryButton(frame.categoryList, n, section.Name);
+        uiSection.categoryButton.optionsPage = frame;
+        frame.categoryList.Buttons[n] = uiSection.categoryButton;
 
         uiSection.content = CreateSection(nil, section, 1);
         uiSection.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, uiSection.content);
@@ -243,8 +329,8 @@ function GenericOptionsSettingsPage.Create(parent, category)
         end);
         return foundOne;
     end
-    PanelTemplates_SetNumTabs(frame.tabPanelSectionSelector, #category.Sections);
-    PanelTemplates_SetTab(frame.tabPanelSectionSelector, 1);
-    SectionSelected(frame);
+    SetupCategoryList(frame.categoryList);
+    frame.categoryList.Buttons[1]:SetSelected(true);
+    OnSectionSelected(frame);
     return frame;
 end
