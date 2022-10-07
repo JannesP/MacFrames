@@ -1,5 +1,9 @@
 # MacFrames Changelog
 
+## v0.1.3 (2022/10/07)
+* NEW: Overhauled settings UI for Dragonflight.
+* FIX: Some Dragonflight bugs.
+
 ## v0.1.2 (2022/09/08)
 * NEW: Compatibility with Dragonflight (Patch 10.0).
 
