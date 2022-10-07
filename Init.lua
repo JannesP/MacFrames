@@ -78,8 +78,9 @@ _p.CreateError = function(technicalMessage, userMessage, traceback)
     return err;
 end
 
-_p.Print = function(string)
-    DEFAULT_CHAT_FRAME:AddMessage(tostring(string));
+_p.Print = function(...)
+    print(...);
+    --DEFAULT_CHAT_FRAME:AddMessage(tostring(string));
 end
 
 _p.Log = function(...)
