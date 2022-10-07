@@ -796,6 +796,7 @@ function UnitFrame.SetupMouseActions(self)
                 error("Couldn't find binding type definition: " .. binding.type);
             end
             UnitFrame.SetAttribute(self, prefix .. "type" .. suffix, binding.type);
+            UnitFrame.SetAttribute(self, prefix .. "unit" .. suffix, self.unit);
         end
     end
 end
