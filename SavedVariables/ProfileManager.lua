@@ -151,11 +151,15 @@ function ProfileManager.AddonLoaded()
         _profiles = {};
         _minimapSettings = {};
     else
-        ProfileManager.LoadSVars(MacFramesSavedVariables);
+        local success, err = xpcall(ProfileManager.LoadSVars, ProfileLoadError, MacFramesSavedVariables);
+        if (not success) then
+            return false, err;
+        end
     end
     _currentProfileName, _currentProfile = GetProfileForCurrentCharacter();
     MacFramesSavedVariables = ProfileManager.BuildSavedVariables();
     OnProfileChanged(_currentProfile, nil);
+    return true;
 end
 
 function ProfileManager.PlayerInfoChanged()

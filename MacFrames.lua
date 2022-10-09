@@ -256,13 +256,13 @@ do
                 return;
             end
             _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
-            local success, result = xpcall(ProfileManager.AddonLoaded, ProfileLoadError);
+            local success, err = ProfileManager.AddonLoaded();
             if (not success) then
                 ProfileManager.TriggerErrorState();
-                if (type(result) == "table") then
+                if (type(err) == "table") then
                     PopupDisplays.ShowGenericMessage(
 [[MacFrames - Error loading profiles: 
-"]]..result.UserMessage..[["
+"]]..err.UserMessage..[["
 Make sure the SavedVariables are correct and restart your game.
 As long as this message pops up no profile changes will be saved between reloads!
 To clear the settings type '/macframes reset'.
@@ -274,7 +274,7 @@ Make sure the SavedVariables are correct and restart your game.
 As long as this message pops up no profile changes will be saved between reloads!
 To clear all settings: type '/macframes reset'.
 Alternatively you can report this error on github, please attach your MacFrames.lua from the WTF folder.]], true);
-                    error(result);
+                    error(err);
                 end
             else
                 _partyFrame = PartyFrame.create();

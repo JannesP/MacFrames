@@ -80,7 +80,6 @@ end
 
 _p.Print = function(...)
     print(...);
-    --DEFAULT_CHAT_FRAME:AddMessage(tostring(string));
 end
 
 _p.Log = function(...)
