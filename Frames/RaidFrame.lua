@@ -156,6 +156,10 @@ function RaidFrame.UpdateAnchorFromCurrentPosition(self)
     _changingSettings = false;
 end
 
+function RaidFrame.GetAllUnitFrames()
+    return _unitFrames;
+end
+
 function RaidFrame.SetTestMode(enabled)
     if (enabled == true) then
         UnregisterAttributeDriver(_frame, "state-visibility");

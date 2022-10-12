@@ -186,6 +186,11 @@ do
         return _frame;
     end
 end
+
+function PartyFrame.GetAllUnitFrames()
+    return _unitFrames;
+end
+
 function PartyFrame.SetTestMode(enabled)
     if (enabled == true) then
         _isTestMode = true;

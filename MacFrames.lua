@@ -215,6 +215,15 @@ function Addon.EnableOmniCDSupport()
     end
 end
 
+function Addon.EnableCliqueSupport() 
+    local func = Clique and Clique.RegisterFrame;
+    if func then
+        for _, frame in pairs(_p.UnitFrames) do
+            func(Clique, frame);
+        end
+    end
+end
+
 -- ########### EVENT HANDLING ############
 local _eventFrame, _events = CreateFrame("Frame"), {};
 function _events:ADDON_LOADED(addonName)
@@ -292,6 +301,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                     bossFrame:Show();
                 end
                 --@end-do-not-package@
+                Addon.EnableCliqueSupport();
                 Addon.SetupMinimapIcon();
             end
         end
