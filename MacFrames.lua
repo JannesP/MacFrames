@@ -215,6 +215,16 @@ function Addon.EnableOmniCDSupport()
     end
 end
 
+
+function Addon.EnableClickedSupport() 
+    local func = Clicked and ClickCastFrames;
+    if func then
+        for _, frame in pairs(_p.UnitFrames) do
+            ClickCastFrames[frame] = true;
+        end
+    end
+end
+
 function Addon.EnableCliqueSupport() 
     local func = Clique and Clique.RegisterFrame;
     if func then
@@ -301,6 +311,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                     bossFrame:Show();
                 end
                 --@end-do-not-package@
+                Addon.EnableClickedSupport();
                 Addon.EnableCliqueSupport();
                 Addon.SetupMinimapIcon();
             end
