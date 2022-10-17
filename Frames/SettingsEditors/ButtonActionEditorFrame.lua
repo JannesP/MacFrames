@@ -37,24 +37,22 @@ function ButtonActionEditorFrame.Create(parent, option)
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
 
     _elementCount = _elementCount + 1;
-    local buttonCenterFrame = CreateFrame("Frame", nil, frame);
-    buttonCenterFrame:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
-    buttonCenterFrame:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0);
-    buttonCenterFrame:SetPoint("RIGHT");
-    buttonCenterFrame:SetPoint("LEFT");
-    local button = FrameUtil.CreateTextButton(buttonCenterFrame, nil, option.ButtonText, BaseEditorFrame.CreateEditorOnChange(frame, Button_OnClick));
+    local button = FrameUtil.CreateTextButton(frame, nil, option.ButtonText, BaseEditorFrame.CreateEditorOnChange(frame, Button_OnClick));
     frame.button = button;
     button.editorFrame = frame;
-    button:SetPoint("RIGHT");
-    button:SetPoint("LEFT");
+    button:SetPoint("CENTER");
 
     if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, frame, 1, 1, 1, 1);
-        --FrameUtil.CreateTextTooltip(button, option.Description, frame, 1, 1, 1, 1);
+        --FrameUtil.CreateTextTooltip(button, option.Description, nil, button, 0, 0, 1, 1, 1, 1);
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(_p.Noop);
+    frame.GetMeasuredSize = ButtonActionEditorFrame.GetMeasuredSize;
     return frame;
+end
+
+function ButtonActionEditorFrame:GetMeasuredSize()
+    return self.button:GetWidth(), self:GetDefaultHeight();
 end
 
 BaseEditorFrame.AddConstructor(OptionType.ButtonAction, ButtonActionEditorFrame.Create);

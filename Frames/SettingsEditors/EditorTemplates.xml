@@ -1,0 +1,71 @@
+<!--
+ MacFrames - WoW Raid and Party Frames <https://github.com/JannesP/MacFrames>
+Copyright (C) 2022  Jannes Peters
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+    <EventButton name="MacFramesTextDropDownButtonTemplate" inherits="SelectionPopoutButtonTemplate" virtual="true">
+        <Size x="180" y="38"/>
+        <Anchors>
+            <Anchor point="CENTER"/>
+        </Anchors>
+        <KeyValues>
+            <KeyValue key="selectionEntryTemplates" value="MacFramesTextSelectionPopoutEntryTemplate" type="string"/>
+        </KeyValues>
+        <Frames>
+            <Frame parentKey="SelectionDetails" inherits="MacFramesTextSelectionPopoutEntryDetailsTemplate, ResizeLayoutFrame">
+                <Size x="144" y="20"/>
+                <Anchors>
+                    <Anchor point="CENTER"/>
+                </Anchors>
+                <KeyValues>
+                    <KeyValue key="selectable" value="false" type="boolean"/>
+                </KeyValues>
+            </Frame>
+        </Frames>
+    </EventButton>
+    <Button name="MacFramesTextSelectionPopoutEntryTemplate" inherits="SelectionPopoutEntryTemplate" mixin="MacFramesTextSelectionPopoutEntryMixin" virtual="true">
+		<KeyValues>
+			<KeyValue key="defaultWidth" value="160" type="number"/>
+		</KeyValues>
+		<Frames>
+			<Frame parentKey="SelectionDetails" inherits="MacFramesTextSelectionPopoutEntryDetailsTemplate">
+				<Size x="120" y="20"/>
+                <Anchors>
+                    <Anchor point="CENTER"/>
+                </Anchors>
+                <KeyValues>
+                    <KeyValue key="selectable" value="true" type="boolean"/>
+                </KeyValues>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+    <Frame name="MacFramesTextSelectionPopoutEntryDetailsTemplate" mixin="MacFramesTextSelectionPopoutEntryDetailsMixin" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="1">
+                <FontString parentKey="Text" font="GameFontNormal" justifyH="LEFT" maxLines="1" hidden="true">
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+    </Frame>
+</Ui>

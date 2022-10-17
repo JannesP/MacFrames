@@ -42,9 +42,12 @@ end
 function BaseEditorFrame.CreateNotYetImplemented(parent, option)
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
     local text = FrameUtil.CreateText(frame, "Not yet implemented :(");
-    text:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
-    text:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0);
+    text:SetPoint("CENTER");
     frame.RefreshFromProfile = _p.Noop;
+    frame.GetMeasuredSize = function(self)
+        return text:GetSize();
+    end
+    return frame;
 end
 
 function BaseEditorFrame.CreateRefreshSettingsFromProfile(handler)
@@ -56,14 +59,17 @@ function BaseEditorFrame.CreateRefreshSettingsFromProfile(handler)
     end
 end
 
-local function SetOptionValue(self, ...)
+local BaseEditorMixin = {};
+function BaseEditorMixin:SetOptionValue(...)
     self.isChangingSettings = true;
     self.option.Set(...);
     self.isChangingSettings = false;
 end
-
-local function IsChangingSettings(self)
+function BaseEditorMixin:IsChangingSettings()
     return self.isChangingSettings;
+end
+function BaseEditorMixin:GetDefaultHeight()
+    return 30;
 end
 
 function BaseEditorFrame.Create(parent, option)
@@ -77,18 +83,8 @@ function BaseEditorFrame.CreateBaseFrame(parent, option)
     local frame = CreateFrame("Frame", nil, parent);
     frame.option = option;
 
-    frame.heading = FrameUtil.CreateText(frame, option.Name, nil, "GameFontNormalSmall");
-    frame.heading.fontHeight = select(2, frame.heading:GetFont());
-    frame.heading:ClearAllPoints();
-    frame.heading:SetJustifyH("CENTER");
-    frame.heading:SetPoint("TOP", frame, "TOP", 0, 0);
-
-    frame:SetWidth(Constants.Settings.EditorWidth);
-    frame:SetHeight(Constants.Settings.EditorHeight);
-
+    Mixin(frame, BaseEditorMixin);
     frame.isChangingSettings = false;
-    frame.IsChangingSettings = IsChangingSettings;
-    frame.SetOptionValue = SetOptionValue;
     return frame;
 end
 

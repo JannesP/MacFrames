@@ -66,6 +66,7 @@ MacFrames.lua
 
 Settings\Settings.lua
 
+Frames\SettingsEditors\EditorTemplates.xml
 Frames\SettingsEditors\BaseEditorFrame.lua
 Frames\SettingsEditors\SliderEditorFrame.lua
 Frames\SettingsEditors\CheckBoxEditorFrame.lua

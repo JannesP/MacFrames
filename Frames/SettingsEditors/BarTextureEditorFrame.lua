@@ -101,7 +101,7 @@ function BarTextureEditorFrame.Create(parent, option)
 
     _barSelectorCount = _barSelectorCount + 1;
     
-    local dropDownWidth = frame:GetWidth() - 6;
+    local dropDownWidth = 180 - 6;
 
     local dropDown;
     local aceWidget = CreateAceGUIBarWidget();
@@ -113,28 +113,33 @@ function BarTextureEditorFrame.Create(parent, option)
         aceWidget:SetCallback("OnValueChanged", AceWidgetOnValueChanged);
         aceWidget:SetWidth(dropDownWidth);
         aceWidget.frame:SetParent(frame);
-        aceWidget.frame:SetPoint("CENTER", frame, "CENTER", 0, 0);
+        aceWidget.frame:SetPoint("CENTER", frame, "CENTER", 0, 10);
         aceWidget.frame:Show();
     else
         local dropDown = CreateFrame("Frame", "MacFramesDropdownBarTextureSelector" .. _barSelectorCount, frame, "UIDropDownMenuTemplate");
         frame.dropDown = dropDown;
         UIDropDownMenu_SetWidth(dropDown, dropDownWidth - 12);
         UIDropDownMenu_Initialize(dropDown, DropDownSelectBarInit);
-        dropDown:SetPoint("CENTER", frame, "CENTER", 0, -10);
+        dropDown:SetPoint("CENTER", frame, "CENTER", 0, -2);
     end
 
     if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, frame, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(frame, option.Description, frame, nil, 0, 0, 1, 1, 1, 1);
         if (dropDown) then
-            FrameUtil.CreateTextTooltip(dropDown, option.Description, frame, 1, 1, 1, 1);
+            FrameUtil.CreateTextTooltip(dropDown, option.Description, frame, nil, 0, 0, 1, 1, 1, 1);
         end
         if (aceWidget) then
-            FrameUtil.CreateTextTooltip(aceWidget, option.Description, frame, 1, 1, 1, 1);
+            FrameUtil.CreateTextTooltip(aceWidget, option.Description, frame, nil, 0, 0, 1, 1, 1, 1);
         end
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
+    frame.GetMeasuredSize = BarTextureEditorFrame.GetMeasuredSize;
     return frame;
+end
+
+function BarTextureEditorFrame:GetMeasuredSize()
+    return 180, self:GetDefaultHeight();
 end
 
 BaseEditorFrame.AddConstructor(OptionType.BarTexture, BarTextureEditorFrame.Create);

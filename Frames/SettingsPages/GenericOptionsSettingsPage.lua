@@ -28,6 +28,9 @@ local CheckBoxEditorFrame = _p.CheckBoxEditorFrame;
 _p.GenericOptionsSettingsPage = {};
 local GenericOptionsSettingsPage = _p.GenericOptionsSettingsPage;
 
+local _subSectionRowInset = 20;
+local _optionTextColumnWidth = 220;
+
 local _tabPanelCount = 0;
 
 local _borderPadding = Constants.TooltipBorderClearance;
@@ -37,28 +40,53 @@ local function Section_Layout(self, width, height)
         height = height + self.seperator:GetHeight();
     end
     if (self.optionsContainer) then
-        FrameUtil.FlowChildren(self.optionsContainer, self.optionsContainer.optionEditors, 6, 6, width);
-        height = height + self.optionsContainer:GetHeight();
+        local usedHeight = FrameUtil.StackVertical(self.optionsContainer, self.optionsContainer.optionEditorRows, 4);
+        for _, row in ipairs(self.optionsContainer.optionEditorRows) do
+            row:SetWidth(self:GetWidth());
+        end
+        self.optionsContainer:SetHeight(usedHeight);
+        height = height + usedHeight;
     end
-    local sections = self.sections;
-    if (sections) then
-        for i=1, #sections do
-            local section = sections[i];
+    local subSections = self.subSections;
+    if (subSections) then
+        for i=1, #subSections do
+            local section = subSections[i];
             section:Layout(width, height);
             height = height + section:GetHeight();
         end
     end
     self:SetHeight(height);
 end
+local function CreateSectionHeader(parent, text, fontName)
+    local frame = CreateFrame("Frame", nil, parent);
+    frame.text = FrameUtil.CreateText(frame, text, nil, fontName);
+    frame.text:SetPoint("LEFT");
+    return frame;
+end
 local function CreateSection(parent, section, depth)
     local s = CreateFrame("Frame", nil, parent);
     local seperator;
-    if (depth > 1) then
-        seperator = FrameUtil.CreateHorizontalSeperatorWithText(s, section.Name);
-        seperator:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0);
-        seperator:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
-        s.seperator = seperator;
+    if (depth <= 1) then    --this is the section heading
+        seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightHuge");
+        seperator.text:SetPoint("LEFT", seperator);
+        if (_p.isDragonflight) then
+            seperator.texSeperatorBar = seperator:CreateTexture();
+            seperator.texSeperatorBar:SetAtlas("Options_HorizontalDivider", true);
+            seperator.texSeperatorBar:SetPoint("LEFT");
+            seperator.texSeperatorBar:SetPoint("RIGHT");
+            seperator.texSeperatorBar:SetPoint("BOTTOM", seperator, "BOTTOM", 0, 4);
+            seperator:SetHeight(select(2, seperator.text:GetFont()) + 14);
+        else
+            seperator:SetHeight(select(2, seperator.text:GetFont()) + 4);
+        end
+    elseif (depth > 1) then --these are subsection headings
+        seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightLarge");
+        seperator.text:SetPoint("LEFT", seperator, "LEFT", 0, -6);
+        seperator:SetHeight(select(2, seperator.text:GetFont()) + 16);
     end
+    s.seperator = seperator;
+    seperator:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0);
+    seperator:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
     if (section.Options and #section.Options > 0) then
         s.optionsContainer = CreateFrame("Frame", nil, s);
         s.optionsContainer:ClearAllPoints();
@@ -69,20 +97,42 @@ local function CreateSection(parent, section, depth)
             s.optionsContainer:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0);
             s.optionsContainer:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
         end
+        s.optionsContainer.optionEditorRows = {};
         s.optionsContainer.optionEditors = {};
         local options = section.Options;
         for i=1, #options do
-            local editor = BaseEditorFrame.Create(s.optionsContainer, options[i]);
+            local option = options[i];
+            local rowFrame = CreateFrame("Frame", nil, s.optionsContainer);
+            rowFrame.option = option;
+            rowFrame.text = FrameUtil.CreateText(rowFrame, option.Name);
+            rowFrame.text:SetPoint("CENTER");
+            rowFrame.text:SetPoint("LEFT", rowFrame, "LEFT", _subSectionRowInset, 0);
+
+            local editor = BaseEditorFrame.Create(rowFrame, option);
+            editor:SetSize(editor:GetMeasuredSize());
+            editor:SetPoint("CENTER");
+            editor:SetPoint("LEFT", rowFrame, "LEFT", _optionTextColumnWidth, 0);
+
+            local textHeight = select(2, rowFrame.text:GetFont());
+            local editorHeight = editor:GetHeight();
+            rowFrame:SetHeight(max(textHeight, editorHeight));
+
+            if (option.Description ~= nil) then
+                FrameUtil.CreateTextTooltip(rowFrame, option.Description, rowFrame, "ANCHOR_TOPLEFT", _optionTextColumnWidth + 20, 0, 1, 1, 1, 1);
+                --FrameUtil.CreateTextTooltip(rowFrame.text, option.Description, rowFrame, nil, 0, 0, 1, 1, 1, 1);
+            end
+
+            s.optionsContainer.optionEditorRows[i] = rowFrame;
             s.optionsContainer.optionEditors[i] = editor;
         end
     end
-    local sections = section.Sections;
-    if (sections and #sections > 0) then
-        s.sections = {};
+    local subSections = section.SubSections;
+    if (subSections and #subSections > 0) then
+        s.subSections = {};
         local lastSection = nil;
-        for i=1, #sections do
+        for i=1, #subSections do
             local sFrame = nil;
-            sFrame = CreateSection(s, sections[i], depth + 1);
+            sFrame = CreateSection(s, subSections[i], depth + 1);
             sFrame:ClearAllPoints();
             if (lastSection == nil) then
                 if (s.optionsContainer) then
@@ -97,7 +147,7 @@ local function CreateSection(parent, section, depth)
                 sFrame:SetPoint("TOPRIGHT", lastSection, "BOTTOMRIGHT", 0, 0);
             end
             lastSection = sFrame;
-            s.sections[i] = sFrame;
+            s.subSections[i] = sFrame;
         end
     end
     s.Layout = Section_Layout;
@@ -127,10 +177,10 @@ do
                 action(editors[i]);
             end
         end
-        local sections = section.sections;
-        if (sections) then
-            for i=1, #sections do
-                Do(sections[i], action);
+        local subSections = section.subSections;
+        if (subSections) then
+            for i=1, #subSections do
+                Do(subSections[i], action);
             end
         end
     end
@@ -225,9 +275,9 @@ do
     end
 end
 
-local function GetSelectedCategory(categoryList)
-    for i=1, #categoryList.Buttons do
-        local button = categoryList.Buttons[i];
+local function GetSelectedCategory(sectionList)
+    for i=1, #sectionList.Buttons do
+        local button = sectionList.Buttons[i];
         if (button:IsSelected()) then
             return button;
         end
@@ -235,13 +285,13 @@ local function GetSelectedCategory(categoryList)
     return nil;
 end
 
-local function SetupCategoryList(categoryList)
+local function SetupSectionList(sectionList)
     local lastButton = nil;
-    for i=1, #categoryList.Buttons do
-        local button = categoryList.Buttons[i];
+    for i=1, #sectionList.Buttons do
+        local button = sectionList.Buttons[i];
         if (lastButton == nil) then
-            button:SetPoint("TOPLEFT", categoryList, "TOPLEFT");
-            button:SetPoint("TOPRIGHT", categoryList, "TOPRIGHT");
+            button:SetPoint("TOPLEFT", sectionList, "TOPLEFT");
+            button:SetPoint("TOPRIGHT", sectionList, "TOPRIGHT");
         else
             button:SetPoint("TOPLEFT", lastButton, "BOTTOMLEFT", 0, -2);
             button:SetPoint("TOPRIGHT", lastButton, "BOTTOMRIGHT", 0, -2);
@@ -251,8 +301,8 @@ local function SetupCategoryList(categoryList)
             if (self:IsSelected()) then
                 return;
             end
-            for i=1, #categoryList.Buttons do
-                local button = categoryList.Buttons[i];
+            for i=1, #sectionList.Buttons do
+                local button = sectionList.Buttons[i];
                 button:SetSelected(false);
             end
             self:SetSelected(true);
@@ -264,7 +314,7 @@ local function SetupCategoryList(categoryList)
 end
 
 function GenericOptionsSettingsPage.GetSelectedSectionIndex(self)
-    local selectedButton = GetSelectedCategory(self.categoryList);
+    local selectedButton = GetSelectedCategory(self.sectionList);
     return (selectedButton and selectedButton:GetID()) or nil;
 end
 
@@ -274,15 +324,15 @@ function GenericOptionsSettingsPage.Create(parent, category)
     local frame = CreateFrame("Frame", parent:GetName() .. "GenericOptionsPage" .. _numGenericOptionsPage .. category.Name, parent);
 
     _tabPanelCount = _tabPanelCount + 1;
-    frame.categoryList = CreateFrame("Frame", frame:GetName() .. "CategoryList" .. _tabPanelCount, frame);
-    frame.categoryList:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-    frame.categoryList:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
-    frame.categoryList:SetWidth(160);
-    frame.categoryList.Buttons = {};
+    frame.sectionList = CreateFrame("Frame", frame:GetName() .. "SectionList" .. _tabPanelCount, frame);
+    frame.sectionList:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
+    frame.sectionList:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
+    frame.sectionList:SetWidth(160);
+    frame.sectionList.Buttons = {};
 
     frame.seperator = FrameUtil.CreateSolidTexture(frame, 0.6, 0.6, 0.6, 0.35);
-    frame.seperator:SetPoint("TOPLEFT", frame.categoryList, "TOPRIGHT");
-    frame.seperator:SetPoint("BOTTOMRIGHT", frame.categoryList, "BOTTOMRIGHT", 2, 0);
+    frame.seperator:SetPoint("TOPLEFT", frame.sectionList, "TOPRIGHT");
+    frame.seperator:SetPoint("BOTTOMRIGHT", frame.sectionList, "BOTTOMRIGHT", 2, 0);
 
     frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame);
     frame.contentContainer:SetPoint("TOPLEFT", frame.seperator, "TOPRIGHT", 0, 0);
@@ -299,9 +349,9 @@ function GenericOptionsSettingsPage.Create(parent, category)
         local section = category.Sections[n];
         local uiSection = {};
 
-        uiSection.categoryButton = CreateCategoryButton(frame.categoryList, n, section.Name);
+        uiSection.categoryButton = CreateCategoryButton(frame.sectionList, n, section.Name);
         uiSection.categoryButton.optionsPage = frame;
-        frame.categoryList.Buttons[n] = uiSection.categoryButton;
+        frame.sectionList.Buttons[n] = uiSection.categoryButton;
 
         uiSection.content = CreateSection(nil, section, 1);
         uiSection.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, uiSection.content);
@@ -329,8 +379,8 @@ function GenericOptionsSettingsPage.Create(parent, category)
         end);
         return foundOne;
     end
-    SetupCategoryList(frame.categoryList);
-    frame.categoryList.Buttons[1]:SetSelected(true);
+    SetupSectionList(frame.sectionList);
+    frame.sectionList.Buttons[1]:SetSelected(true);
     OnSectionSelected(frame);
     return frame;
 end

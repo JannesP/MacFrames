@@ -194,7 +194,7 @@ function SettingsWindow.Open()
             end
             _window:EnableMouse(true);
 
-            _window:SetSize(750, 500);
+            _window:SetSize(800, 500);
             _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);            
         end
         _window:Show();

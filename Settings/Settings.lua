@@ -43,8 +43,8 @@ local Settings = _p.Settings;
                         [...] = special properties spcific to the given OptionType,
                     }
                 },
-                Sections = {
-                    [1] = { Same structure again },
+                SubSections = {
+                    [1] = { Same section structure again. Currently only one SubSection level is supported. },
                 }
             },
         }
@@ -76,7 +76,7 @@ local function CreateSection(name)
     return {
         Name = name,
         Options = {},
-        Sections = {},
+        SubSections = {},
     }
 end
 
@@ -239,16 +239,16 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     local frameLayoutOptions = CreateSection(L["Frame Layout"]);
     if (addPets == true) then
         local subSectionPets = CreatePetSection(PS);
-        tinsert(frameLayoutOptions.Sections, subSectionPets);
+        tinsert(frameLayoutOptions.SubSections, subSectionPets);
     end
     local subSectionIndicators = CreateSection(L["Indicators"]);
-    tinsert(frameLayoutOptions.Sections, subSectionIndicators);
+    tinsert(frameLayoutOptions.SubSections, subSectionIndicators);
     local subSectionPowerBar = CreateSection(L["Power Bar"]);
-    tinsert(frameLayoutOptions.Sections, subSectionPowerBar);
+    tinsert(frameLayoutOptions.SubSections, subSectionPowerBar);
     local subSectionRaidTargetIcon = CreateSection(L["Raid Target Icon"]);
-    tinsert(frameLayoutOptions.Sections, subSectionRaidTargetIcon);
+    tinsert(frameLayoutOptions.SubSections, subSectionRaidTargetIcon);
     local subSectionPerformance = CreateSection(L["Performance"]);
-    tinsert(frameLayoutOptions.Sections, subSectionPerformance);
+    tinsert(frameLayoutOptions.SubSections, subSectionPerformance);
 
     tinsert(unitFrameOptions, frameLayoutOptions);
     tinsert(frameLayoutOptions.Options, {
@@ -481,7 +481,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     });
 
     local nameFontSection = CreateSection(L["Name Font"]);
-    tinsert(lookAndFeelOptions.Sections, nameFontSection);
+    tinsert(lookAndFeelOptions.SubSections, nameFontSection);
     tinsert(nameFontSection.Options, {
         Name = L["Font"],
         Type = OptionType.FontPicker,
@@ -507,7 +507,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     });
 
     local statusTextFontSection = CreateSection(L["Status Text Font"]);
-    tinsert(lookAndFeelOptions.Sections, statusTextFontSection);
+    tinsert(lookAndFeelOptions.SubSections, statusTextFontSection);
     tinsert(statusTextFontSection.Options, {
         Name = L["Font"],
         Description = L["The font in the middle if someone is AFK or dead."],
@@ -537,7 +537,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     local classDisplayOptions = CreateSection(L["Class Displays"]);
     tinsert(unitFrameOptions, classDisplayOptions);
     local classDisplayCategoryConfigureAuras = CreateSection(L["Displayed Auras"]);
-    tinsert(classDisplayOptions.Sections, classDisplayCategoryConfigureAuras);
+    tinsert(classDisplayOptions.SubSections, classDisplayCategoryConfigureAuras);
     
     tinsert(classDisplayOptions.Options, {
         Name = L["Enabled"],
@@ -703,7 +703,7 @@ tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
     end,
 });
 
-tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Sections[1].Options, {
+tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].SubSections[1].Options, {
     Name = L["Alignment"],
     Type = OptionType.EnumDropDown,
     EnumValues = MacEnum.Settings.PetFramePartyAlignment,

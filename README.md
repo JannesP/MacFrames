@@ -18,7 +18,6 @@ Features that are currently missing but which I'm planning to implement in no pa
 * configuration UI for Class/Spec specific buffs (you can hack this into the profile and it works ... disc priest and resto shaman are configured)
 * configuration for the positioning of the different aura groups
 * exporting/importing of profiles
-* pets
 * vehicle support (need a tip where I can test that (freely hop in/out of one and gain/loose debuffs)
 
 You can download either here on GitHub or in the addon manager of your choice:

@@ -31,12 +31,16 @@ local _elementCount = 0;
 
 local function ChangedValue(self, text, newValue)
     self.option.Set(newValue);
-    UIDropDownMenu_SetText(self.dropDown, text);
+    if (not _p.isDragonflight) then
+        UIDropDownMenu_SetText(self.dropDown, text);
+    end
 end
 
 local function RefreshFromProfile(self)
     local text = MacEnum.GetByValue(self.option.EnumValues, self.option.Get())
-    UIDropDownMenu_SetText(self.dropDown, L[text]);
+    if (not _p.isDragonflight) then
+        UIDropDownMenu_SetText(self.dropDown, L[text]);
+    end
 end
 
 local function DropDownBarItemSelected(dropDownButton, arg1Text, arg2Key, checked)
@@ -59,29 +63,109 @@ local function DropDownSelectBarInit(frame, level, menuList)
     end
 end
 
---###### Constructor ######
-
-function EnumDropDownEditorFrame.Create(parent, option)
-    local value = option.Get();
-    local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
-
-    _elementCount = _elementCount + 1;
-    
-    local dropDownWidth = frame:GetWidth() - 6;
-
-    local dropDown = CreateFrame("Frame", "MacFramesEnumDropDownEditorFrame" .. _elementCount, frame, "UIDropDownMenuTemplate");
-    frame.dropDown = dropDown;
-    UIDropDownMenu_SetWidth(dropDown, dropDownWidth - 12);
-    UIDropDownMenu_Initialize(dropDown, DropDownSelectBarInit);
-    dropDown:SetPoint("CENTER", frame, "CENTER", 0, -10);
-
-    if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, frame, 1, 1, 1, 1);
-        FrameUtil.CreateTextTooltip(dropDown, option.Description, frame, 1, 1, 1, 1);
+MacFramesTextSelectionPopoutEntryDetailsMixin = {};
+function MacFramesTextSelectionPopoutEntryDetailsMixin:GetTooltipText()
+    return "Tooltip YEP";
+end
+function MacFramesTextSelectionPopoutEntryDetailsMixin:AdjustWidth(multipleColumns, width)
+    self:SetWidth(width);
+end
+function MacFramesTextSelectionPopoutEntryDetailsMixin:SetupDetails(selectionData, index, isSelected, hasIneligibleChoice, hasLockedChoice)
+    self.Text:SetText(selectionData.label);
+    if (isSelected) then
+        self.Text:SetTextColor(NORMAL_FONT_COLOR:GetRGB());
+    else
+        self.Text:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB());
     end
+    self.Text:Show();
+end
 
-    frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
-    return frame;
+MacFramesTextSelectionPopoutEntryMixin = CreateFromMixins(SelectionPopoutEntryMixin);
+function MacFramesTextSelectionPopoutEntryMixin:GetTooltipText()
+	return self.SelectionDetails:GetTooltipText();
+end
+
+function MacFramesTextSelectionPopoutEntryMixin:OnEnter()
+    SelectionPopoutEntryMixin.OnEnter(self);
+    self.HighlightBGTex:SetAlpha(0.15);
+end
+
+function MacFramesTextSelectionPopoutEntryMixin:OnLeave()
+    SelectionPopoutEntryMixin.OnLeave(self);
+    self.HighlightBGTex:SetAlpha(0);
+end
+
+function MacFramesTextSelectionPopoutEntryMixin:OnClick()
+    SelectionPopoutEntryMixin.OnClick(self);
+end
+
+do
+    local function CreateNotDF(parent, option)
+        local value = option.Get();
+        local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
+
+        _elementCount = _elementCount + 1;
+        
+        local dropDownWidth = 140 - 6;
+
+        local dropDown = CreateFrame("Frame", "MacFramesEnumDropDownEditorFrame" .. _elementCount, frame, "UIDropDownMenuTemplate");
+        frame.dropDown = dropDown;
+        UIDropDownMenu_SetWidth(dropDown, dropDownWidth - 12);
+        UIDropDownMenu_Initialize(dropDown, DropDownSelectBarInit);
+        dropDown:SetPoint("CENTER", frame, "CENTER", -14, -2);
+
+        if (option.Description ~= nil) then
+            FrameUtil.CreateTextTooltip(frame, option.Description, nil, frame, 0, 0, 1, 1, 1, 1);
+            FrameUtil.CreateTextTooltip(dropDown, option.Description, nil, frame, 0, 0, 1, 1, 1, 1);
+        end
+
+        frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
+        frame.GetMeasuredSize = EnumDropDownEditorFrame.GetMeasuredSize;
+        return frame;
+    end
+    function EnumDropDownEditorFrame.Create(parent, option)
+        if (not _p.isDragonflight) then
+            return CreateNotDF(parent, option);
+        end
+        
+        local optionValue = option.Get();
+        local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
+
+        _elementCount = _elementCount + 1;
+        
+        local dropDownWidth = 140 - 6;
+
+        local dropDown = CreateFrame("EventButton", nil, frame, "MacFramesTextDropDownButtonTemplate");
+        frame.dropDown = dropDown;
+        dropDown:SetPoint("LEFT", frame);
+        dropDown:RegisterCallback("OnValueChanged", function(randomInt, selection)
+            ChangedValue(selection.owner, selection.name, selection.value);
+        end);
+        dropDown:EnableMouseWheel(false);
+        local selections = {};
+        local selectedIndex = 1;
+        for name, v in pairs(option.EnumValues) do
+            local data = { label = name, value = v, owner = frame };
+            tinsert(selections, data);
+            if (data.value == optionValue) then
+                selectedIndex = #selections;
+            end
+        end
+        dropDown:SetupSelections(selections, selectedIndex);
+
+        if (option.Description ~= nil) then
+            --FrameUtil.CreateTextTooltip(frame, option.Description, nil, frame, 0, 0, 1, 1, 1, 1);
+            --FrameUtil.CreateTextTooltip(dropDown, option.Description, nil, frame, 0, 0, 1, 1, 1, 1);
+        end
+
+        frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
+        frame.GetMeasuredSize = EnumDropDownEditorFrame.GetMeasuredSize;
+        return frame;
+    end
+end
+
+function EnumDropDownEditorFrame:GetMeasuredSize()
+    return self.dropDown:GetWidth(), self:GetDefaultHeight();
 end
 
 BaseEditorFrame.AddConstructor(OptionType.EnumDropDown, EnumDropDownEditorFrame.Create);

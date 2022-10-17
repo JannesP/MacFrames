@@ -30,28 +30,38 @@ local function RefreshFromProfile(self)
 end
 
 local function CheckBox_OnChange(self)
-    self.editorFrame:SetOptionValue(self:GetChecked());
+    local newValue = self:GetChecked();
+    if newValue then
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+	else 
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF);
+	end
+    self.editorFrame:SetOptionValue(newValue);
 end
 
 function CheckBoxEditorFrame.Create(parent, option)
     local value = option.Get();
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
 
-    local checkBox = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate");
+    local checkBox = CreateFrame("CheckButton", nil, frame, (_p.isDragonflight and "SettingsCheckBoxTemplate") or "UICheckButtonTemplate");
+    
     frame.checkBox = checkBox;
     checkBox.editorFrame = frame;
-    checkBox:SetPoint("TOP", frame.heading, "BOTTOM", 0, 0);
-    checkBox:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0);
+    checkBox:SetPoint("CENTER");
 
     checkBox:SetScript("OnClick", BaseEditorFrame.CreateEditorOnChange(frame, CheckBox_OnChange));
 
     if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, frame, 1, 1, 1, 1);
-        FrameUtil.CreateTextTooltip(checkBox, option.Description, frame, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(checkBox, option.Description, checkBox, nil, 0, 0, 1, 1, 1, 1);
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
+    frame.GetMeasuredSize = CheckBoxEditorFrame.GetMeasuredSize;
     return frame;
+end
+
+function CheckBoxEditorFrame:GetMeasuredSize()
+    return self.checkBox:GetWidth(), self:GetDefaultHeight();
 end
 
 BaseEditorFrame.AddConstructor(OptionType.CheckBox, CheckBoxEditorFrame.Create);

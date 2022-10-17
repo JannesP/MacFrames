@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.5 (2022/10/17)
+* NEW: Config UI Overhaul and Use of new Dragonflight UI Components
+
 ## v0.1.4 and v0.1.4a (2022/10/12)
 * NEW: Clique Support
 * NEW: Clicked Support

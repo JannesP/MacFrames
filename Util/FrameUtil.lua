@@ -30,13 +30,17 @@ function FrameUtil.CreateText(frame, text, strata, font)
     return textFrame;
 end
 
-function FrameUtil.CreateFrameWithText(parent, name, text, backdrop)
-    local frame = CreateFrame("Frame", name, parent, backdrop and "BackdropTemplate");
+function FrameUtil.CreateFrameWithText(parent, name, text)
+    local frame = CreateFrame("Frame", name, parent);
     if (backdrop ~= nil) then frame:SetBackdrop(backdrop); end
     frame.text = FrameUtil.CreateText(frame, text);
     frame.text:ClearAllPoints();
     frame.text:SetPoint("CENTER", frame, "CENTER");
     return frame;
+end
+
+function FrameUtil.Pink(frame)
+    FrameUtil.CreateSolidTexture(frame, 1, 0.063, 0.94);
 end
 
 function FrameUtil.CreateSolidTexture(frame, ...)
@@ -48,7 +52,7 @@ end
 do
     local function OnEnter(self)
         if (self.fuTooltip ~= nil) then
-            GameTooltip:SetOwner(self.fuTooltip.anchorFrame or self, "ANCHOR_RIGHT");
+            GameTooltip:SetOwner(self.fuTooltip.anchorFrame or self, self.fuTooltip.anchor, self.fuTooltip.offsetX, self.fuTooltip.offsetY);
             GameTooltip:SetText(self.fuTooltip.text, unpack(self.fuTooltip.color));
             GameTooltip:Show();
         end
@@ -63,7 +67,7 @@ do
             GameTooltip:Hide();
         end
     end
-    function FrameUtil.CreateTextTooltip(frame, text, tooltipAnchorFrame, ...)
+    function FrameUtil.CreateTextTooltip(frame, text, anchorFrame, anchor, offsetX, offsetY, ...)
         if (frame.fuTooltip == nil) then
             frame.fuTooltip = {};
             frame:EnableMouse();
@@ -74,6 +78,9 @@ do
         frame.fuTooltip.color = { ... };
         frame.fuTooltip.text = text;
         frame.fuTooltip.anchorFrame = tooltipAnchorFrame;
+        frame.fuTooltip.anchor = anchor or "ANCHOR_RIGHT";
+        frame.fuTooltip.offsetX = offsetX or 0;
+        frame.fuTooltip.offsetY = offsetY or 0;
     end
 end
 do
@@ -437,10 +444,16 @@ do
     end
     local function ScrollFrameOnSizeChanged(self, width, height)
         self.content:SetWidth(width or self:GetWidth());
+        if (_p.isDragonflight) then
+            self:FullUpdate(ScrollBoxConstants.UpdateImmediately);
+        end
         ScrollBarVisibility(self);
     end
     local counter = 1;
     function FrameUtil.CreateVerticalScrollFrame(parent, child)
+        if (_p.isDragonflight) then
+            return FrameUtil.CreateDragonflightScrollFrame(parent, child);
+        end
         local scroll = CreateFrame("ScrollFrame", ADDON_NAME.."_ScrollFrame"..counter, parent, "UIPanelScrollFrameTemplate");
 		scroll:EnableMouse(true);
         local sbWidth = scroll.ScrollBar:GetWidth();
@@ -460,6 +473,31 @@ do
         scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);
 
         counter = counter + 1;
+        return scroll;
+    end
+
+    function FrameUtil.CreateDragonflightScrollFrame(parent, child)
+        local scroll = CreateFrame("Frame", ADDON_NAME.."_ScrollFrame"..counter, parent, "WowScrollBox");
+        scroll.ScrollBar = CreateFrame("EventFrame", ADDON_NAME.."_ScrollFrame"..counter.."ScrollBar", parent, "MinimalScrollBar");
+        local sbWidth = scroll.ScrollBar:GetWidth();
+
+        child.scrollable = true;
+        scroll.wheelPanScalar = 0.3;
+
+        scroll.content = child;
+        scroll.content:SetParent(scroll);
+        scroll.content:SetWidth(scroll:GetWidth() - sbWidth);
+        scroll.content:SetPoint("TOPLEFT");
+        scroll.content:SetPoint("TOPRIGHT");
+
+        scroll.ScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", -sbWidth, -sbWidth);
+        scroll.ScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", -sbWidth, sbWidth);
+        scroll.RefreshScrollBarVisibility = ScrollBarVisibility;
+
+        ScrollUtil.InitScrollBoxWithScrollBar(scroll, scroll.ScrollBar, CreateScrollBoxLinearView());
+        scroll:FullUpdate(ScrollBoxConstants.UpdateImmediately);
+
+        scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);
         return scroll;
     end
 end
@@ -527,7 +565,7 @@ function FrameUtil.GridLayoutFromObjects(gridParent, gridDescriptor)
             --create heading
             local heading = gridData.headings[i];
             if (gridData.headings[i] == nil) then
-                heading = FrameUtil.CreateFrameWithText(gridFrame, nil, descriptor.heading, nil);
+                heading = FrameUtil.CreateFrameWithText(gridFrame, nil, descriptor.heading);
                 gridData.headings[i] = heading;
             else
                 heading.text:SetText(descriptor.heading);
@@ -580,4 +618,24 @@ function FrameUtil.CreateHorizontalSeperatorWithText(parent, text)
     frame.rightLine:SetPoint("LEFT", frame.text, "RIGHT", p, 0);
     frame.rightLine:SetPoint("RIGHT", frame, "RIGHT", -p, 0);
     return frame;
+end
+
+function FrameUtil.StackVertical(container, children, spacing)
+    spacing = spacing or 0;
+    local usedHeight = 0;
+    for i, child in ipairs(children) do
+        child:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -usedHeight);
+        usedHeight = usedHeight + child:GetHeight() + spacing;
+    end
+    return usedHeight - spacing;
+end
+
+function FrameUtil.StackHorizontal(container, children, spacing)
+    spacing = spacing or 0;
+    local usedWidth = 0;
+    for i, child in ipairs(children) do
+        child:SetPoint("TOPLEFT", container, "TOPLEFT", usedWidth, 0);
+        usedWidth = usedWidth + child:GetWidth();
+    end
+    return usedWidth;
 end
