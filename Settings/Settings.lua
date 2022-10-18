@@ -57,7 +57,7 @@ Settings.OptionType = {
     BarTexture = "BarTexture",
     ButtonAction = "ButtonAction",
     FontPicker = "FontPicker",
-    EnumDropDown = "EnumDropDown",
+    TextDropDown = "TextDropDown",
     NotYetImplemented = "NotYetImplemented",
 }
 local OptionType = Settings.OptionType;
@@ -67,6 +67,14 @@ Settings.CategoryType = {
     AuraBlacklist = "AuraBlacklist",
     Options = "Options",
 }
+
+local function CreateTextDropDownCollectionFromEnum(enum)
+    local collection = CreateFromMixins(MacFramesTextDropDownCollectionMixin);
+    for k, v in pairs(enum) do
+        collection:Add(v, k, nil);
+    end
+    return collection;
+end
 
 local function P()
     return ProfileManager.GetCurrent();
@@ -198,8 +206,8 @@ local function CreatePetSection(GetUnitFrameSettings)
     });
     tinsert(sectionPets.Options, {
         Name = L["Position"],
-        Type = OptionType.EnumDropDown,
-        EnumValues = MacEnum.Settings.PetFramePosition,
+        Type = OptionType.TextDropDown,
+        DropDownCollection = CreateTextDropDownCollectionFromEnum(MacEnum.Settings.PetFramePosition),
         Set = function(value)
             GetUnitFrameSettings().PetFrames.PositionTo = value;
         end,
@@ -694,6 +702,7 @@ tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
 });
 tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
     Name = L["Vertical"],
+    Description = L["Stack the frames vertically instead of horizontally."],
     Type = OptionType.CheckBox,
     Set = function(value)
         P().PartyFrame.Vertical = value;
@@ -702,11 +711,23 @@ tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
         return P().PartyFrame.Vertical;
     end,
 });
+tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
+    Name = L["Sort by Role"],
+    Description = L["Shows the player frame if you're not in a group at all."],
+    Type = OptionType.CheckBox,
+    Set = function(value)
+        P().PartyFrame.AlwaysShowPlayer = value;
+    end,
+    Get = function()
+        return P().PartyFrame.AlwaysShowPlayer;
+    end,
+});
+
 
 tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].SubSections[1].Options, {
     Name = L["Alignment"],
-    Type = OptionType.EnumDropDown,
-    EnumValues = MacEnum.Settings.PetFramePartyAlignment,
+    Type = OptionType.TextDropDown,
+    DropDownCollection = CreateTextDropDownCollectionFromEnum(MacEnum.Settings.PetFramePartyAlignment),
     Set = function(value)
         P().PartyFrame.PetFrames.AlignWithPlayer = value;
     end,

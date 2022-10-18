@@ -59,6 +59,8 @@ Frames\UnitFrame.xml
 Frames\UnitFrame.lua
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua
+Frames\MacFramesTextDropDownButton.lua
+Frames\MacFramesTextDropDownButton.xml
 
 PopupDisplays.lua
 
@@ -66,14 +68,13 @@ MacFrames.lua
 
 Settings\Settings.lua
 
-Frames\SettingsEditors\EditorTemplates.xml
 Frames\SettingsEditors\BaseEditorFrame.lua
 Frames\SettingsEditors\SliderEditorFrame.lua
 Frames\SettingsEditors\CheckBoxEditorFrame.lua
 Frames\SettingsEditors\BarTextureEditorFrame.lua
 Frames\SettingsEditors\ButtonActionEditorFrame.lua
 Frames\SettingsEditors\FontPickerEditorFrame.lua
-Frames\SettingsEditors\EnumDropDownEditorFrame.lua
+Frames\SettingsEditors\TextDropDownEditorFrame.lua
 
 Frames\SettingsPages\GenericOptionsSettingsPage.lua
 Frames\SettingsPages\AuraBlacklistSettingsPage.lua

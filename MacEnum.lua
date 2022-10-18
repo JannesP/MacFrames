@@ -23,7 +23,7 @@ local L = _p.L;
 _p.MacEnum = {};
 local MacEnum = _p.MacEnum;
 
-function MacEnum.GetByValue(enum, value)
+function MacEnum.GetKeyByValue(enum, value)
     for k, v in pairs(enum) do
         if (v == value) then
             return k;
@@ -45,4 +45,12 @@ MacEnum.Settings.PetFramePartyAlignment = {
     Center = "center",
     End = "end",
     Compact = "compact",
+}
+
+MacEnum.Settings.RoleSortingOrder = {
+    Disabled = "disabled",
+    TankHealDps = "tank_heal_dps",
+    HealTankDps = "heal_tank_dps",
+    DpsTankHeal = "dps_tank_heal",
+    DpsHealTank = "dps_heal_tank",
 }

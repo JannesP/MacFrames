@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
-    <EventButton name="MacFramesTextDropDownButtonTemplate" inherits="SelectionPopoutButtonTemplate" virtual="true">
+    <EventButton name="MacFramesTextDropDownButtonTemplate" inherits="SelectionPopoutButtonTemplate" virtual="true" mixin="MacFramesTextDropDownButtonMixin">
         <Size x="180" y="38"/>
         <Anchors>
             <Anchor point="CENTER"/>

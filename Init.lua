@@ -56,7 +56,7 @@ _p.tprint = function(tbl, indent)
             toprint = toprint .. "\"" .. tostring(v) .. "\",\n";
         end
     end
-    toprint = toprint .. "}";
+    toprint = toprint .. string.rep(" ", indent) .. "}";
     return toprint;
 end
 
@@ -95,7 +95,6 @@ _p.Log = function(...)
         if (msg == nil) then
             _p.Print("nil");
         elseif (msgType == "table") then
-            local msg = { ... };
             _p.Print(_p.tprint(msg));
         else
             _p.Print(msg);
