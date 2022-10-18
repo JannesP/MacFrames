@@ -271,8 +271,8 @@ function ProfileManager.TriggerErrorState()
 end
 
 function ProfileManager.IsNewProfileNameValid(name)
-    if (name == nil) then
-        return false, L["No name was given."];
+    if (name == nil or name == "") then
+        return false, nil;
     elseif (type(name) ~= "string") then
         error("This function requires a string!");
     elseif (name == ProfileManager.AddonDefaults) then
@@ -291,7 +291,9 @@ end
 function ProfileManager.CreateProfileCopy(oldProfileName, newProfileName)
     local isNewNameValid, newNameError = ProfileManager.IsNewProfileNameValid(newProfileName);
     if (not isNewNameValid) then
-        _p.UserChatMessage(newNameError);
+        if (newNameError ~= nil and newNameError ~= "") then
+            _p.UserChatMessage(newNameError);
+        end
         return;
     end
     if (oldProfileName == ProfileManager.AddonDefaults) then

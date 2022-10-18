@@ -34,9 +34,12 @@ local PartyFrame = _p.PartyFrame;
 
 local _frame = nil;
 local _unitFrames = nil;
+local _sortedFrames = nil;
+local _sortedPetFrames = nil;
 local _partySettings = nil;
 local _disabledBlizzardFrames = false;
 local _forcedVisibility = nil;
+local _groupChangedInCombat = false;
 local _isTestMode = false;
 
 local _changingSettings = false;
@@ -50,6 +53,8 @@ local function PartySettings_PropertyChanged(key)
         _frame:SetFrameLevel(_partySettings.FrameLevel);
         _frame.petFrame:SetFrameLevel(_partySettings.FrameLevel);
     elseif (key == "Vertical") then
+        PartyFrame.ProcessLayout(_frame, true);
+    elseif (key == "RoleSortingOrder") then
         PartyFrame.ProcessLayout(_frame, true);
     elseif (key == "Enabled") then
         _frame.enabled = _partySettings.Enabled;
@@ -104,6 +109,28 @@ ProfileManager.RegisterProfileChangedListener(function(newProfile)
 
     PartyFrame.SetDisableBlizzardFrame(_partySettings.DisableBlizzardFrames);
 end);
+
+function PartyFrame.RegisterEvents(self)
+    self:SetScript("OnEvent", PartyFrame.OnEvent);
+
+    self:RegisterEvent("PLAYER_REGEN_ENABLED");
+    self:RegisterEvent("GROUP_ROSTER_UPDATE");
+    self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
+end
+
+function PartyFrame.OnEvent(self, event, ...)
+    if event == "PLAYER_REGEN_ENABLED" then
+        if (_groupChangedInCombat) then
+            PartyFrame.ProcessLayout(self, false);
+        end
+    elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ROLES_ASSIGNED" then
+        if InCombatLockdown() then
+            _groupChangedInCombat = true;
+        else
+            PartyFrame.ProcessLayout(self, false);
+        end
+    end
+end
 
 function PartyFrame.SetDisableBlizzardFrame(disable)
     if (_disabledBlizzardFrames == true) then
@@ -168,18 +195,33 @@ do
         );
 
         _unitFrames = {};
+        _sortedFrames = {};
+        _sortedPetFrames = {};
         _frame.unitFrames = _unitFrames;
+        _frame.petFrame.unitFrames = {};
+
         --ugly name for the party player frame but OmniCD doesn't work otherwise
-        tinsert(_unitFrames, UnitFrame.new("player", _frame, nil, _partySettings, frameName .. "_" .. "party5"));
+        local player = UnitFrame.new("player", _frame, nil, _partySettings, frameName .. "_" .. "party5");
+        tinsert(_unitFrames, player);
+        local playerPet = UnitFrame.new("pet", _frame.petFrame, nil, _partySettings.PetFrames);
+        tinsert(_frame.petFrame.unitFrames, playerPet);
+        player.petFrame = playerPet;
         for i=1,4 do
-            tinsert(_unitFrames, UnitFrame.new("party" .. i, _frame, nil, _partySettings));
+            local partyX = UnitFrame.new("party" .. i, _frame, nil, _partySettings);
+            tinsert(_unitFrames, partyX);
+            local petFrame = UnitFrame.new("partypet" .. i, _frame.petFrame, nil, _partySettings.PetFrames);
+            tinsert(_frame.petFrame.unitFrames, petFrame);
+            partyX.petFrame = petFrame;
         end
 
-        _frame.petFrame.unitFrames = {};
-        tinsert(_frame.petFrame.unitFrames, UnitFrame.new("pet", _frame.petFrame, nil, _partySettings.PetFrames));
+        
         for i=1,4 do
-            tinsert(_frame.petFrame.unitFrames, UnitFrame.new("partypet" .. i, _frame.petFrame, nil, _partySettings.PetFrames));
+            
         end
+
+        _frame:Hide();
+        _frame:SetScript("OnShow", PartyFrame.RegisterEvents);
+        _frame:SetScript("OnHide", function(self) self:SetScript("OnEvent", nil); end);
 
         PartyFrame.ProcessLayout(_frame, true);
         PartyFrame.SetForcedVisibility(_forcedVisibility);
@@ -245,7 +287,7 @@ function PartyFrame.SetDisabled(disabled)
     end
 end
 
-local function LayoutVerticalPets(self)
+local function LayoutVerticalPets(self, petFrames)
     local frameWidth = _partySettings.FrameWidth;
     local frameHeight = _partySettings.FrameHeight;
     local spacing = _partySettings.FrameSpacing;
@@ -255,7 +297,6 @@ local function LayoutVerticalPets(self)
     local petFrameWidth = petSettings.FrameWidth;
     local petFrameHeight = petSettings.FrameHeight;
 
-    local petFrames = self.petFrame.unitFrames;
     if (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Compact) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = (#petFrames * petFrameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
@@ -319,7 +360,7 @@ local function LayoutVerticalPets(self)
     end
 end
 
-local function LayoutHorizontalPets(self)
+local function LayoutHorizontalPets(self, petFrames)
     local frameWidth = _partySettings.FrameWidth;
     local frameHeight = _partySettings.FrameHeight;
     local spacing = _partySettings.FrameSpacing;
@@ -329,7 +370,6 @@ local function LayoutHorizontalPets(self)
     local petFrameWidth = petSettings.FrameWidth;
     local petFrameHeight = petSettings.FrameHeight;
 
-    local petFrames = self.petFrame.unitFrames;
     if (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Compact) then
         local totalPetWidth = (#petFrames * petFrameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
@@ -391,9 +431,31 @@ local function LayoutHorizontalPets(self)
         end
     end
 end
-
-function PartyFrame.ProcessLayout(self, reanchor)
-    if (not InCombatLockdown()) then
+do
+    local _roleCache = {};
+    local function RefreshRoleCache()
+        for _, unitFrame in ipairs(_unitFrames) do
+            _roleCache[unitFrame.unit] = UnitGroupRolesAssigned(unitFrame.unit);
+        end
+    end
+    local function AddRoles(source, target, petTarget, role)
+        for _, unitFrame in ipairs(source) do
+            if (_roleCache[unitFrame.unit] == role) then
+                tinsert(target, unitFrame);
+                tinsert(petTarget, unitFrame.petFrame);
+            end
+        end
+    end
+    local function AddRolesByOrder(source, target, petTarget, role1, role2, role3)
+        AddRoles(source, target, petTarget, role1);
+        AddRoles(source, target, petTarget, role2);
+        AddRoles(source, target, petTarget, role3);
+        AddRoles(source, target, petTarget, "NONE");
+    end
+    function PartyFrame.ProcessLayout(self, reanchor)
+        if (InCombatLockdown()) then
+            return;
+        end
         local frameWidth = _partySettings.FrameWidth;
         local frameHeight = _partySettings.FrameHeight;
         local spacing = _partySettings.FrameSpacing;
@@ -402,7 +464,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
         local petSettings = _partySettings.PetFrames;
         local petFrameWidth = petSettings.FrameWidth;
         local petFrameHeight = petSettings.FrameHeight;
-
+        
         local minUfWidth, minUfHeight = Constants.UnitFrame.MinWidth, Constants.UnitFrame.MinHeight;
         
         if (reanchor == true) then
@@ -411,20 +473,43 @@ function PartyFrame.ProcessLayout(self, reanchor)
             PixelUtil.SetPoint(self, anchorInfo.AnchorPoint, UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
         end
 
+        local unitFrames, petFrames;
+        local roleSortingOrder = _partySettings.RoleSortingOrder;
+        if (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.Disabled) then
+            unitFrames = _unitFrames;
+            petFrames = _frame.petFrame.unitFrames;
+        else
+            wipe(_sortedFrames);
+            wipe(_sortedPetFrames);
+            unitFrames = _sortedFrames;
+            petFrames = _sortedPetFrames;
+            RefreshRoleCache();
+            if (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.TankHealDps) then
+                AddRolesByOrder(_unitFrames, _sortedFrames, _sortedPetFrames, "TANK", "HEALER", "DAMAGER");
+            elseif (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.HealTankDps) then
+                AddRolesByOrder(_unitFrames, _sortedFrames, _sortedPetFrames, "HEALER", "TANK", "DAMAGER");
+            elseif (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.DpsTankHeal) then
+                AddRolesByOrder(_unitFrames, _sortedFrames, _sortedPetFrames, "DAMAGER", "TANK", "HEALER");
+            elseif (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.DpsHealTank) then
+                AddRolesByOrder(_unitFrames, _sortedFrames, _sortedPetFrames, "DAMAGER", "HEALER", "TANK");
+            else
+                error("unexpected value for _partySettings.RoleSortingOrder");
+            end
+        end
         if (_partySettings.Vertical) then
             if (_p.isDragonflight) then
-                self:SetResizeBounds(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
+                self:SetResizeBounds(minUfWidth + (2 * margin), (minUfHeight * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing));
             else
-                self:SetMinResize(minUfWidth + (2 * margin), (minUfHeight * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing));
+                self:SetMinResize(minUfWidth + (2 * margin), (minUfHeight * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing));
             end
 
             local totalWidth = frameWidth + (2 * margin);
-            local totalHeight = (#_unitFrames * frameHeight) + ((#_unitFrames - 1) * spacing) + (2 * margin);
+            local totalHeight = (#unitFrames * frameHeight) + ((#unitFrames - 1) * spacing) + (2 * margin);
 
             PixelUtil.SetSize(self, totalWidth, totalHeight);
 
-            for i=1, #_unitFrames do
-                local frame = _unitFrames[i];
+            for i=1, #unitFrames do
+                local frame = unitFrames[i];
                 local x = margin;
                 local y = margin + ((i - 1) * (frameHeight + spacing));
                 
@@ -437,7 +522,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
             if (petSettings.Enabled == false) then
                 self.petFrame:Hide();
             else
-                LayoutVerticalPets(self);
+                LayoutVerticalPets(self, petFrames);
                 local positions = MacEnum.Settings.PetFramePosition;
                 local position = petSettings.PositionTo;
                 if (position == positions.Right) then
@@ -453,18 +538,18 @@ function PartyFrame.ProcessLayout(self, reanchor)
             end
         else
             if (_p.isDragonflight) then
-                self:SetResizeBounds((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
+                self:SetResizeBounds((minUfWidth * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing), minUfHeight + (2 * margin));
             else
-                self:SetMinResize((minUfWidth * #_unitFrames) + (2 * margin) + ((#_unitFrames - 1) * spacing), minUfHeight + (2 * margin));
+                self:SetMinResize((minUfWidth * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing), minUfHeight + (2 * margin));
             end
 
-            local totalWidth = (#_unitFrames * frameWidth) + ((#_unitFrames - 1) * spacing) + (2 * margin);
+            local totalWidth = (#unitFrames * frameWidth) + ((#unitFrames - 1) * spacing) + (2 * margin);
             local totalHeight = frameHeight + (2 * margin);
             
             PixelUtil.SetSize(self, totalWidth, totalHeight);
             
-            for i=1, #_unitFrames do
-                local frame = _unitFrames[i];
+            for i=1, #unitFrames do
+                local frame = unitFrames[i];
                 local x = margin + ((i - 1) * (frameWidth + spacing));
                 local y = margin;
                 frame:ClearAllPoints();
@@ -477,7 +562,7 @@ function PartyFrame.ProcessLayout(self, reanchor)
             if (petSettings.Enabled == false) then
                 self.petFrame:Hide();
             else
-                LayoutHorizontalPets(self);
+                LayoutHorizontalPets(self, petFrames);
                 local positions = MacEnum.Settings.PetFramePosition;
                 local position = petSettings.PositionTo;
                 if (position == positions.Right) then
@@ -492,6 +577,5 @@ function PartyFrame.ProcessLayout(self, reanchor)
                 self.petFrame:Show();
             end
         end
-        
     end
 end

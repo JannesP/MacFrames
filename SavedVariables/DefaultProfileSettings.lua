@@ -49,6 +49,7 @@ _p.DefaultProfileSettings = {
             AnchorPoint = "TOPLEFT",
         },
         Vertical = true,
+        RoleSortingOrder = MacEnum.Settings.RoleSortingOrder.Disabled,
         FrameWidth = 100,
         FrameHeight = 50,
         FrameSpacing = 2,
