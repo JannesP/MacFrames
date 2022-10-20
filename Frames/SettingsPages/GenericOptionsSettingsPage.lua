@@ -31,8 +31,8 @@ local _optionTextColumnWidth = 220;
 local _tabPanelCount = 0;
 
 local _borderPadding = Constants.TooltipBorderClearance;
-local function Section_Layout(self, width, height)
-    height = height or 0;
+local function Section_Layout(self, width)
+    local height = 0;
     if (self.seperator) then
         height = height + self.seperator:GetHeight();
     end
