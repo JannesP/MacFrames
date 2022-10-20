@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.6 (2022/10/19)
+* NEW: Sorting Party Frames by Player Role
+
 ## v0.1.5 (2022/10/17)
 * NEW: Config UI Overhaul and Use of new Dragonflight UI Components
 
