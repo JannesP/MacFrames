@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.1.7 (2022/10/XX)
+* NEW: Sorting Raid Parties by Player Role
+
 ## v0.1.6 (2022/10/19)
 * NEW: Sorting Party Frames by Player Role
 
