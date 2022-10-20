@@ -94,14 +94,14 @@ end
 
 function MacFramesTextDropDownCollectionMixin:GetByIndex(index)
     if (self.entries == nil) then
-        return null;
+        return nil;
     end
     return self.entries[index];
 end
 
 function MacFramesTextDropDownCollectionMixin:GetByValue(value)
     if (self.entries == nil) then
-        return null;
+        return nil;
     end
     for _, data in ipairs(self.entries) do
         if (data.value == value) then

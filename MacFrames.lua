@@ -101,6 +101,7 @@ function Addon.SetupMinimapIcon()
             tooltip:Show()
         end,
     });
+---@diagnostic disable-next-line: undefined-field
     LibMinimapIcon:Register(Constants.MinimapIconRegisterName, LdbDataObject, ProfileManager.GetMinimapSettings());
 end
 
@@ -257,13 +258,6 @@ do
             end
         else
             --error("I thought this wouldnt happen :( Please report this.");
-        end
-    end
-    local function ProfileLoadError(err)
-        if (type(err) == "table") then
-            return err;
-        else
-            return err .. "\n" .. debugstack();
         end
     end
     function _events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)

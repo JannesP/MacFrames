@@ -19,11 +19,8 @@
 local ADDON_NAME, _p = ...;
 
 local Constants = _p.Constants;
-local Settings = _p.Settings;
 local FrameUtil = _p.FrameUtil;
 local BaseEditorFrame = _p.BaseEditorFrame;
-local SliderEditorFrame = _p.SliderEditorFrame;
-local CheckBoxEditorFrame = _p.CheckBoxEditorFrame;
 
 _p.GenericOptionsSettingsPage = {};
 local GenericOptionsSettingsPage = _p.GenericOptionsSettingsPage;
@@ -35,7 +32,7 @@ local _tabPanelCount = 0;
 
 local _borderPadding = Constants.TooltipBorderClearance;
 local function Section_Layout(self, width, height)
-    local height = 0;
+    height = height or 0;
     if (self.seperator) then
         height = height + self.seperator:GetHeight();
     end

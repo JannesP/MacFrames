@@ -151,6 +151,13 @@ function ProfileManager.AddonLoaded()
         _profiles = {};
         _minimapSettings = {};
     else
+        local function ProfileLoadError(err)
+            if (type(err) == "table") then
+                return err;
+            else
+                return err .. "\n" .. debugstack();
+            end
+        end
         local success, err = xpcall(ProfileManager.LoadSVars, ProfileLoadError, MacFramesSavedVariables);
         if (not success) then
             return false, err;
@@ -158,7 +165,7 @@ function ProfileManager.AddonLoaded()
     end
     _currentProfileName, _currentProfile = GetProfileForCurrentCharacter();
     MacFramesSavedVariables = ProfileManager.BuildSavedVariables();
-    OnProfileChanged(_currentProfile, nil);
+    OnProfileChanged(_currentProfile);
     return true;
 end
 
@@ -260,9 +267,8 @@ function ProfileManager.SetActiveProfile(name)
         local newActiveProfile = _profiles[name];
         if (newActiveProfile == nil) then error("Profile with name '" .. name .. "' not found!"); end
         _currentProfileName = name;
-        local oldProfile = _currentProfile;
         _currentProfile = newActiveProfile;
-        OnProfileChanged(newActiveProfile, oldProfile);
+        OnProfileChanged(newActiveProfile);
     end
 end
 

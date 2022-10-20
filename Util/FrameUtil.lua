@@ -32,7 +32,6 @@ end
 
 function FrameUtil.CreateFrameWithText(parent, name, text)
     local frame = CreateFrame("Frame", name, parent);
-    if (backdrop ~= nil) then frame:SetBackdrop(backdrop); end
     frame.text = FrameUtil.CreateText(frame, text);
     frame.text:ClearAllPoints();
     frame.text:SetPoint("CENTER", frame, "CENTER");
@@ -77,7 +76,7 @@ do
         end
         frame.fuTooltip.color = { ... };
         frame.fuTooltip.text = text;
-        frame.fuTooltip.anchorFrame = tooltipAnchorFrame;
+        frame.fuTooltip.anchorFrame = anchorFrame;
         frame.fuTooltip.anchor = anchor or "ANCHOR_RIGHT";
         frame.fuTooltip.offsetX = offsetX or 0;
         frame.fuTooltip.offsetY = offsetY or 0;
@@ -337,6 +336,7 @@ function FrameUtil.CreateTextButton(parent, nameSuffix, text, onClickHandler)
     local b = CreateFrame("Button", nameSuffix and (parent:GetName() .. "Button" .. nameSuffix), parent, "UIPanelButtonTemplate");
     b:SetText(text);
     b:SetScript("OnClick", onClickHandler);
+---@diagnostic disable-next-line: undefined-field
     FrameUtil.WidthByText(b, b.Text);
     return b;
 end
@@ -365,6 +365,7 @@ do
         rows.count = rows.count + 1;
     end
     local function AddInRow(i, element)
+---@diagnostic disable-next-line: param-type-mismatch
         tinsert(rows[i], element);
     end
     local function GetRow(i)
@@ -450,12 +451,14 @@ do
         ScrollBarVisibility(self);
     end
     local counter = 1;
+---@diagnostic disable: undefined-field
     function FrameUtil.CreateVerticalScrollFrame(parent, child)
         if (_p.isDragonflight) then
             return FrameUtil.CreateDragonflightScrollFrame(parent, child);
         end
         local scroll = CreateFrame("ScrollFrame", ADDON_NAME.."_ScrollFrame"..counter, parent, "UIPanelScrollFrameTemplate");
 		scroll:EnableMouse(true);
+
         local sbWidth = scroll.ScrollBar:GetWidth();
 
         scroll.content = child;
@@ -501,6 +504,7 @@ do
         return scroll;
     end
 end
+---@diagnostic enable: undefined-field
 
 function FrameUtil.GetIconZoomTransform(zoom)
     return 0 + zoom, 0 + zoom, 0 + zoom, 1 - zoom, 1 - zoom, 0 + zoom, 1 - zoom, 1 - zoom;

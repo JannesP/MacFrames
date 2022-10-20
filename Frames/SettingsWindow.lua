@@ -21,14 +21,14 @@ local L = _p.L;
 local FrameUtil = _p.FrameUtil;
 local PlayerInfo = _p.PlayerInfo;
 local PopupDisplays = _p.PopupDisplays;
-local FrameUtil = _p.FrameUtil;
 local SettingsPageFactory = _p.SettingsPageFactory;
 local Settings = _p.Settings;
 
 _p.SettingsWindow = {};
 local SettingsWindow = _p.SettingsWindow;
 
-local SettingsFrame = _p.SettingsFrame;
+---@diagnostic disable-next-line: undefined-doc-name
+---@type Frame|BackdropTemplate|DefaultPanelBaseTemplate|Region
 local _window;
 
 local function TabPanel_Reflow(self)
@@ -95,7 +95,7 @@ function SettingsWindow.SetActiveTab(self, tabButton)
     page:SetAllPoints(self.contentHost);
     page:Show();
 end
-
+---@diagnostic disable: param-type-mismatch
 function CreateOldWindow() 
     local _backdropSettings = {
         bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
@@ -114,7 +114,7 @@ function CreateOldWindow()
         closeButton:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down");
         closeButton:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight");
         closeButton:RegisterForClicks("LeftButtonUp");
-        closeButton:SetPoint("CENTER", closeButtonFrame, "CENTER");
+        closeButton:SetPoint("CENTER");
         closeButton:SetScript("OnClick", SettingsWindow.Close);
         return closeButtonFrame;
     end
@@ -153,7 +153,9 @@ function SettingsWindow.Open()
             if (not _p.isDragonflight) then
                 _window = CreateOldWindow();
             else
+                
                 _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, "DefaultPanelBaseTemplate");
+---@diagnostic disable-next-line: undefined-field
                 _window:SetTitle(L["MacFrames Options"]);
                 _window:SetFrameStrata("HIGH");
                 tinsert(UISpecialFrames, _window:GetName());
@@ -167,8 +169,10 @@ function SettingsWindow.Open()
                 _window.closeButton = CreateFrame("Button", nil, _window, "UIPanelCloseButtonDefaultAnchors");
                 _window.closeButton:SetScript("OnClick", SettingsWindow.Close);
 
+                ---@diagnostic disable: undefined-field
                 _window.dragDropHost = CreateFrame("Frame", nil, _window.TitleContainer);
                 _window.dragDropHost:SetPoint("TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
+                ---@diagnostic enable: undefined-field
                 _window.dragDropHost:SetPoint("BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
 
                 FrameUtil.ConfigureDragDropHost(_window.dragDropHost, _window, nil, true);
@@ -176,7 +180,7 @@ function SettingsWindow.Open()
 
             local padding = 5;
 
-            _window.contentHost = CreateFrame("Frame", _window:GetName() .. "TabHost", _frame);
+            _window.contentHost = CreateFrame("Frame", _window:GetName() .. "TabHost", _window);
             _window.contentHost:SetPoint("TOPLEFT", _window, "TOPLEFT", padding, -14 - padding);
             _window.contentHost:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT", -padding, padding);
 
@@ -187,6 +191,7 @@ function SettingsWindow.Open()
             
             FrameUtil.AddResizer(_window, _window);
             if (_p.isDragonflight) then
+---@diagnostic disable-next-line: undefined-field
                 _window:SetResizeBounds(600, 400, 1280, 800);
             else
                 _window:SetMinResize(600, 300);
@@ -202,6 +207,7 @@ function SettingsWindow.Open()
         _p.UserChatMessage(L["Cannot open settings in combat."]);
     end
 end
+---@diagnostic enable: param-type-mismatch
 
 function SettingsWindow.Close()
     if (_window ~= nil) then

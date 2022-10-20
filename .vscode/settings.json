@@ -145,6 +145,19 @@
         "GetSpecializationInfoByID",
         "CloseDropDownMenus",
         "UIDropDownMenu_AddSeparator",
-        "Round"
+        "Round",
+        "TextureKitConstants",
+        "SelectionPopoutButtonMixin",
+        "NORMAL_FONT_COLOR",
+        "HIGHLIGHT_FONT_COLOR",
+        "SelectionPopoutEntryMixin",
+        "PartyFrame",
+        "ScrollBoxConstants",
+        "ScrollUtil",
+        "CreateScrollBoxLinearView",
+        "Clicked",
+        "ClickCastFrames",
+        "Clique",
+        "OmniCD"
     ]
 }

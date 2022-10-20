@@ -263,6 +263,7 @@ local function createButton(name, object, db)
 	animOut:SetFromAlpha(1)
 	animOut:SetToAlpha(0)
 	animOut:SetStartDelay(1)
+---@diagnostic disable-next-line: redundant-parameter
 	button.fadeOut:SetToFinalAlpha(true)
 
 	lib.objects[name] = button

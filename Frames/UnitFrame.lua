@@ -339,6 +339,7 @@ function UnitFrame.SetRaidTargetIconByIndex(self, index)
     self.raidTargetIcon:Show();
 end
 
+---@diagnostic disable: undefined-field
 function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
     local usedName = lsmName;
     local texturePath = LSM:Fetch(lsmType, lsmName, true);
@@ -363,6 +364,7 @@ function UnitFrame.GetFontFromSettings(lsmName)
     end
     return lsmEntry, usedName;
 end
+---@diagnostic enable: undefined-field
 
 function UnitFrame.UpdateTargetHighlightTextureFromSettings(self)
     self.targetBorder.children:Resize(self.settings.Frames.TargetBorderWidth);
@@ -1112,6 +1114,7 @@ end
 
 function UnitFrame.UpdateLFGStatus(self)
     local icon = self.statusIconContainer.lfgIcon;
+---@diagnostic disable-next-line: redundant-parameter
     if UnitInOtherParty(self.unit) then
         if (not icon:IsVisible()) then
             icon:Show();

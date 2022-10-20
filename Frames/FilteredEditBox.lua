@@ -29,6 +29,7 @@ local function SetOnFilteredValueSet(self, func)
     self.filteredListener = func;
 end
 
+---@diagnostic disable-next-line: unused-function, unused-local
 local function SetValidateOnTextChange(self, flag)
     self.validateOnTextChange = flag;
 end
@@ -46,7 +47,6 @@ end
 
 local function OnEditFocusLost(self)
     if (self.filterFunc(self)) then
-        local text = gsub(self:GetText(), "")
         self.filteredListener(self);
     else
         self:SetText("");
@@ -62,6 +62,6 @@ function FilteredEditBox.Create(parent)
     editBox:SetScript("OnTabPressed", EditBox_ClearFocus);
     editBox:SetScript("OnEscapePressed", EditBox_ClearFocus);
     editBox:SetScript("OnEditFocusLost", OnEditFocusLost);
-    editBox.SetScript("OnTextChanged", ValidateText);
+    editBox:SetScript("OnTextChanged", ValidateText);
     return editBox;
 end

@@ -122,6 +122,7 @@ do
                 _frame:SetScript("OnSizeChanged", Frame_OnSizeChanged);
             end, 
             function(dragDropHost, frame)   --resizeEnd
+---@diagnostic disable-next-line: param-type-mismatch
                 _frame:SetScript("OnSizeChanged", nil);
                 RaidFrame.UpdateAnchorFromCurrentPosition(frame);
                 RaidFrame.UpdateRect(frame);
