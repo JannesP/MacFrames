@@ -25,6 +25,7 @@ local UnitFrame = _p.UnitFrame;
 local FrameUtil = _p.FrameUtil;
 local ProfileManager = _p.ProfileManager;
 local BlizzardFrameUtil = _p.BlizzardFrameUtil;
+local MacEnum = _p.MacEnum;
 
 _p.RaidFrame = {};
 local RaidFrame = _p.RaidFrame;
@@ -219,18 +220,29 @@ function RaidFrame.SetupEvents(self)
     self:RegisterEvent("PLAYER_REGEN_ENABLED");
     self:RegisterEvent("PLAYER_REGEN_DISABLED");
     self:RegisterEvent("GROUP_ROSTER_UPDATE");
+    self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
 end
 
-function RaidFrame.OnEvent(self, event, ...)
-    if event == "PLAYER_REGEN_DISABLED" then
-        RaidFrame.EnteringCombat(self);
-    elseif event == "PLAYER_REGEN_ENABLED" then
-        RaidFrame.LeavingCombat(self);
-    elseif event == "GROUP_ROSTER_UPDATE" then
+do
+    local function QueueLayoutUpdate(self)
         if InCombatLockdown() then
             _groupChangedInCombat = true;
         else
-            RaidFrame.ProcessLayout(self, false);
+            RaidFrame.ProcessLayout(self);
+        end
+    end
+
+    function RaidFrame.OnEvent(self, event, ...)
+        if event == "PLAYER_REGEN_DISABLED" then
+            RaidFrame.EnteringCombat(self);
+        elseif event == "PLAYER_REGEN_ENABLED" then
+            RaidFrame.LeavingCombat(self);
+        elseif event == "PLAYER_ROLES_ASSIGNED" then
+            if (_raidSettings.RoleSortingOrder ~= MacEnum.Settings.RoleSortingOrder.Disabled) then
+                QueueLayoutUpdate(self);
+            end
+        elseif event == "GROUP_ROSTER_UPDATE" then
+            QueueLayoutUpdate(self);
         end
     end
 end
@@ -277,13 +289,26 @@ function RaidFrame.UpdateRect(self)
     local frameHeight = _raidSettings.FrameHeight;
     local spacing = _raidSettings.FrameSpacing;
     local margin = _raidSettings.Margin;
-    local totalWidth = (Constants.GroupSize * frameWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
-    local totalHeight = (Constants.RaidGroupCount * frameHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+    local totalWidth, totalHeight;
+    if (_raidSettings.Vertical) then
+        totalHeight = (Constants.GroupSize * frameHeight) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
+        totalWidth = (Constants.RaidGroupCount * frameWidth) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+    else
+        totalHeight = (Constants.GroupSize * frameWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
+        totalWidth = (Constants.RaidGroupCount * frameHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+    end
     local anchorInfo = _raidSettings.AnchorInfo;
 
     local minUfWidth, minUfHeight = Constants.UnitFrame.MinWidth, Constants.UnitFrame.MinHeight;
-    local minWidth = (Constants.GroupSize * minUfWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
-    local minHeight = (Constants.RaidGroupCount * minUfHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+    local minWidth, minHeight;
+    if (_raidSettings.Vertical) then
+        minHeight = (Constants.GroupSize * minUfHeight) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
+        minWidth = (Constants.RaidGroupCount * minUfWidth) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+    else
+        minHeight = (Constants.GroupSize * minUfWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
+        minWidth = (Constants.RaidGroupCount * minUfHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+    end
+    
     
     if (_p.isDragonflight) then
         self:SetResizeBounds(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
@@ -298,63 +323,131 @@ function RaidFrame.UpdateRect(self)
     PixelUtil.SetSize(self, totalWidth, totalHeight);
 end
 
-function RaidFrame.ProcessLayout(self)
-    if (InCombatLockdown()) then
-        error("Cannot call this in combat!");
-    end
-
-    local frameWidth = _raidSettings.FrameWidth;
-    local frameHeight = _raidSettings.FrameHeight;
-    local spacing = _raidSettings.FrameSpacing;
-    local margin = _raidSettings.Margin;
-    local totalWidth, totalHeight = self:GetSize();
-    
-    for i=1, #_groupFrames do
-        local attachedFrames = _groupFrames[i].attachedFrames;
-        for n=1, #attachedFrames do
-            attachedFrames[n]:ClearAllPoints();
+do
+    local _roleCache = {
+        TANK = {}, 
+        HEALER = {}, 
+        DAMAGER = {}, 
+        NONE = {},
+    };
+    local _sorted = {};
+    local function WipeCaches()
+        for _, v in pairs(_roleCache) do
+            wipe(v);
         end
-        wipe(attachedFrames);
     end
-
-    for raidIndex=1, #_unitFrames do
-        local frame = _unitFrames[raidIndex];
-        local name, _, group = GetRaidRosterInfo(raidIndex);
-        if (name ~= nil) then
-            tinsert(_groupFrames[group].attachedFrames, frame);
-            frame.isGrouped = true;
+    local function BuildCache(source)
+        WipeCaches();
+        for _, unitFrame in ipairs(source) do
+            tinsert(_roleCache[UnitGroupRolesAssigned(unitFrame.unit)], unitFrame);
+        end
+    end
+    local function GetCachedInOrder(...)
+        wipe(_sorted);
+        for _, role in ipairs({...}) do
+            for _, unitFrame in ipairs(_roleCache[role]) do
+                tinsert(_sorted, unitFrame);
+            end
+        end
+        return _sorted;
+    end
+    local function GetOrderForSetting(roleSortingOrder)
+        local rsoEnum = MacEnum.Settings.RoleSortingOrder;
+        if (roleSortingOrder == rsoEnum.TankHealDps) then
+            return "TANK", "HEALER", "DAMAGER", "NONE";
+        elseif (roleSortingOrder == rsoEnum.HealTankDps) then
+            return "HEALER", "TANK", "DAMAGER", "NONE";
+        elseif (roleSortingOrder == rsoEnum.DpsTankHeal) then
+            return "DAMAGER", "TANK", "HEALER", "NONE";
+        elseif (roleSortingOrder == rsoEnum.DpsHealTank) then
+            return "DAMAGER", "HEALER", "TANK", "NONE";
         else
-            frame.isGrouped = false;
+            error("unexpected value for _partySettings.RoleSortingOrder");
         end
     end
+    local function GetCachedInOrderBySetting(roleSortingOrder)
+        return GetCachedInOrder(GetOrderForSetting(roleSortingOrder));
+    end
 
-    for raidIndex=1, #_unitFrames do
-        local frame = _unitFrames[raidIndex];
-        if frame.isGrouped == false then
-            for i=1, #_groupFrames do
-                local group = _groupFrames[i];
-                if #group.attachedFrames < Constants.GroupSize then
-                    tinsert(group.attachedFrames, frame);
-                    break;
+    function RaidFrame.ProcessLayout(self)
+        if (InCombatLockdown()) then
+            error("Cannot call this in combat!");
+        end
+
+        local frameWidth = _raidSettings.FrameWidth;
+        local frameHeight = _raidSettings.FrameHeight;
+        local spacing = _raidSettings.FrameSpacing;
+        local margin = _raidSettings.Margin;
+        local totalWidth, totalHeight = self:GetSize();
+        local vertical = _raidSettings.Vertical;
+        local roleSortingOrder = _raidSettings.RoleSortingOrder;
+        local sortIgnoringGroups = _raidSettings.SortIgnoringGroups;
+        
+        
+        for i=1, #_groupFrames do
+            local attachedFrames = _groupFrames[i].attachedFrames;
+            for n=1, #attachedFrames do
+                attachedFrames[n]:ClearAllPoints();
+            end
+            wipe(attachedFrames);
+        end
+
+        for raidIndex=1, #_unitFrames do
+            local frame = _unitFrames[raidIndex];
+            local name, _, group = GetRaidRosterInfo(raidIndex);
+            if (name ~= nil) then
+                tinsert(_groupFrames[group].attachedFrames, frame);
+                frame.isGrouped = true;
+            else
+                frame.isGrouped = false;
+            end
+        end
+
+        for raidIndex=1, #_unitFrames do
+            local frame = _unitFrames[raidIndex];
+            if frame.isGrouped == false then
+                for i=1, #_groupFrames do
+                    local group = _groupFrames[i];
+                    if #group.attachedFrames < Constants.GroupSize then
+                        tinsert(group.attachedFrames, frame);
+                        break;
+                    end
                 end
             end
         end
-    end
 
-    for groupIndex=1, #_groupFrames do
-        local groupFrame = _groupFrames[groupIndex];
-        local y = margin + ((groupIndex - 1) * (frameHeight + spacing));
-        groupFrame:ClearAllPoints();
-        PixelUtil.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", margin, -y);
-        PixelUtil.SetSize(groupFrame, totalWidth - (2 * margin), frameHeight);
-        local attachedFrames = groupFrame.attachedFrames;
-        for i=1, #attachedFrames do
-            local frame = attachedFrames[i];
-            local x = (i - 1) * (frameWidth + spacing);
-            frame:ClearAllPoints();
-            frame:SetParent(groupFrame);
-            PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", x, 0);
-            PixelUtil.SetSize(frame, frameWidth, frameHeight);
+        for groupIndex=1, #_groupFrames do
+            local groupFrame = _groupFrames[groupIndex];
+            groupFrame:ClearAllPoints();
+            if (vertical) then
+                local x = margin + ((groupIndex - 1) * (frameWidth + spacing));
+                PixelUtil.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", x, -margin);
+                PixelUtil.SetSize(groupFrame, totalHeight - (2 * margin), frameWidth);
+            else
+                local y = margin + ((groupIndex - 1) * (frameHeight + spacing));
+                PixelUtil.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", margin, -y);
+                PixelUtil.SetSize(groupFrame, totalWidth - (2 * margin), frameHeight);
+            end
+            if (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.Disabled) then
+                attachedFrames = groupFrame.attachedFrames;
+            else
+                BuildCache(groupFrame.attachedFrames);
+                attachedFrames = GetCachedInOrderBySetting(roleSortingOrder);
+            end
+            for i, frame in ipairs(attachedFrames) do
+                frame:ClearAllPoints();
+                frame:SetParent(groupFrame);
+                if (vertical) then
+                    local y = (i - 1) * (frameHeight + spacing);
+                    PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", 0, -y);
+                    PixelUtil.SetSize(frame, frameWidth, frameHeight);
+                else
+                    local x = (i - 1) * (frameWidth + spacing);
+                    PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", x, 0);
+                    PixelUtil.SetSize(frame, frameWidth, frameHeight);
+                end
+                
+            end
         end
     end
 end

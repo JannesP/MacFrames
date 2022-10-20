@@ -212,6 +212,8 @@ _p.DefaultProfileSettings = {
             AnchorPoint = "CENTER",
         },
         HideUnnecessaryGroupsInCombat = true,
+        RoleSortingOrder = MacEnum.Settings.RoleSortingOrder.Disabled,
+        Vertical = false,
         FrameWidth = 90,
         FrameHeight = 50,
         FrameSpacing = 1,

@@ -673,6 +673,17 @@ tinsert(generalGeneral.Options, {
 });
 tinsert(Settings.Categories, _general);
 
+local function CreateRoleSortingOrderDropDownCollection()
+    local collection = CreateFromMixins(MacFramesTextDropDownCollectionMixin);
+    local enum = MacEnum.Settings.RoleSortingOrder;
+    collection:Add(enum.Disabled,    "Disabled",          "Normal sorting by game order.");
+    collection:Add(enum.TankHealDps, "Tank > Heal > DPS", nil);
+    collection:Add(enum.HealTankDps, "Heal > Tank > DPS", nil);
+    collection:Add(enum.DpsTankHeal, "DPS > Tank > Heal", "You're weird, but I got you.");
+    collection:Add(enum.DpsHealTank, "DPS > Heal > Tank", nil);
+    return collection;
+end
+
 local _raidFrames = {
     Name = L["Raidframes"],
     Type = Settings.CategoryType.Options,
@@ -680,6 +691,32 @@ local _raidFrames = {
     Sections = {},
 };
 AddUnitFrameOptions(_raidFrames.Sections, function() return P().RaidFrame; end, false);
+
+tinsert(_raidFrames.Sections[_ufFrameLayoutIndex].Options, {
+    Name = L["Vertical"],
+    Description = L["Groups are laid out vertically."],
+    Type = OptionType.CheckBox,
+    Set = function(value)
+        P().RaidFrame.Vertical = value;
+    end,
+    Get = function()
+        return P().RaidFrame.Vertical;
+    end,
+});
+
+tinsert(_raidFrames.Sections[_ufFrameLayoutIndex].Options, {
+    Name = L["Sort by Role"],
+    Description = L["Sorts the raid frame by player role instead of game group order."],
+    Type = OptionType.TextDropDown,
+    DropDownCollection = CreateRoleSortingOrderDropDownCollection(),
+    Set = function(value)
+        P().RaidFrame.RoleSortingOrder = value;
+    end,
+    Get = function()
+        return P().RaidFrame.RoleSortingOrder;
+    end,
+});
+
 tinsert(Settings.Categories, _raidFrames);
 
 local _partyFrames = {
@@ -711,30 +748,18 @@ tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
         return P().PartyFrame.Vertical;
     end,
 });
-do
-    local function CreateDropDownCollection()
-        local collection = CreateFromMixins(MacFramesTextDropDownCollectionMixin);
-        local enum = MacEnum.Settings.RoleSortingOrder;
-        collection:Add(enum.Disabled,    "Disabled",          "Normal sorting by game order.");
-        collection:Add(enum.TankHealDps, "Tank > Heal > DPS", nil);
-        collection:Add(enum.HealTankDps, "Heal > Tank > DPS", nil);
-        collection:Add(enum.DpsTankHeal, "DPS > Tank > Heal", "You're weird, but I got you.");
-        collection:Add(enum.DpsHealTank, "DPS > Heal > Tank", nil);
-        return collection;
-    end
-    tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
-        Name = L["Sort by Role"],
-        Description = L["Sorts the party frame by player role instead of game group order."],
-        Type = OptionType.TextDropDown,
-        DropDownCollection = CreateDropDownCollection(),
-        Set = function(value)
-            P().PartyFrame.RoleSortingOrder = value;
-        end,
-        Get = function()
-            return P().PartyFrame.RoleSortingOrder;
-        end,
-    });
-end
+tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].Options, {
+    Name = L["Sort by Role"],
+    Description = L["Sorts the party frame by player role instead of game group order."],
+    Type = OptionType.TextDropDown,
+    DropDownCollection = CreateRoleSortingOrderDropDownCollection(),
+    Set = function(value)
+        P().PartyFrame.RoleSortingOrder = value;
+    end,
+    Get = function()
+        return P().PartyFrame.RoleSortingOrder;
+    end,
+});
 
 tinsert(_partyFrames.Sections[_ufFrameLayoutIndex].SubSections[1].Options, {
     Name = L["Alignment"],
