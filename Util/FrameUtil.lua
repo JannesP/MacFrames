@@ -39,7 +39,7 @@ function FrameUtil.CreateFrameWithText(parent, name, text)
 end
 
 function FrameUtil.Pink(frame)
-    FrameUtil.CreateSolidTexture(frame, 1, 0.063, 0.94);
+    return FrameUtil.CreateSolidTexture(frame, 1, 0.063, 0.94);
 end
 
 function FrameUtil.CreateSolidTexture(frame, ...)
@@ -83,17 +83,15 @@ do
     end
 end
 do
-    local FramePixelBorder = {};
-    FramePixelBorder.__index = FramePixelBorder;
-    function FramePixelBorder:Resize(width)
-        local pxWidth = PixelUtil.GetNearestPixelSize(width, self.parent:GetEffectiveScale(), 1);
+    local FramePixelBorderMixin = {};
+    function FramePixelBorderMixin:Resize(width)
         self.width = width;
-        self.left:SetWidth(pxWidth);
-        self.right:SetWidth(pxWidth);
-        self.top:SetHeight(pxWidth);
-        self.bottom:SetHeight(pxWidth);
+        self.left:SetWidth(width);
+        self.right:SetWidth(width);
+        self.top:SetHeight(width);
+        self.bottom:SetHeight(width);
     end
-    function FramePixelBorder:SetColor(...)
+    function FramePixelBorderMixin:SetColor(...)
         self.left:SetColorTexture(...);
         self.top:SetColorTexture(...);
         self.right:SetColorTexture(...);
@@ -101,27 +99,27 @@ do
     end
 
     function FrameUtil.CreateSolidBorder(frame, width, ...)
-        local borderFrames = setmetatable({
+        local borderFrames = CreateFromMixins({
             parent = frame,
             left = frame:CreateTexture(nil, "OVERLAY"),
             top = frame:CreateTexture(nil, "OVERLAY"),
             right = frame:CreateTexture(nil, "OVERLAY"),
             bottom = frame:CreateTexture(nil, "OVERLAY"),
-        }, FramePixelBorder);
-        borderFrames.left:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-        borderFrames.left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
-
-        borderFrames.top:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-        borderFrames.top:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
-
-        borderFrames.right:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0);
-        borderFrames.right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
-
-        borderFrames.bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
-        borderFrames.bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
-
+        }, FramePixelBorderMixin);
         borderFrames:Resize(width);
         borderFrames:SetColor(...);
+
+        borderFrames.left:SetPoint("TOPLEFT", frame, "TOPLEFT");
+        borderFrames.left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT");
+
+        borderFrames.top:SetPoint("TOPLEFT", frame, "TOPLEFT");
+        borderFrames.top:SetPoint("TOPRIGHT", frame, "TOPRIGHT");
+
+        borderFrames.right:SetPoint("TOPRIGHT", frame, "TOPRIGHT");
+        borderFrames.right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT");
+
+        borderFrames.bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT");
+        borderFrames.bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT");
         return borderFrames;
     end
 end
