@@ -28,7 +28,11 @@
 ## X-Curse-Project-ID: 412950
 ## X-WoWI-ID: 25739
 
-Libs\Embeds.xml
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 Init.lua
 
