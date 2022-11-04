@@ -361,6 +361,7 @@ do
                     self:SetText(itemLink);
                 elseif (type == "spell") then
                     --"spell", spellIndex, bookType, spellID
+---@diagnostic disable-next-line: param-type-mismatch
                     local spellLink = GetSpellLink(info3);
                     self:SetText(spellLink);
                 end
@@ -381,6 +382,7 @@ do
                 self:SetText(itemLink);
             elseif (type == "spell") then
                 --"spell", spellIndex, bookType, spellID
+---@diagnostic disable-next-line: param-type-mismatch
                 local spellLink = GetSpellLink(info3);
                 self:SetText(spellLink);
             end
@@ -452,6 +454,7 @@ do
 
         local editBoxContainer = CreateFrame("Frame", nil, frame);
         frame.editBoxContainer = editBoxContainer;
+---@diagnostic disable-next-line: param-type-mismatch
         editBoxContainer:SetPoint("LEFT", dropDownBindingType, "RIGHT");
 
         local spellIconDisplay = CreateFrame("Frame", nil, frame);

@@ -67,7 +67,9 @@ local function SetupContentScrollContainer(parent, content)
     parent.contentContainer:SetAllPoints(parent);
 
     parent.contentHost = CreateFrame("Frame", parent:GetName() .. "ContentHost", parent.contentContainer);
+---@diagnostic disable-next-line: param-type-mismatch
     parent.contentHost:SetPoint("TOPLEFT", parent.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
+---@diagnostic disable-next-line: param-type-mismatch
     parent.contentHost:SetPoint("BOTTOMRIGHT", parent.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
 
     parent.scrollFrame = FrameUtil.CreateVerticalScrollFrame(parent.contentHost, content);
