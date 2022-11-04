@@ -114,8 +114,6 @@ _p.ParseLink = function(link)
     return string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?");
 end
 
-_p.isDragonflight = select(4, GetBuildInfo()) >= 100000;
-
 _p.UIParent = _G.UIParent; --= CrevateFrame("Frame", "MacFramesUIParent", UIParent);
 --_p.UIParent:SetPoint("BOTTOM");
 --_p.UIParent:SetIgnoreParentScale(true);

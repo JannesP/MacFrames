@@ -45,16 +45,9 @@ function BlizzardFrameUtil.DisablePartyFrames()
     if (not InCombatLockdown()) then
         if (_partyHidden == true) then return; end;
         _partyHidden = true;
-        if (_p.isDragonflight) then
-            PartyFrame:UnregisterAllEvents();
-            PartyFrame.PartyMemberFramePool:ReleaseAll();
-            PartyFrame:Hide();
-        else
-            for i=1, MAX_PARTY_MEMBERS do
-                local name = "PartyMemberFrame" .. i;
-                DisableFrames(false, _G[name]);
-            end
-        end
+        PartyFrame:UnregisterAllEvents();
+        PartyFrame.PartyMemberFramePool:ReleaseAll();
+        PartyFrame:Hide();
         if (_shouldHideCufManager == true) then BlizzardFrameUtil.DisableCompactUnitFrameManager(); end;
     end
 end
@@ -72,9 +65,6 @@ do
             local shown = CompactRaidFrameManager_GetSetting("IsShown")
             if(shown and shown ~= "0") then
                 CompactRaidFrameManager_SetSetting("ShowBorders", "0");
-                if (not _p.isDragonflight) then
-                    CompactRaidFrameManager_SetSetting("DisplayMainTankAndAssist", "0");
-                end
                 CompactRaidFrameManager_SetSetting("IsShown", "0");
             end
         end
@@ -86,9 +76,6 @@ do
         DisableRaidManagerButton(CompactRaidFrameManagerDisplayFrameFilterOptionsFilterRoleHealer);
         DisableRaidManagerButton(CompactRaidFrameManagerDisplayFrameFilterOptionsFilterRoleDamager);
         CompactRaidFrameManagerDisplayFrameHiddenModeToggle:SetEnabled(false);
-        if (not _p.isDragonflight) then
-            CompactRaidFrameManagerDisplayFrameLockedModeToggle:SetEnabled(false);
-        end
     end
 
     function BlizzardFrameUtil.DisableCompactUnitFrames()

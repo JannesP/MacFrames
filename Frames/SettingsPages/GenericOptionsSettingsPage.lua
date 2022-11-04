@@ -65,17 +65,13 @@ local function CreateSection(parent, section, depth)
     local seperator;
     if (depth <= 1) then    --this is the section heading
         seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightHuge");
-        seperator.text:SetPoint("LEFT", seperator);
-        if (_p.isDragonflight) then
-            seperator.texSeperatorBar = seperator:CreateTexture();
-            seperator.texSeperatorBar:SetAtlas("Options_HorizontalDivider", true);
-            seperator.texSeperatorBar:SetPoint("LEFT");
-            seperator.texSeperatorBar:SetPoint("RIGHT");
-            seperator.texSeperatorBar:SetPoint("BOTTOM", seperator, "BOTTOM", 0, 4);
-            seperator:SetHeight(select(2, seperator.text:GetFont()) + 14);
-        else
-            seperator:SetHeight(select(2, seperator.text:GetFont()) + 4);
-        end
+        seperator.text:SetPoint("TOPLEFT", seperator, 0, -4);
+        seperator.texSeperatorBar = seperator:CreateTexture();
+        seperator.texSeperatorBar:SetAtlas("Options_HorizontalDivider", true);
+        seperator.texSeperatorBar:SetPoint("LEFT");
+        seperator.texSeperatorBar:SetPoint("RIGHT");
+        seperator.texSeperatorBar:SetPoint("BOTTOM", seperator, "BOTTOM", 0, 4);
+        seperator:SetHeight(select(2, seperator.text:GetFont()) + 14);
     elseif (depth > 1) then --these are subsection headings
         seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightLarge");
         seperator.text:SetPoint("LEFT", seperator, "LEFT", 0, -6);
@@ -205,23 +201,12 @@ do
     local function Button_UpdateState(self)
         if (self.selected) then
             self.Label:SetFontObject("GameFontHighlight");
-            if (_p.isDragonflight) then
-                self.Texture:SetAtlas("Options_List_Active", TextureKitConstants.UseAtlasSize);
-            else
-                self.Texture:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight");
-                self.Texture:SetBlendMode("ADD");
-                self.Texture:SetVertexColor(1, 1, 0);
-            end
+            self.Texture:SetAtlas("Options_List_Active", TextureKitConstants.UseAtlasSize);
             self.Texture:Show();
         else
             self.Label:SetFontObject("GameFontNormal");
             if (self.over) then
-                if (_p.isDragonflight) then
-                    self.Texture:SetAtlas("Options_List_Hover", TextureKitConstants.UseAtlasSize);
-                else
-                    self.Texture:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight");
-                    self.Texture:SetBlendMode("ADD");
-                end
+                self.Texture:SetAtlas("Options_List_Hover", TextureKitConstants.UseAtlasSize);
                 self.Texture:Show();
             else
                 self.Texture:Hide();
@@ -287,8 +272,8 @@ local function SetupSectionList(sectionList)
     for i=1, #sectionList.Buttons do
         local button = sectionList.Buttons[i];
         if (lastButton == nil) then
-            button:SetPoint("TOPLEFT", sectionList, "TOPLEFT");
-            button:SetPoint("TOPRIGHT", sectionList, "TOPRIGHT");
+            button:SetPoint("TOPLEFT", sectionList, "TOPLEFT", 0, -6);
+            button:SetPoint("TOPRIGHT", sectionList, "TOPRIGHT", 0, -6);
         else
             button:SetPoint("TOPLEFT", lastButton, "BOTTOMLEFT", 0, -2);
             button:SetPoint("TOPRIGHT", lastButton, "BOTTOMRIGHT", 0, -2);

@@ -506,11 +506,7 @@ do
             end
         end
         if (_partySettings.Vertical) then
-            if (_p.isDragonflight) then
-                self:SetResizeBounds(minUfWidth + (2 * margin), (minUfHeight * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing));
-            else
-                self:SetMinResize(minUfWidth + (2 * margin), (minUfHeight * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing));
-            end
+            self:SetResizeBounds(minUfWidth + (2 * margin), (minUfHeight * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing));
 
             local totalWidth = frameWidth + (2 * margin);
             local totalHeight = (#unitFrames * frameHeight) + ((#unitFrames - 1) * spacing) + (2 * margin);
@@ -545,11 +541,7 @@ do
                 self.petFrame:Show();
             end
         else
-            if (_p.isDragonflight) then
-                self:SetResizeBounds((minUfWidth * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing), minUfHeight + (2 * margin));
-            else
-                self:SetMinResize((minUfWidth * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing), minUfHeight + (2 * margin));
-            end
+            self:SetResizeBounds((minUfWidth * #unitFrames) + (2 * margin) + ((#unitFrames - 1) * spacing), minUfHeight + (2 * margin));
 
             local totalWidth = (#unitFrames * frameWidth) + ((#unitFrames - 1) * spacing) + (2 * margin);
             local totalHeight = frameHeight + (2 * margin);

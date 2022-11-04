@@ -55,21 +55,12 @@ local function CreateTabPanel(parent)
     local categories = Settings.Categories;
     for i=1, #categories do
         local category = categories[i];
-        local tabButton = CreateFrame("Button", frameName .. "Tab" .. i, frame, (_p.isDragonflight and "PanelTabButtonTemplate") or "CharacterFrameTabButtonTemplate");
-        if (not _p.isDragonflight) then
-            if (lastTab ~= nil) then
-                tabButton:SetPoint("TOPLEFT", lastTab, "TOPRIGHT", -16, 0);
-            end
-            lastTab = tabButton;
-        end
+        local tabButton = CreateFrame("Button", frameName .. "Tab" .. i, frame, "PanelTabButtonTemplate");
         tabButton:SetID(i);
         tabButton:SetText(category.Name);
         tabButton:SetScript("OnClick", TabButton_OnClick);
         tabButton.page = SettingsPageFactory.CreatePage(frame, category);
         tabButton.index = i;
-        if (not _p.isDragonflight) then
-            frame.Tabs[i] = tabButton;
-        end
         PanelTemplates_TabResize(tabButton, 2);
     end
     frame.Tabs[1]:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, 3);
@@ -96,53 +87,6 @@ function SettingsWindow.SetActiveTab(self, tabButton)
     page:Show();
 end
 ---@diagnostic disable: param-type-mismatch
-function CreateOldWindow() 
-    local _backdropSettings = {
-        bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
-        edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
-        edgeSize = 20,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    };
-    local function CreateCloseButton(parent)
-        local closeButtonFrame = CreateFrame("Frame", nil, parent, "BackdropTemplate");
-        closeButtonFrame:SetBackdrop(_backdropSettings);
-        closeButtonFrame:SetSize(32, 32);
-
-        local closeButton = CreateFrame("Button", nil, closeButtonFrame);
-        closeButton:SetSize(30, 30);
-        closeButton:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up");
-        closeButton:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down");
-        closeButton:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight");
-        closeButton:RegisterForClicks("LeftButtonUp");
-        closeButton:SetPoint("CENTER");
-        closeButton:SetScript("OnClick", SettingsWindow.Close);
-        return closeButtonFrame;
-    end
-    local function CreateHeading(parent)
-        local headerFrame = CreateFrame("Frame", nil, parent, "BackdropTemplate");
-        headerFrame:SetBackdrop(_backdropSettings);
-
-        headerFrame.text = FrameUtil.CreateText(headerFrame, L["MacFrames Options"], "ARTWORK");
-        headerFrame.text:ClearAllPoints();
-        headerFrame.text:SetPoint("CENTER", headerFrame, "CENTER");
-        FrameUtil.WidthByText(headerFrame, headerFrame.text);
-        headerFrame:SetHeight(30);
-        return headerFrame;
-    end
-
-    _window = CreateFrame("Frame", "MacFramesSettingsWindow", _p.UIParent, "BackdropTemplate");
-    _window:SetBackdrop(_backdropSettings);
-    _window.closeButton = CreateCloseButton(_window);
-    _window.closeButton:SetPoint("CENTER", _window, "TOPRIGHT", -30, 0);
-
-    _window.heading = CreateHeading(_window);
-    _window.heading:ClearAllPoints();
-    _window.heading:SetPoint("BOTTOM", _window, "TOP", 0, -10);
-
-    FrameUtil.ConfigureDragDropHost(_window.heading, _window, nil, true);
-    return _window;
-end
-
 function SettingsWindow.Open()
     if (PlayerInfo.specId == nil) then
         PopupDisplays.ShowGenericMessage("MacFrames currently doesn't support characters without a specialization.\nI kinda forgot about fresh characters. Please consider using the default frames until you are able to select a specialization.\nSorry :(");
@@ -150,30 +94,25 @@ function SettingsWindow.Open()
     end
     if (not InCombatLockdown()) then
         if (_window == nil) then
-            if (not _p.isDragonflight) then
-                _window = CreateOldWindow();
-            else
-                
-                _window = CreateFrame("Frame", "MacFramesSettingsWindow", _p.UIParent, "DefaultPanelBaseTemplate");
-                _window:SetTitle(L["MacFrames Options"]);
-                _window:SetFrameStrata("HIGH");
-                tinsert(UISpecialFrames, _window:GetName());
-                _window:SetScript("OnShow", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN); end);
-                _window:SetScript("OnHide", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE); end);
+            _window = CreateFrame("Frame", "MacFramesSettingsWindow", _p.UIParent, "DefaultPanelBaseTemplate");
+            _window:SetTitle(L["MacFrames Options"]);
+            _window:SetFrameStrata("HIGH");
+            tinsert(UISpecialFrames, _window:GetName());
+            _window:SetScript("OnShow", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN); end);
+            _window:SetScript("OnHide", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE); end);
 
-                _window.background = CreateFrame("Frame", nil, _window, "FlatPanelBackgroundTemplate");
-                _window.background:SetPoint("TOPLEFT", _window, "TOPLEFT", 7, -18);
-                _window.background:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT", -2, 3);
+            _window.background = CreateFrame("Frame", nil, _window, "FlatPanelBackgroundTemplate");
+            _window.background:SetPoint("TOPLEFT", _window, "TOPLEFT", 7, -18);
+            _window.background:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT", -2, 3);
 
-                _window.closeButton = CreateFrame("Button", nil, _window, "UIPanelCloseButtonDefaultAnchors");
-                _window.closeButton:SetScript("OnClick", SettingsWindow.Close);
+            _window.closeButton = CreateFrame("Button", nil, _window, "UIPanelCloseButtonDefaultAnchors");
+            _window.closeButton:SetScript("OnClick", SettingsWindow.Close);
 
-                _window.dragDropHost = CreateFrame("Frame", nil, _window.TitleContainer);
-                _window.dragDropHost:SetPoint("TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
-                _window.dragDropHost:SetPoint("BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
+            _window.dragDropHost = CreateFrame("Frame", nil, _window.TitleContainer);
+            _window.dragDropHost:SetPoint("TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
+            _window.dragDropHost:SetPoint("BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
 
-                FrameUtil.ConfigureDragDropHost(_window.dragDropHost, _window, nil, true);
-            end
+            FrameUtil.ConfigureDragDropHost(_window.dragDropHost, _window, nil, true);
 
             local padding = 5;
 
@@ -187,12 +126,7 @@ function SettingsWindow.Open()
             _window.tabPanel:SetPoint("TOPRIGHT", _window, "BOTTOMRIGHT", 0, 0);
             
             FrameUtil.AddResizer(_window, _window);
-            if (_p.isDragonflight) then
-                _window:SetResizeBounds(600, 400, 1280, 800);
-            else
-                _window:SetMinResize(600, 300);
-                _window:SetMaxResize(1000, 800);
-            end
+            _window:SetResizeBounds(600, 400, 1280, 800);
             _window:EnableMouse(true);
 
             _window:SetSize(800, 500);

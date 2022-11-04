@@ -323,12 +323,7 @@ function RaidFrame.UpdateRect(self)
         minWidth = (Constants.RaidGroupCount * minUfHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
     end
     
-    
-    if (_p.isDragonflight) then
-        self:SetResizeBounds(minWidth, minHeight);
-    else
-        self:SetMinResize(minWidth, minHeight);
-    end
+    self:SetResizeBounds(minWidth, minHeight);
 
     self:ClearAllPoints();
     self:SetPoint(anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);

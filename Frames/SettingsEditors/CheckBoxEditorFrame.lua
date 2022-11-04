@@ -43,7 +43,7 @@ function CheckBoxEditorFrame.Create(parent, option)
     local value = option.Get();
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
 
-    local checkBox = CreateFrame("CheckButton", nil, frame, (_p.isDragonflight and "SettingsCheckBoxTemplate") or "UICheckButtonTemplate");
+    local checkBox = CreateFrame("CheckButton", nil, frame, "SettingsCheckBoxTemplate");
     
     frame.checkBox = checkBox;
     checkBox.editorFrame = frame;

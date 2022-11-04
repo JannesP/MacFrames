@@ -194,7 +194,7 @@ do
         bDown:SetScript("OnClick", Frame_MoveDown);
 
         local cbClampToScreenFrame = CreateFrame("Frame", nil, dragDropHost);
-        local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, (_p.isDragonflight and "SettingsCheckBoxTemplate") or "UICheckButtonTemplate");
+        local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, "SettingsCheckBoxTemplate");
         cbClampToScreen.dragDropHost = dragDropHost;
         cbClampToScreen:SetScript("OnClick", CbClampToScreen_Click);
         cbClampToScreen:SetPoint("LEFT");
@@ -437,40 +437,11 @@ do
     end
     local function ScrollFrameOnSizeChanged(self, width, height)
         self.content:SetWidth(width or self:GetWidth());
-        if (_p.isDragonflight) then
-            self:FullUpdate(ScrollBoxConstants.UpdateImmediately);
-        end
+        self:FullUpdate(ScrollBoxConstants.UpdateImmediately);
         ScrollBarVisibility(self);
     end
     local counter = 1;
     function FrameUtil.CreateVerticalScrollFrame(parent, child)
-        if (_p.isDragonflight) then
-            return FrameUtil.CreateDragonflightScrollFrame(parent, child);
-        end
-        local scroll = CreateFrame("ScrollFrame", ADDON_NAME.."_ScrollFrame"..counter, parent, "UIPanelScrollFrameTemplate");
-		scroll:EnableMouse(true);
-
-        local sbWidth = scroll.ScrollBar:GetWidth();
-
-        scroll.content = child;
-        scroll.content:SetParent(scroll);
-        scroll.content:SetWidth(scroll:GetWidth() - sbWidth);
-        
-        scroll.ScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", -sbWidth, -sbWidth);
-        scroll.ScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", -sbWidth, sbWidth);
-        scroll.ScrollBar.background = scroll.ScrollBar:CreateTexture(nil, "BACKGROUND");
-        scroll.ScrollBar.background:SetColorTexture(.4, .4, .4, .4);
-        scroll.ScrollBar.background:SetAllPoints();
-        scroll.RefreshScrollBarVisibility = ScrollBarVisibility;
-
-        scroll:SetScrollChild(scroll.content);
-        scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);
-
-        counter = counter + 1;
-        return scroll;
-    end
-
-    function FrameUtil.CreateDragonflightScrollFrame(parent, child)
         local scroll = CreateFrame("Frame", ADDON_NAME.."_ScrollFrame"..counter, parent, "WowScrollBox");
         scroll.ScrollBar = CreateFrame("EventFrame", ADDON_NAME.."_ScrollFrame"..counter.."ScrollBar", parent, "MinimalScrollBar");
         local sbWidth = scroll.ScrollBar:GetWidth();
@@ -492,6 +463,7 @@ do
         scroll:FullUpdate(ScrollBoxConstants.UpdateImmediately);
 
         scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);
+        counter = counter + 1;
         return scroll;
     end
 end

@@ -78,63 +78,7 @@ local function SliderEditor_RefreshFromProfile(self)
     self.editBox:SetCursorPosition(0);
 end
 
-local function CreateNotDF(parent, option)
-    local value = option.Get();
-    if (value == nil) then
-        error("Value for " .. option.Name .. " was nil!");
-    end
-    local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
-    frame.option = option;
-
-    local slider = CreateFrame("Slider", nil, frame, "OptionsSliderTemplate");
-    frame.slider = slider;
-    slider.editorFrame = frame;
-    slider.Slider = slider;
-    slider:SetPoint("TOP");
-    slider:SetPoint("LEFT", frame, "LEFT", 0, 0);
-    slider:SetPoint("RIGHT", frame, "RIGHT", 0, 0);
-    slider:SetMinMaxValues(option.Min, option.Max or option.SoftMax or error("Sliders need a maximum value (either SoftMax or Max)"));
-    slider:SetValue(value);
-    slider:SetValueStep(option.StepSize or 1);
-    slider:SetObeyStepOnDrag(false);
-    slider.Low:SetPoint("TOPLEFT", slider, "BOTTOMLEFT");
-    slider.Low:SetText(option.Min);
-    slider.High:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT");
-    slider.High:SetText(option.Max or option.SoftMax);
-
-    local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
-    frame.editBox = editBox;
-    editBox.editorFrame = frame;
-    editBox:SetAutoFocus(false);
-    editBox:SetNumeric(true);
-    editBox:SetMaxLetters(3);
-    editBox:SetNumber(value);
-    editBox:SetWidth(27);
-    editBox:ClearAllPoints();
----@diagnostic disable-next-line: param-type-mismatch
-    editBox:SetPoint("LEFT", frame.slider, "BOTTOMRIGHT", 9, 4);
-    editBox:SetHeight(select(2, editBox:GetFont()));
-    editBox:SetFrameLevel(slider:GetFrameLevel() + 1);
-    
-    editBox:SetScript("OnEnterPressed", EditBox_ClearFocus);
-    editBox:SetScript("OnTabPressed", EditBox_ClearFocus);
-    editBox:SetScript("OnEditFocusLost", BaseEditorFrame.CreateEditorOnChange(frame, SliderEditBox_OnChange));
-
-    slider:SetScript("OnValueChanged", BaseEditorFrame.CreateEditorOnChange(frame, Slider_EditorOnChange));
-
-    if (option.Description ~= nil) then
-        FrameUtil.CreateTextTooltip(frame, option.Description, frame, nil, 0, 0, 1, 1, 1, 1);
-    end
-
-    frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(SliderEditor_RefreshFromProfile);
-    frame.GetMeasuredSize = SliderEditorFrame.GetMeasuredSize;
-    return frame;
-end
-
 function SliderEditorFrame.Create(parent, option)
-    if (not _p.isDragonflight) then
-        return CreateNotDF(parent, option);
-    end
     local value = option.Get();
     if (value == nil) then
         error("Value for " .. option.Name .. " was nil!");
@@ -188,15 +132,9 @@ function SliderEditorFrame.Create(parent, option)
 end
 
 function SliderEditorFrame:GetMeasuredSize()
-    local width, height;
-        if (_p.isDragonflight) then
-            width = self.slider:GetWidth() + 5 + self.editBox:GetWidth() + self.rangeText:GetWidth();
-            height = self:GetDefaultHeight();
-        else
-            width = self.slider:GetWidth() + 5 + self.editBox:GetWidth();
-            height = max(self.slider:GetHeight() + self.slider.Low:GetHeight(), self.editBox:GetHeight());
-        end
-        return width, height;
+    local width = self.slider:GetWidth() + 5 + self.editBox:GetWidth() + self.rangeText:GetWidth();
+    local height = self:GetDefaultHeight();
+    return width, height;
 end
 
 BaseEditorFrame.AddConstructor(OptionType.SliderValue, SliderEditorFrame.Create);
