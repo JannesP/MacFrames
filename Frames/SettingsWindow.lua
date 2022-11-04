@@ -130,7 +130,7 @@ function CreateOldWindow()
         return headerFrame;
     end
 
-    _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, "BackdropTemplate");
+    _window = CreateFrame("Frame", "MacFramesSettingsWindow", _p.UIParent, "BackdropTemplate");
     _window:SetBackdrop(_backdropSettings);
     _window.closeButton = CreateCloseButton(_window);
     _window.closeButton:SetPoint("CENTER", _window, "TOPRIGHT", -30, 0);
@@ -154,8 +154,7 @@ function SettingsWindow.Open()
                 _window = CreateOldWindow();
             else
                 
-                _window = CreateFrame("Frame", "MacFramesSettingsWindow", UIParent, "DefaultPanelBaseTemplate");
----@diagnostic disable-next-line: undefined-field
+                _window = CreateFrame("Frame", "MacFramesSettingsWindow", _p.UIParent, "DefaultPanelBaseTemplate");
                 _window:SetTitle(L["MacFrames Options"]);
                 _window:SetFrameStrata("HIGH");
                 tinsert(UISpecialFrames, _window:GetName());
@@ -169,10 +168,8 @@ function SettingsWindow.Open()
                 _window.closeButton = CreateFrame("Button", nil, _window, "UIPanelCloseButtonDefaultAnchors");
                 _window.closeButton:SetScript("OnClick", SettingsWindow.Close);
 
-                ---@diagnostic disable: undefined-field
                 _window.dragDropHost = CreateFrame("Frame", nil, _window.TitleContainer);
                 _window.dragDropHost:SetPoint("TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
-                ---@diagnostic enable: undefined-field
                 _window.dragDropHost:SetPoint("BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
 
                 FrameUtil.ConfigureDragDropHost(_window.dragDropHost, _window, nil, true);
@@ -191,7 +188,6 @@ function SettingsWindow.Open()
             
             FrameUtil.AddResizer(_window, _window);
             if (_p.isDragonflight) then
----@diagnostic disable-next-line: undefined-field
                 _window:SetResizeBounds(600, 400, 1280, 800);
             else
                 _window:SetMinResize(600, 300);
@@ -200,7 +196,7 @@ function SettingsWindow.Open()
             _window:EnableMouse(true);
 
             _window:SetSize(800, 500);
-            _window:SetPoint("CENTER", UIParent, "CENTER", 0, 0);            
+            _window:SetPoint("CENTER", _p.UIParent, "CENTER", 0, 0);            
         end
         _window:Show();
     else

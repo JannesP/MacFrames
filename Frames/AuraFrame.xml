@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
     <!-- the addon's functionality is defined in here -->
-    <Frame name="MacFramesUnitFrameAuraTemplate" virtual="true">
+    <Frame name="MacFramesUnitFrameAuraTemplate" inherits="MacFramesPixelPerfectTemplate" virtual="true">
 		<Layers>
 			<Layer level="ARTWORK">
 				<Texture name="$parentIcon" parentKey="icon" />

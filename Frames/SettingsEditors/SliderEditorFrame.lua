@@ -25,6 +25,7 @@ local FrameUtil = _p.FrameUtil;
 _p.SliderEditorFrame = {};
 local SliderEditorFrame = _p.SliderEditorFrame;
 
+local _isInitialLoad = true;
 
 local function SliderEditBox_OnChange(self)
     if (self.isUpdating) then return end;
@@ -34,6 +35,9 @@ local function SliderEditBox_OnChange(self)
     local option = editorFrame.option;
 
     local value = self:GetNumber();
+    if (option.Rounded) then
+        value = Round(value);
+    end
     if (option.Min and option.Min > value) or (option.Max and option.Max < value) then
         --out of bounds value
         self:SetNumber(option.Get());
@@ -48,15 +52,26 @@ end
 
 local function Slider_EditorOnChange(self, value)
     if (self.isUpdating) then return end;
-        self.isUpdating = true;
-        local editorFrame = self.editorFrame;
-        editorFrame.editBox:SetNumber(Round(value));
-        editorFrame:SetOptionValue(value);
-        self.isUpdating = false;
+    self.isUpdating = true;
+    local editorFrame = self.editorFrame;
+    local option = editorFrame.option;
+    if (option.Rounded) then
+        value = Round(value);
+    end
+    editorFrame.editBox:SetNumber(Round(value));
+    editorFrame:SetOptionValue(value);
+    self.isUpdating = false;
 end
 
 local function SliderEditor_RefreshFromProfile(self)
     local value = self.option.Get();
+    if (_isInitialLoad and self.option.Rounded) then
+        _isInitialLoad = false;
+        self.isUpdating = true;
+        value = Round(value);
+        self:SetOptionValue(value);
+        self.isUpdating = false;
+    end
     self.slider.Slider:SetValue(value);
     self.slider.Slider:SetValue(value);
     self.editBox:SetNumber(Round(value));
@@ -96,6 +111,7 @@ local function CreateNotDF(parent, option)
     editBox:SetNumber(value);
     editBox:SetWidth(27);
     editBox:ClearAllPoints();
+---@diagnostic disable-next-line: param-type-mismatch
     editBox:SetPoint("LEFT", frame.slider, "BOTTOMRIGHT", 9, 4);
     editBox:SetHeight(select(2, editBox:GetFont()));
     editBox:SetFrameLevel(slider:GetFrameLevel() + 1);
@@ -145,6 +161,7 @@ function SliderEditorFrame.Create(parent, option)
     editBox:SetNumber(value);
     editBox:SetWidth(27);
     editBox:ClearAllPoints();
+---@diagnostic disable-next-line: param-type-mismatch
     editBox:SetPoint("LEFT", slider, "RIGHT", 5, 0);
     editBox:SetHeight(select(2, editBox:GetFont()));
     editBox:SetFrameLevel(slider:GetFrameLevel() + 1);

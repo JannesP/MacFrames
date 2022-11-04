@@ -159,5 +159,8 @@
         "ClickCastFrames",
         "Clique",
         "OmniCD"
+    ],
+    "Lua.diagnostics.disable": [
+        "undefined-field"
     ]
 }

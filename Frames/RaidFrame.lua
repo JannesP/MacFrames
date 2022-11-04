@@ -95,17 +95,29 @@ end
 
 do
     local onSizeChangedSpacing, onSizeChangedMargin;
-    local function Frame_OnSizeChanged(self, width, height)
+    local function Frame_OnSizeChanged(self, width, height, isFinal)
         _changingSettings = true;
-        _raidSettings.FrameWidth = (width - ((Constants.GroupSize - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.GroupSize;
-        _raidSettings.FrameHeight = (height - ((Constants.RaidGroupCount - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.RaidGroupCount;
+        local frameWidth, frameHeight;
+        if (_raidSettings.Vertical) then
+            frameHeight = (height - ((Constants.GroupSize - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.GroupSize;
+            frameWidth = (width - ((Constants.RaidGroupCount - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.RaidGroupCount;
+        else
+            frameWidth = (width - ((Constants.GroupSize - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.GroupSize;
+            frameHeight = (height - ((Constants.RaidGroupCount - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / Constants.RaidGroupCount;
+        end
+        if (isFinal) then
+            frameWidth = Round(frameWidth);
+            frameHeight = Round(frameHeight);
+        end
+        _raidSettings.FrameWidth = frameWidth;
+        _raidSettings.FrameHeight = frameHeight;
         _changingSettings = false;
         RaidFrame.ProcessLayout(self);
     end
     function RaidFrame.create()
         if _frame ~= nil then error("You can only create a single RaidFrame.") end
         local frameName = Constants.RaidFrameGlobalName;
-        _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
+        _frame = CreateFrame("Frame", frameName, _p.UIParent, "MacFramesPixelPerfectSecureHandlerStateTemplate");
         _frame:SetFrameStrata(_raidSettings.FrameStrata);
         _frame:SetFrameLevel(_raidSettings.FrameLevel);
 
@@ -124,6 +136,7 @@ do
             function(dragDropHost, frame)   --resizeEnd
 ---@diagnostic disable-next-line: param-type-mismatch
                 _frame:SetScript("OnSizeChanged", nil);
+                Frame_OnSizeChanged(_frame, _frame:GetWidth(), _frame:GetHeight(), true);
                 RaidFrame.UpdateAnchorFromCurrentPosition(frame);
                 RaidFrame.UpdateRect(frame);
                 RaidFrame.ProcessLayout(frame);
@@ -152,8 +165,8 @@ end
 function RaidFrame.UpdateAnchorFromCurrentPosition(self)
     local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint(1);
     _changingSettings = true;
-    _raidSettings.AnchorInfo.OffsetX = xOfs;
-    _raidSettings.AnchorInfo.OffsetY = yOfs;
+    _raidSettings.AnchorInfo.OffsetX = Round(xOfs);
+    _raidSettings.AnchorInfo.OffsetY = Round(yOfs);
     _raidSettings.AnchorInfo.AnchorPoint = point;
     _changingSettings = false;
 end
@@ -295,8 +308,8 @@ function RaidFrame.UpdateRect(self)
         totalHeight = (Constants.GroupSize * frameHeight) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
         totalWidth = (Constants.RaidGroupCount * frameWidth) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
     else
-        totalHeight = (Constants.GroupSize * frameWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
-        totalWidth = (Constants.RaidGroupCount * frameHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
+        totalWidth = (Constants.GroupSize * frameWidth) + ((Constants.GroupSize - 1) * spacing) + (2 * margin);
+        totalHeight = (Constants.RaidGroupCount * frameHeight) + ((Constants.RaidGroupCount - 1) * spacing) + (2 * margin);
     end
     local anchorInfo = _raidSettings.AnchorInfo;
 
@@ -312,16 +325,14 @@ function RaidFrame.UpdateRect(self)
     
     
     if (_p.isDragonflight) then
-        self:SetResizeBounds(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
-            PixelUtil.GetNearestPixelSize(minHeight, self:GetParent():GetEffectiveScale()));
+        self:SetResizeBounds(minWidth, minHeight);
     else
-        self:SetMinResize(PixelUtil.GetNearestPixelSize(minWidth, self:GetParent():GetEffectiveScale()), 
-            PixelUtil.GetNearestPixelSize(minHeight, self:GetParent():GetEffectiveScale()));
+        self:SetMinResize(minWidth, minHeight);
     end
 
     self:ClearAllPoints();
-    PixelUtil.SetPoint(self, anchorInfo.AnchorPoint, UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
-    PixelUtil.SetSize(self, totalWidth, totalHeight);
+    self:SetPoint(anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
+    self:SetSize(totalWidth, totalHeight);
 end
 
 do
@@ -422,13 +433,14 @@ do
             groupFrame:ClearAllPoints();
             if (vertical) then
                 local x = margin + ((groupIndex - 1) * (frameWidth + spacing));
-                PixelUtil.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", x, -margin);
-                PixelUtil.SetSize(groupFrame, totalHeight - (2 * margin), frameWidth);
+                groupFrame:SetPoint("TOPLEFT", self, "TOPLEFT", x, -margin);
+                groupFrame:SetSize(totalHeight - (2 * margin), frameWidth);
             else
                 local y = margin + ((groupIndex - 1) * (frameHeight + spacing));
-                PixelUtil.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", margin, -y);
-                PixelUtil.SetSize(groupFrame, totalWidth - (2 * margin), frameHeight);
+                groupFrame:SetPoint("TOPLEFT", self, "TOPLEFT", margin, -y);
+                groupFrame:SetSize(totalWidth - (2 * margin), frameHeight);
             end
+            local attachedFrames;
             if (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.Disabled) then
                 attachedFrames = groupFrame.attachedFrames;
             else
@@ -440,12 +452,12 @@ do
                 frame:SetParent(groupFrame);
                 if (vertical) then
                     local y = (i - 1) * (frameHeight + spacing);
-                    PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", 0, -y);
-                    PixelUtil.SetSize(frame, frameWidth, frameHeight);
+                    frame:SetPoint("TOPLEFT", groupFrame, "TOPLEFT", 0, -y);
+                    frame:SetSize(frameWidth, frameHeight);
                 else
                     local x = (i - 1) * (frameWidth + spacing);
-                    PixelUtil.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", x, 0);
-                    PixelUtil.SetSize(frame, frameWidth, frameHeight);
+                    frame:SetPoint("TOPLEFT", groupFrame, "TOPLEFT", x, 0);
+                    frame:SetSize(frameWidth, frameHeight);
                 end
                 
             end

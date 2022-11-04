@@ -22,6 +22,7 @@ local MyAuraUtil = _p.MyAuraUtil;
 local AuraManager = _p.AuraManager;
 local AuraBlacklist = _p.AuraBlacklist;
 local TablePool = _p.TablePool;
+local FrameUtil = _p.FrameUtil;
 
 local math_min, table_sort = math.min, table.sort;
 
@@ -51,9 +52,12 @@ local function LayoutFrames(self)
     local auraFrames = self.auraFrames;
     local frameCount = #auraFrames;
     local spacing = self.spacing;
-
-    self:SetWidth((self.iconWidth * frameCount) + (spacing * (frameCount - 1)));
-    self:SetHeight(self.iconHeight);
+    local iconWidth, iconHeight = self.iconWidth, self.iconHeight;
+    if (frameCount > 0) then
+        iconWidth, iconHeight = auraFrames[1]:GetSize();
+    end
+    self:SetWidth((iconWidth * frameCount) + (spacing * (frameCount - 1)));
+    self:SetHeight(iconHeight);
 
     local lastFrame = nil;
     if (self.reverse == true) then
@@ -61,9 +65,9 @@ local function LayoutFrames(self)
             local auraFrame = auraFrames[i];
             auraFrame:ClearAllPoints();
             if (lastFrame == nil) then
-                PixelUtil.SetPoint(auraFrame, "TOPRIGHT", self, "TOPRIGHT", 0, 0);
+                auraFrame:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0);
             else
-                PixelUtil.SetPoint(auraFrame, "TOPRIGHT", lastFrame, "TOPLEFT", -spacing, 0);
+                auraFrame:SetPoint("TOPRIGHT", lastFrame, "TOPLEFT", -spacing, 0);
             end
             lastFrame = auraFrame;
         end
@@ -72,9 +76,9 @@ local function LayoutFrames(self)
             local auraFrame = auraFrames[i];
             auraFrame:ClearAllPoints();
             if (lastFrame == nil) then
-                PixelUtil.SetPoint(auraFrame, "TOPLEFT", self, "TOPLEFT", 0, 0);
+                auraFrame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
             else
-                PixelUtil.SetPoint(auraFrame, "TOPLEFT", lastFrame, "TOPRIGHT", spacing, 0);
+                auraFrame:SetPoint("TOPLEFT", lastFrame, "TOPRIGHT", spacing, 0);
             end
             lastFrame = auraFrame;
         end
@@ -84,7 +88,7 @@ end
 function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight, spacing, iconZoom)
     local frame = _framePool:Take();
     if frame == nil then
-        frame = CreateFrame("Frame", nil, parent);
+        frame = CreateFrame("Frame", nil, parent, "MacFramesPixelPerfectTemplate");
         frame.customColor = {};
     else
         frame:SetParent(parent);

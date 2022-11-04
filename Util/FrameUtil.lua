@@ -69,7 +69,6 @@ do
     function FrameUtil.CreateTextTooltip(frame, text, anchorFrame, anchor, offsetX, offsetY, ...)
         if (frame.fuTooltip == nil) then
             frame.fuTooltip = {};
-            frame:EnableMouse();
             frame:HookScript("OnEnter", OnEnter);
             frame:HookScript("OnLeave", OnLeave);
             frame:HookScript("OnHide", OnHide);
@@ -139,7 +138,7 @@ do
             parent.onFinishDragDrop(parent, parent.frameToMove);
         end
     end
-    local function Frame_MoveRigght(self)
+    local function Frame_MoveRight(self)
         local parent = self:GetParent();
         FrameUtil.MoveFrame(parent.frameToMove, 1, 0);
         if (parent.onFinishDragDrop) then
@@ -186,7 +185,7 @@ do
         bRight:ClearAllPoints();
         bRight:SetPoint("LEFT", dragDropHost.text, "RIGHT", 0, 0);
         bRight:SetSize(24, 24);
-        bRight:SetScript("OnClick", Frame_MoveRigght);
+        bRight:SetScript("OnClick", Frame_MoveRight);
 
         local bDown = FrameUtil.CreateArrowButton(dragDropHost, "down");
         bDown:ClearAllPoints();
@@ -195,7 +194,7 @@ do
         bDown:SetScript("OnClick", Frame_MoveDown);
 
         local cbClampToScreenFrame = CreateFrame("Frame", nil, dragDropHost);
-        local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, "UICheckButtonTemplate");
+        local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, (_p.isDragonflight and "SettingsCheckBoxTemplate") or "UICheckButtonTemplate");
         cbClampToScreen.dragDropHost = dragDropHost;
         cbClampToScreen:SetScript("OnClick", CbClampToScreen_Click);
         cbClampToScreen:SetPoint("LEFT");
@@ -217,10 +216,6 @@ function FrameUtil.MoveFrame(frame, x, y)
     if (frame:GetNumPoints() ~= 1) then
         error("This function only works with a single Anchor from SetPoint!");
     end
-    local pixelScale = PixelUtil.GetPixelToUIUnitFactor();
-    local frameScale = frame:GetEffectiveScale();
-    x = x * frameScale * pixelScale;
-    y = y * frameScale * pixelScale;
     local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint(1);
     frame:SetPoint(point, relativeTo, relativePoint, xOfs + x, yOfs + y);
 end
@@ -334,7 +329,6 @@ function FrameUtil.CreateTextButton(parent, nameSuffix, text, onClickHandler)
     local b = CreateFrame("Button", nameSuffix and (parent:GetName() .. "Button" .. nameSuffix), parent, "UIPanelButtonTemplate");
     b:SetText(text);
     b:SetScript("OnClick", onClickHandler);
----@diagnostic disable-next-line: undefined-field
     FrameUtil.WidthByText(b, b.Text);
     return b;
 end
@@ -449,7 +443,6 @@ do
         ScrollBarVisibility(self);
     end
     local counter = 1;
----@diagnostic disable: undefined-field
     function FrameUtil.CreateVerticalScrollFrame(parent, child)
         if (_p.isDragonflight) then
             return FrameUtil.CreateDragonflightScrollFrame(parent, child);
@@ -502,7 +495,6 @@ do
         return scroll;
     end
 end
----@diagnostic enable: undefined-field
 
 function FrameUtil.GetIconZoomTransform(zoom)
     return 0 + zoom, 0 + zoom, 0 + zoom, 1 - zoom, 1 - zoom, 0 + zoom, 1 - zoom, 1 - zoom;

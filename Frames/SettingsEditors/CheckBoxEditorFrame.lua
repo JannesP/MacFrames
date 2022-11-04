@@ -50,10 +50,10 @@ function CheckBoxEditorFrame.Create(parent, option)
     checkBox:SetPoint("CENTER");
 
     checkBox:SetScript("OnClick", BaseEditorFrame.CreateEditorOnChange(frame, CheckBox_OnChange));
-
     if (option.Description ~= nil) then
         FrameUtil.CreateTextTooltip(checkBox, option.Description, checkBox, nil, 0, 0, 1, 1, 1, 1);
     end
+    
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
     frame.GetMeasuredSize = CheckBoxEditorFrame.GetMeasuredSize;

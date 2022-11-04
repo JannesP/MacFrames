@@ -256,29 +256,29 @@ function UnitFrame.Setup(self)
     self.aggroBorder:Hide();
 
     self.rankIcon:ClearAllPoints();
-    PixelUtil.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
-    PixelUtil.SetPoint(self.rankIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
+    self.rankIcon:SetSize(1, self.settings.Frames.RoleIconSize);
+    self.rankIcon:SetPoint("TOPLEFT", self, "TOPLEFT", 3, -3);
 
     self.roleIcon:ClearAllPoints();
-    PixelUtil.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
-    PixelUtil.SetPoint(self.roleIcon, "TOPLEFT", self.rankIcon, "TOPRIGHT", 1, 0);
-    PixelUtil.SetPoint(self.roleIcon, "BOTTOMLEFT", self.rankIcon, "BOTTOMRIGHT", 1, 0);
+    self.roleIcon:SetSize(1, self.settings.Frames.RoleIconSize);
+    self.roleIcon:SetPoint("TOPLEFT", self.rankIcon, "TOPRIGHT", 1, 0);
+    self.roleIcon:SetPoint("BOTTOMLEFT", self.rankIcon, "BOTTOMRIGHT", 1, 0);
 
     local nameFontName, nameFontSize, nameFontFlags = self.name:GetFont();
-    PixelUtil.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
-    PixelUtil.SetPoint(self.name, "BOTTOMLEFT", self.roleIcon, "BOTTOMRIGHT", 2, 0);
-    PixelUtil.SetPoint(self.name, "RIGHT", self, "RIGHT", -2, 0);
+    self.name:SetPoint("TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
+    self.name:SetPoint("BOTTOMLEFT", self.roleIcon, "BOTTOMRIGHT", 2, 0);
+    self.name:SetPoint("RIGHT", self, "RIGHT", -2, 0);
     self.name:SetWordWrap(false);
     self.name:SetJustifyH("LEFT");
     
     local sic = self.statusIconContainer;
     sic.statusText.fontHeight = select(2, sic.statusText:GetFont());
-    PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
-    PixelUtil.SetPoint(sic, "LEFT", self, "LEFT", 0, -(nameFontSize / 2));
-    PixelUtil.SetPoint(sic, "RIGHT", self, "RIGHT", 0, -(nameFontSize / 2));
+    sic:SetHeight(self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
+    sic:SetPoint("LEFT", self, "LEFT", 0, -(nameFontSize / 2));
+    sic:SetPoint("RIGHT", self, "RIGHT", 0, -(nameFontSize / 2));
     sic:Show();
     
-    PixelUtil.SetPoint(sic.statusText, "TOP", sic, "TOP", 0, 0);
+    sic.statusText:SetPoint("TOP", sic, "TOP", 0, 0);
     sic.statusText:SetJustifyH("CENTER");
 
     sic.readyCheckIcon:ClearAllPoints();
@@ -306,7 +306,7 @@ function UnitFrame.Setup(self)
 
     local rti = self.raidTargetIcon;
     local iconTexture = rti.texture;
-    PixelUtil.SetPoint(rti, "CENTER", self, "CENTER", 0, 0);
+    rti:SetPoint("CENTER", self, "CENTER", 0, 0);
     iconTexture:SetAllPoints();
     iconTexture:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons");
     UnitFrame.UpdateRaidTargetIconSizeFromSettings(self);
@@ -339,7 +339,6 @@ function UnitFrame.SetRaidTargetIconByIndex(self, index)
     self.raidTargetIcon:Show();
 end
 
----@diagnostic disable: undefined-field
 function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
     local usedName = lsmName;
     local texturePath = LSM:Fetch(lsmType, lsmName, true);
@@ -364,7 +363,6 @@ function UnitFrame.GetFontFromSettings(lsmName)
     end
     return lsmEntry, usedName;
 end
----@diagnostic enable: undefined-field
 
 function UnitFrame.UpdateTargetHighlightTextureFromSettings(self)
     self.targetBorder.children:Resize(self.settings.Frames.TargetBorderWidth);
@@ -379,7 +377,7 @@ function UnitFrame.UpdateRaidTargetIconEnabledFromSettings(self)
 end
 
 function UnitFrame.UpdateRaidTargetIconSizeFromSettings(self)
-    PixelUtil.SetSize(self.raidTargetIcon, self.settings.Frames.RaidTargetIconSize, self.settings.Frames.RaidTargetIconSize);
+    self.raidTargetIcon:SetSize(self.settings.Frames.RaidTargetIconSize, self.settings.Frames.RaidTargetIconSize);
 end
 
 function UnitFrame.UpdateRaidTargetIconAlphaFromSettings(self)
@@ -395,6 +393,7 @@ function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     self.healthBar:SetStatusBarTexture(healthBarTexturePath, "BORDER");
     local healthBarTexture = self.healthBar:GetStatusBarTexture();
     self.healthBar.texture = healthBarTexture;
+    self.healthBar.texture:SetDrawLayer("BORDER", 0);
 
     self.healthBar.overlay:ClearAllPoints();
     self.healthBar.overlay:SetPoint("TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
@@ -406,27 +405,27 @@ function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     self.healAbsorb:SetBlendMode("BLEND");
     self.healAbsorb:SetColorTexture(1, 0, 0, 1);
     self.healAbsorb:SetVertexColor(0.2, 0, 0, 0.7);
-    PixelUtil.SetPoint(self.healAbsorb, "TOPRIGHT", healthBarTexture, "TOPRIGHT", 0, 0);
-    PixelUtil.SetPoint(self.healAbsorb, "BOTTOMRIGHT", healthBarTexture, "BOTTOMRIGHT", 0, 0);
+    self.healAbsorb:SetPoint("TOPRIGHT", healthBarTexture, "TOPRIGHT", 0, 0);
+    self.healAbsorb:SetPoint("BOTTOMRIGHT", healthBarTexture, "BOTTOMRIGHT", 0, 0);
 
     self.totalAbsorb:ClearAllPoints();
     self.totalAbsorb:SetTexture(healthBarTexturePath);
     self.totalAbsorb:SetVertexColor(0.6, 0.9, 1, 1);
-    PixelUtil.SetPoint(self.totalAbsorb, "TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
-    PixelUtil.SetPoint(self.totalAbsorb, "BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
+    self.totalAbsorb:SetPoint("TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
+    self.totalAbsorb:SetPoint("BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
 
     self.overAbsorb:ClearAllPoints();
     self.overAbsorb:SetTexture(Resources.HEALTH_OVER_ABSORB);
     self.overAbsorb:SetBlendMode("ADD");
-    PixelUtil.SetPoint(self.overAbsorb, "TOPRIGHT", self.healthBar, "TOPRIGHT", 0, 0);
-    PixelUtil.SetPoint(self.overAbsorb, "BOTTOMRIGHT", self.healthBar, "BOTTOMRIGHT", 0, 0);
+    self.overAbsorb:SetPoint("TOPRIGHT", self.healthBar, "TOPRIGHT", 0, 0);
+    self.overAbsorb:SetPoint("BOTTOMRIGHT", self.healthBar, "BOTTOMRIGHT", 0, 0);
     self.overAbsorb:SetWidth(6);
 
     self.healPrediction:ClearAllPoints();
     self.healPrediction:SetTexture(healthBarTexturePath);
     self.healPrediction:SetVertexColor(0, 0.55, 0.1, 0.5);
-    PixelUtil.SetPoint(self.healPrediction, "TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
-    PixelUtil.SetPoint(self.healPrediction, "BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
+    self.healPrediction:SetPoint("TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
+    self.healPrediction:SetPoint("BOTTOMLEFT", healthBarTexture, "BOTTOMLEFT", 0, 0);
 end
 
 function UnitFrame.UpdatePowerBarTextureFromSettings(self)
@@ -444,8 +443,7 @@ function UnitFrame.LayoutHealthAndPowerBar(self)
 
     if (self.settings.Frames.PowerBarEnabled) then
         powerBar.enabled = true;
-        local powerBarHeightPixelized = PixelUtil.GetNearestPixelSize(self.settings.Frames.PowerBarHeight, self:GetEffectiveScale(), 1);
-        powerBar:SetPoint("TOP", self, "BOTTOM", 0, powerBarHeightPixelized + 1);
+        powerBar:SetPoint("TOP", self, "BOTTOM", 0, self.settings.Frames.PowerBarHeight + 1);
         powerBar:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 1, 1);
         powerBar:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
         powerBar:Show();
@@ -461,8 +459,6 @@ function UnitFrame.LayoutHealthAndPowerBar(self)
         healthBar:ClearAllPoints();
         healthBar:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1);
         healthBar:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
-        --PixelUtil.SetPoint(self.healthBar, "TOPLEFT", self, "TOPLEFT", 1, -1);
-        --PixelUtil.SetPoint(self.healthBar, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1);
     end
 end
 
@@ -471,8 +467,8 @@ function UnitFrame.UpdateNameFontFromSettings(self)
     self.settings.Frames.NameFont.Name = usedLsmName;
     self.name:SetFont(fontPath, self.settings.Frames.NameFont.Size);
     self.name:ClearAllPoints();
-    PixelUtil.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
-    PixelUtil.SetPoint(self.name, "RIGHT", self, "RIGHT", -2, 0);
+    self.name:SetPoint("TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
+    self.name:SetPoint("RIGHT", self, "RIGHT", -2, 0);
 end
 
 function UnitFrame.UpdateStatusTextFontFromSettings(self)
@@ -578,7 +574,7 @@ do
         local visibleFrames = _visibleFrames;
         wipe(visibleFrames);
 
-        PixelUtil.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
+        sic:SetHeight(self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
 
         ProcessIcon(sic.readyCheckIcon);
         ProcessIcon(sic.summonIcon);
@@ -589,19 +585,19 @@ do
         if (#visibleFrames == 0) then
             --no frames visible, we just move the status text in the middle
             sic.statusText:ClearAllPoints();
-            PixelUtil.SetPoint(sic.statusText, "CENTER", sic, "CENTER", 0, 0);
+            sic.statusText:SetPoint("CENTER", sic, "CENTER", 0, 0);
         else
             local iconSize = self.settings.Frames.StatusIconSize;
             local totalWidth = #visibleFrames * iconSize;
-            PixelUtil.SetPoint(visibleFrames[1], "BOTTOMLEFT", sic, "BOTTOMLEFT", (sic:GetWidth() / 2) - (totalWidth / 2), 0);
-            PixelUtil.SetSize(visibleFrames[1], iconSize, iconSize);
+            visibleFrames[1]:SetPoint("BOTTOMLEFT", sic, "BOTTOMLEFT", (sic:GetWidth() / 2) - (totalWidth / 2), 0);
+            visibleFrames[1]:SetSize(iconSize, iconSize);
             for i=2,#visibleFrames do
-                PixelUtil.SetPoint(visibleFrames[i], "TOPLEFT", visibleFrames[i - 1], "TOPRIGHT", 0, 0);
-                PixelUtil.SetSize(visibleFrames[i], iconSize, iconSize);
+                visibleFrames[i]:SetPoint("TOPLEFT", visibleFrames[i - 1], "TOPRIGHT", 0, 0);
+                visibleFrames[i]:SetSize(iconSize, iconSize);
             end
             --since we displayed an icon we need to move the statusText up
             sic.statusText:ClearAllPoints();
-            PixelUtil.SetPoint(sic.statusText, "TOP", sic, "TOP", 0, 0);
+            sic.statusText:SetPoint("TOP", sic, "TOP", 0, 0);
         end
     end
 end
@@ -645,7 +641,7 @@ function UnitFrame.CreateSpecialClassDisplayFromSettings(self, classDisplayList)
     AuraGroup.SetUseFixedPositions(auraGroup, s.fixedPositions);
     AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
-    PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
+    auraGroup:SetPoint("TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
     auraGroup:Show();
     return auraGroup;
@@ -668,9 +664,9 @@ function UnitFrame.CreateBuffsFromSettings(self)
     AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
     if (self.auraGroups.specialClassDisplay ~= nil) then
-        PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self.auraGroups.specialClassDisplay, "BOTTOMRIGHT", 0, -1);
+        auraGroup:SetPoint("TOPRIGHT", self.auraGroups.specialClassDisplay, "BOTTOMRIGHT", 0, -1);
     else
-        PixelUtil.SetPoint(auraGroup, "TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
+        auraGroup:SetPoint("TOPRIGHT", self, "TOPRIGHT", -padding, -padding);
     end
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
     auraGroup:Show();
@@ -693,7 +689,7 @@ function UnitFrame.CreateDefensivesFromSettings(self)
     AuraGroup.SetReverseOrder(auraGroup, true);
     AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
-    PixelUtil.SetPoint(auraGroup, "BOTTOMRIGHT", self, "BOTTOMRIGHT", -padding, padding);
+    auraGroup:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 1);
     auraGroup:Show();
     return auraGroup;
@@ -714,7 +710,7 @@ function UnitFrame.CreateUndispellablesFromSettings(self)
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     local padding = self.settings.Frames.Padding;
-    PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self, "BOTTOMLEFT", padding, padding);
+    auraGroup:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", padding, padding);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
     auraGroup:Show();
     return auraGroup;
@@ -734,7 +730,7 @@ function UnitFrame.CreateDispellablesFromSettings(self)
     self.auraGroups.dispellable = auraGroup;
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
     AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
-    PixelUtil.SetPoint(auraGroup, "BOTTOMLEFT", self.auraGroups.undispellable, "TOPLEFT", 0, 1);
+    auraGroup:SetPoint("BOTTOMLEFT", self.auraGroups.undispellable, "TOPLEFT", 0, 1);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 2);
     auraGroup:Show();
     return auraGroup;
@@ -754,7 +750,7 @@ function UnitFrame.CreateBossAurasFromSettings(self)
     self.auraGroups.bossAuras = auraGroup;
     AuraGroup.EnableTooltips(auraGroup, s.EnableAuraTooltips);
     AuraGroup.SetUseBlizzardAuraFilter(auraGroup, s.useBlizzardAuraFilter);
-    PixelUtil.SetPoint(auraGroup, "CENTER", self, "CENTER", 0, 0);
+    auraGroup:SetPoint("CENTER", self, "CENTER", 0, 0);
     auraGroup:SetFrameLevel(self:GetFrameLevel() + 3);
     auraGroup:Show();
     return auraGroup;
@@ -1254,7 +1250,7 @@ function UnitFrame.UpdateRoleIcon(self)
             UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
 		else
 			self.roleIcon:Hide();
-			PixelUtil.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
+			self.roleIcon:SetSize(1, self.settings.Frames.RoleIconSize);
 		end
     end
     if (raidID and rank > 0) then
@@ -1270,7 +1266,7 @@ function UnitFrame.UpdateRoleIcon(self)
             UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
         else
             self.rankIcon:Hide();
-            PixelUtil.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
+            self.rankIcon:SetSize(1, self.settings.Frames.RoleIconSize);
         end
     end
 end
@@ -1280,7 +1276,7 @@ function UnitFrame.SetIcon(self, icon, texture, ...)
     icon:SetTexture(texture);
     icon:SetTexCoord(...);
     icon:Show();
-    PixelUtil.SetSize(icon, roleIconSize, roleIconSize);
+    icon:SetSize(roleIconSize, roleIconSize);
 end
 
 function UnitFrame.UpdateStatusText(self)
@@ -1465,7 +1461,7 @@ function UnitFrame.SetHealthBarExtraInfo(self, currentHealth, maxHealth, incomin
             healAbsorb = currentHealth;
         end
         local healAbsorbWidth = (healAbsorb / maxHealth) * totalWidth;
-        PixelUtil.SetWidth(self.healAbsorb, healAbsorbWidth);
+        self.healAbsorb:SetWidth(healAbsorbWidth);
         self.healAbsorb:Show();
     end
 end

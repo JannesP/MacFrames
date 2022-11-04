@@ -36,14 +36,14 @@ local _framePool = _p.FramePool.Create();
 function AuraFrame.new(parent, width, height, zoom)
     local frame = _framePool:Take();
     if (frame == nil) then
-        frame = CreateFrame("Frame", nil, parent, "MacFramesUnitFrameAuraTemplate");
+        frame = CreateFrame("Frame", nil, parent, "MacFramesUnitFrameAuraTemplate");        
         frame:SetScript("OnEnter", AuraFrame.DisplayTooltip);
         frame:SetScript("OnLeave", AuraFrame.HideTooltip);
         AuraFrame.EnableTooltip(frame, false);
     else
         frame:SetParent(parent);
     end
-    PixelUtil.SetSize(frame, width, height);
+    frame:SetScaledSize(width, height);
     
     frame.pinnedAura = nil;
     frame.cooldown:SetDrawEdge(false);
@@ -63,13 +63,13 @@ function AuraFrame.new(parent, width, height, zoom)
         frame.borderHost:SetAllPoints();
         frame.borderHost:Hide();
         frame.borderHost.api = FrameUtil.CreateSolidBorder(frame.borderHost, 1, 0, 0, 0, 1);
-    end    
+        
+    end
 
-    PixelUtil.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1, 1, 1);
-    PixelUtil.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1, 1, 1);
+    frame.icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1);
+    frame.icon:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
 
-    PixelUtil.SetPoint(frame.cooldown, "TOPLEFT", frame, "TOPLEFT", 1, -1, 1, 1);
-    PixelUtil.SetPoint(frame.cooldown, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1, 1, 1);
+    frame.cooldown:SetAllPoints(frame.icon);
 
     frame:Hide();
     return frame;

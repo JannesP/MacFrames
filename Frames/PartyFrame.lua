@@ -65,7 +65,7 @@ local function PartySettings_PropertyChanged(key)
             PartyFrame.SetForcedVisibility(_forcedVisibility);
         end
     else
-        PartyFrame.ProcessLayout(_frame);
+        PartyFrame.ProcessLayout(_frame, true);
     end
 end
 
@@ -148,14 +148,22 @@ end
 
 do
     local onSizeChangedSpacing, onSizeChangedMargin;
-    local function Frame_OnSizeChanged(self, width, height)
+    local function Frame_OnSizeChanged(self, width, height, isFinal)
         _changingSettings = true;
+        local frameWidth, frameHeight;
         if (_partySettings.Vertical) then
-            _partySettings.FrameWidth = width - (2 * onSizeChangedMargin);
-            _partySettings.FrameHeight = (height - ((#_unitFrames - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / #_unitFrames;
+            frameWidth = width - (2 * onSizeChangedMargin);
+            frameHeight = (height - ((#_unitFrames - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / #_unitFrames;
         else
-            _partySettings.FrameWidth = (width - ((#_unitFrames - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / #_unitFrames;
-            _partySettings.FrameHeight = height - (2 * onSizeChangedMargin);
+            frameWidth = width - (((#_unitFrames - 1) * onSizeChangedSpacing) - (2 * onSizeChangedMargin)) / #_unitFrames;
+            frameHeight = height - (2 * onSizeChangedMargin);
+        end
+        if (isFinal) then
+            _partySettings.FrameWidth = Round(frameWidth);
+            _partySettings.FrameHeight = Round(frameHeight);
+        else
+            _partySettings.FrameWidth = frameWidth;
+            _partySettings.FrameHeight = frameHeight;
         end
         _changingSettings = false;
         PartyFrame.ProcessLayout(self);
@@ -163,19 +171,19 @@ do
     function PartyFrame.create()
         if _frame ~= nil then error("You can only create a single PartyFrame.") end
         local frameName = Constants.PartyFrameGlobalName;
-        _frame = CreateFrame("Frame", frameName, UIParent, "SecureHandlerStateTemplate");
+        _frame = CreateFrame("Frame", frameName, _p.UIParent, "MacFramesPixelPerfectSecureHandlerStateTemplate");
         _frame:SetFrameStrata(_partySettings.FrameStrata);
         _frame:SetFrameLevel(_partySettings.FrameLevel);
 
-        _frame.petFrame = CreateFrame("Frame", frameName .. "Pets", _frame);
+        _frame.petFrame = CreateFrame("Frame", frameName .. "Pets", _frame, "MacFramesPixelPerfectTemplate");
         _frame.petFrame:SetFrameStrata(_partySettings.FrameStrata);
         _frame.petFrame:SetFrameLevel(_partySettings.FrameLevel);
 
         _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frameToMove)
             _changingSettings = true;
-            local point, relativeTo, relativePoint, xOfs, yOfs = frameToMove:GetPoint(1);
-            _partySettings.AnchorInfo.OffsetX = xOfs;
-            _partySettings.AnchorInfo.OffsetY = yOfs;
+            local point, relativeTo, relativePoint, xOffset, yOffset = frameToMove:GetPoint(1);
+            _partySettings.AnchorInfo.OffsetX = Round(xOffset);
+            _partySettings.AnchorInfo.OffsetY = Round(yOffset);
             _partySettings.AnchorInfo.AnchorPoint = point;
             for i=1, #_unitFrames do
                 UnitFrame.SnapToPixels(_unitFrames[i]);
@@ -183,14 +191,16 @@ do
             _changingSettings = false;
         end, false);
         
-        FrameUtil.AddResizer(_frame.dragDropHost, _frame, 
+        FrameUtil.AddResizer(_frame.dragDropHost, _frame,
             function(dragDropHost, frame)   --resizeStart
                 onSizeChangedSpacing = _partySettings.FrameSpacing;
                 onSizeChangedMargin = _partySettings.Margin;
                 _frame:SetScript("OnSizeChanged", Frame_OnSizeChanged);
             end, 
             function(dragDropHost, frame)   --resizeEnd
+                ---@diagnostic disable-next-line: param-type-mismatch
                 _frame:SetScript("OnSizeChanged", nil);
+                Frame_OnSizeChanged(_frame, _frame:GetWidth(), _frame:GetHeight(), true);
             end
         );
 
@@ -300,7 +310,7 @@ local function LayoutVerticalPets(self, petFrames)
     if (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Compact) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = (#petFrames * petFrameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -308,29 +318,31 @@ local function LayoutVerticalPets(self, petFrames)
             local y = margin + ((i - 1) * (petFrameHeight + spacing));
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
             
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetScaledSize(petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Beginning) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = ((#petFrames - 1) * frameHeight) + petFrameHeight + ((#petFrames - 1) * spacing) + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetScaledSize(self.petFrame, totalPetWidth, totalPetHeight);
 
+        local lastFrame;
         for i=1, #petFrames do
             local frame = petFrames[i];
-            local x = margin;
-            local y = margin + ((i - 1) * (frameHeight + spacing));
-            
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            if (lastFrame ~= nil) then
+                frame:SetPoint("TOPLEFT", lastFrame, "BOTTOMLEFT", margin, -spacing);
+            else
+                frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", margin, -margin);
+            end
+            frame:SetScaledSize(petFrameWidth, petFrameHeight);
+            lastFrame = frame;
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Center) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = (#petFrames * frameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -338,14 +350,14 @@ local function LayoutVerticalPets(self, petFrames)
             local y = margin + ((i - 1) * (frameHeight + spacing)) + (frameHeight - petFrameHeight) / 2;
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
             
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetSize(petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.End) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = ((#petFrames) * frameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -353,9 +365,9 @@ local function LayoutVerticalPets(self, petFrames)
             local y = margin + ((i - 1) * (frameHeight + spacing)) + (frameHeight - petFrameHeight);
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
             
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetSize(petFrameWidth, petFrameHeight);
         end
     end
 end
@@ -373,7 +385,7 @@ local function LayoutHorizontalPets(self, petFrames)
     if (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Compact) then
         local totalPetWidth = (#petFrames * petFrameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -381,14 +393,13 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (petFrameWidth + spacing));
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetSize(petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Beginning) then
         local totalPetWidth = ((#petFrames - 1) * frameWidth) + petFrameWidth + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -396,14 +407,13 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (frameWidth + spacing));
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetSize(petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Center) then
         local totalPetWidth = (#petFrames * frameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -411,14 +421,13 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (frameWidth + spacing)) + (frameWidth - petFrameWidth) / 2;
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetSize(petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.End) then
         local totalPetWidth = (#petFrames * frameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        PixelUtil.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
+        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -426,8 +435,8 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (frameWidth + spacing)) + (frameWidth - petFrameWidth);
             
             frame:ClearAllPoints();
-            PixelUtil.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            PixelUtil.SetSize(frame, petFrameWidth, petFrameHeight);
+            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            frame:SetSize(petFrameWidth, petFrameHeight);
         end
     end
 end
@@ -470,7 +479,7 @@ do
         if (reanchor == true) then
             local anchorInfo = _partySettings.AnchorInfo;
             self:ClearAllPoints();
-            PixelUtil.SetPoint(self, anchorInfo.AnchorPoint, UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
+            self:SetPoint(anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
         end
 
         local unitFrames, petFrames;
@@ -505,8 +514,7 @@ do
 
             local totalWidth = frameWidth + (2 * margin);
             local totalHeight = (#unitFrames * frameHeight) + ((#unitFrames - 1) * spacing) + (2 * margin);
-
-            PixelUtil.SetSize(self, totalWidth, totalHeight);
+            self:SetSize(totalWidth, totalHeight);
 
             for i=1, #unitFrames do
                 local frame = unitFrames[i];
@@ -514,8 +522,8 @@ do
                 local y = margin + ((i - 1) * (frameHeight + spacing));
                 
                 frame:ClearAllPoints();
-                PixelUtil.SetPoint(frame, "TOPLEFT", self, "TOPLEFT", x, -y);
-                PixelUtil.SetSize(frame, frameWidth, frameHeight);
+                frame:SetPoint("TOPLEFT", self, "TOPLEFT", x, -y);
+                frame:SetSize(frameWidth, frameHeight);
             end
 
             self.petFrame:ClearAllPoints();
@@ -546,16 +554,19 @@ do
             local totalWidth = (#unitFrames * frameWidth) + ((#unitFrames - 1) * spacing) + (2 * margin);
             local totalHeight = frameHeight + (2 * margin);
             
-            PixelUtil.SetSize(self, totalWidth, totalHeight);
+            self:SetSize(self, totalWidth, totalHeight);
             
+            local lastFrame;
             for i=1, #unitFrames do
                 local frame = unitFrames[i];
-                local x = margin + ((i - 1) * (frameWidth + spacing));
-                local y = margin;
                 frame:ClearAllPoints();
-                PixelUtil.SetPoint(frame, "TOPLEFT", self, "TOPLEFT", x, -y);
-                PixelUtil.SetSize(frame, frameWidth, frameHeight);
-                UnitFrame.SnapToPixels(frame);
+                frame:SetScaledSize(frameWidth, frameHeight);
+                if (lastFrame ~= nil) then
+                    frame:SetPoint("TOPLEFT", lastFrame, "TOPLEFT", margin, -spacing);
+                else
+                    frame:SetPoint("TOPLEFT", self, "TOPLEFT", margin, -margin);
+                end
+                lastFrame = frame;
             end
 
             self.petFrame:ClearAllPoints();

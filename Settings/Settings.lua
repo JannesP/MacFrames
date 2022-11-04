@@ -116,6 +116,7 @@ local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
     tinsert(auraGroupSettings, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 4,
         SoftMax = 100,
         Set = function(value)
@@ -128,6 +129,7 @@ local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
     tinsert(auraGroupSettings, {
         Name = L["Height"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 4,
         SoftMax = 100,
         Set = function(value)
@@ -140,6 +142,7 @@ local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
     tinsert(auraGroupSettings, {
         Name = L["Count"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 1,
         SoftMax = 10,
         Set = function(value)
@@ -152,6 +155,7 @@ local function AddAuraGroupOptions(targetOptions, GetAuraSettings)
     tinsert(auraGroupSettings, {
         Name = L["Spacing"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 0,
         SoftMax = 10,
         Set = function(value)
@@ -218,6 +222,7 @@ local function CreatePetSection(GetUnitFrameSettings)
     tinsert(sectionPets.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = Constants.UnitFrame.MinWidth,
         SoftMax = 400,
         Set = function(value)
@@ -230,6 +235,7 @@ local function CreatePetSection(GetUnitFrameSettings)
     tinsert(sectionPets.Options, {
         Name = L["Height"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = Constants.UnitFrame.MinHeight,
         SoftMax = 200,
         Set = function(value)
@@ -294,6 +300,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(frameLayoutOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = Constants.UnitFrame.MinWidth,
         SoftMax = 400,
         Set = function(value)
@@ -306,6 +313,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(frameLayoutOptions.Options, {
         Name = L["Height"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = Constants.UnitFrame.MinHeight,
         SoftMax = 200,
         Set = function(value)
@@ -318,6 +326,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(frameLayoutOptions.Options, {
         Name = L["Inner Spacing"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 0,
         SoftMax = 10,
         Set = function(value)
@@ -330,6 +339,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(frameLayoutOptions.Options, {
         Name = L["Aura Padding"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 0,
         SoftMax = 10,
         Set = function(value)
@@ -353,6 +363,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(subSectionIndicators.Options, {
         Name = L["Out of Range Alpha %"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 0,
         Max = 100,
         StepSize = 1,
@@ -387,6 +398,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(subSectionPowerBar.Options, {
         Name = L["Height"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 1,
         Max = 40,
         StepSize = 1,
@@ -401,6 +413,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(subSectionPerformance.Options, {
         Name = L["Range Checks per Second"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 1,
         SoftMax = 144,
         StepSize = 1,
@@ -415,6 +428,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(subSectionPerformance.Options, {
         Name = L["Boss Updates per Second"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 1,
         SoftMax = 144,
         StepSize = 1,
@@ -440,6 +454,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(subSectionRaidTargetIcon.Options, {
         Name = L["Icon Size"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 5,
         SoftMax = 40,
         StepSize = 1,
@@ -454,6 +469,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(subSectionRaidTargetIcon.Options, {
         Name = L["Alpha %"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 1,
         Max = 100,
         StepSize = 1,
@@ -503,6 +519,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(nameFontSection.Options, {
         Name = L["Font Size"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 6,
         SoftMax = 30,
         StepSize = 1,
@@ -531,6 +548,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         Name = L["Font Size"],
         Description = L["The font in the middle if someone is AFK or dead."],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 6,
         SoftMax = 30,
         StepSize = 1,
@@ -572,6 +590,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(classDisplayOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 4,
         SoftMax = 100,
         Set = function(value)
@@ -584,6 +603,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(classDisplayOptions.Options, {
         Name = L["Height"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 4,
         SoftMax = 100,
         Set = function(value)
@@ -596,6 +616,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(classDisplayOptions.Options, {
         Name = L["Spacing"],
         Type = OptionType.SliderValue,
+        Rounded = true,
         Min = 0,
         SoftMax = 10,
         Set = function(value)
@@ -670,6 +691,34 @@ tinsert(generalGeneral.Options, {
     Get = function()
         return ProfileManager.GetMinimapSettings().hide;
     end,
+});
+tinsert(generalGeneral.Options, {
+    Name = L["Toggle Frame Anchors"],
+    Description = L["Allows you to move the frames freely."],
+    Type = OptionType.ButtonAction,
+    ButtonText = L["Toggle"],
+    Set = function(value)
+        _p.Addon.ToggleAnchors();
+    end,
+    Get = _p.Noop,
+});
+tinsert(generalGeneral.Options, {
+    Name = L["Toggle Party Test Mode"],
+    Type = OptionType.ButtonAction,
+    ButtonText = L["Toggle"],
+    Set = function(value)
+        _p.Addon.ToggleTestMode(_p.Addon.TestMode.Party);
+    end,
+    Get = _p.Noop,
+});
+tinsert(generalGeneral.Options, {
+    Name = L["Toggle Raid Test Mode"],
+    Type = OptionType.ButtonAction,
+    ButtonText = L["Toggle"],
+    Set = function(value)
+        _p.Addon.ToggleTestMode(_p.Addon.TestMode.Raid);
+    end,
+    Get = _p.Noop,
 });
 tinsert(Settings.Categories, _general);
 

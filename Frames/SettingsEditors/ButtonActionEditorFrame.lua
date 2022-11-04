@@ -28,7 +28,6 @@ local ButtonActionEditorFrame = _p.ButtonActionEditorFrame;
 local _elementCount = 0;
 
 local function Button_OnClick(self)
-    print("test");
     self.editorFrame:SetOptionValue();
 end
 
@@ -43,7 +42,7 @@ function ButtonActionEditorFrame.Create(parent, option)
     button:SetPoint("CENTER");
 
     if (option.Description ~= nil) then
-        --FrameUtil.CreateTextTooltip(button, option.Description, nil, button, 0, 0, 1, 1, 1, 1);
+        FrameUtil.CreateTextTooltip(button, option.Description, nil, button, 0, 0, 1, 1, 1, 1);
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(_p.Noop);

@@ -116,4 +116,10 @@ end
 
 _p.isDragonflight = select(4, GetBuildInfo()) >= 100000;
 
+_p.UIParent = _G.UIParent; --= CrevateFrame("Frame", "MacFramesUIParent", UIParent);
+--_p.UIParent:SetPoint("BOTTOM");
+--_p.UIParent:SetIgnoreParentScale(true);
+--_p.UIParent:SetScale(PixelUtil.GetPixelToUIUnitFactor());
+--_p.UIParent:SetSize(GetPhysicalScreenSize());
+
 _p.Log("Finished init.");

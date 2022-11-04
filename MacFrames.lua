@@ -40,8 +40,8 @@ local _focusFrame;
 local _partyFrame;
 local _raidFrame;
 
-local Addon = {};
-_p.Addon = Addon;
+_p.Addon = {};
+local Addon = _p.Addon;
 
 Addon.LibMinimapIcon = LibMinimapIcon;
 
@@ -101,7 +101,6 @@ function Addon.SetupMinimapIcon()
             tooltip:Show()
         end,
     });
----@diagnostic disable-next-line: undefined-field
     LibMinimapIcon:Register(Constants.MinimapIconRegisterName, LdbDataObject, ProfileManager.GetMinimapSettings());
 end
 
@@ -293,15 +292,15 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 _partyFrame = PartyFrame.create();
                 _raidFrame = RaidFrame.create();
                 --@do-not-package@
-                _focusFrame = UnitFrame.new("focus", UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
+                _focusFrame = UnitFrame.new("focus", _p.UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
                 _focusFrame:SetSize(100, 50);
-                _focusFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500, 720);
+                _focusFrame:SetPoint("CENTER", _p.UIParent, "BOTTOMLEFT", 500, 720);
                 _focusFrame:Show();
                 local bossCount = 8;
                 for i=1,bossCount do
-                    local bossFrame = UnitFrame.new("boss" .. i, UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
+                    local bossFrame = UnitFrame.new("boss" .. i, _p.UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
                     bossFrame:SetSize(100, 50);
-                    bossFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 500 + (i / 4), 800 + 50 * (i - 1));
+                    bossFrame:SetPoint("CENTER", _p.UIParent, "BOTTOMLEFT", 500 + (i / 4), 800 + 50 * (i - 1));
                     bossFrame:Show();
                 end
                 --@end-do-not-package@
