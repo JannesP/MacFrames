@@ -61,7 +61,7 @@ _p.tprint = function(tbl, indent)
 end
 
 _p.UserChatMessage = function(msg)
-    DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0, GetChatTypeIndex("SYSTEM"));
+    DEFAULT_CHAT_FRAME:AddMessage("[MacFrames] " .. msg, 1, 1, 0, GetChatTypeIndex("SYSTEM"));
 end
 
 _p.CreateError = function(technicalMessage, userMessage, traceback)
