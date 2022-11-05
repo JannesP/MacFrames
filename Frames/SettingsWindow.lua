@@ -124,14 +124,14 @@ function SettingsWindow.Open()
             _window.tabPanel = CreateTabPanel(_window);
             _window.tabPanel:ClearAllPoints();
             PixelPerfect.SetPoint(_window.tabPanel, "TOPLEFT", _window, "BOTTOMLEFT", padding, 0);
-            PixelPerfect.SetPoint(_window.tabPanel, "TOPRIGHT", _window, "BOTTOMRIGHT", 0, 0);
+            PixelPerfect.SetPoint(_window.tabPanel, "TOPRIGHT", _window, "BOTTOMRIGHT");
             
             FrameUtil.AddResizer(_window, _window);
             _window:SetResizeBounds(600, 400, 1280, 800);
             _window:EnableMouse(true);
 
             PixelPerfect.SetSize(_window, 800, 500);
-            PixelPerfect.SetPoint(_window, "CENTER", _p.UIParent, "CENTER", 0, 0);            
+            PixelPerfect.SetPoint(_window, "CENTER", _p.UIParent, "CENTER");
         end
         _window:Show();
     else
