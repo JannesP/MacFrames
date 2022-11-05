@@ -21,6 +21,7 @@ local ADDON_NAME, _p = ...;
 local Constants = _p.Constants;
 local FrameUtil = _p.FrameUtil;
 local BaseEditorFrame = _p.BaseEditorFrame;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.GenericOptionsSettingsPage = {};
 local GenericOptionsSettingsPage = _p.GenericOptionsSettingsPage;
@@ -39,9 +40,9 @@ local function Section_Layout(self, width)
     if (self.optionsContainer) then
         local usedHeight = FrameUtil.StackVertical(self.optionsContainer, self.optionsContainer.optionEditorRows, 4);
         for _, row in ipairs(self.optionsContainer.optionEditorRows) do
-            row:SetWidth(self:GetWidth());
+            PixelPerfect.SetWidth(row, self:GetWidth());
         end
-        self.optionsContainer:SetHeight(usedHeight);
+        PixelPerfect.SetHeight(self.optionsContainer, usedHeight);
         height = height + usedHeight;
     end
     local subSections = self.subSections;
@@ -52,12 +53,12 @@ local function Section_Layout(self, width)
             height = height + section:GetHeight();
         end
     end
-    self:SetHeight(height);
+    PixelPerfect.SetHeight(self, height);
 end
 local function CreateSectionHeader(parent, text, fontName)
     local frame = CreateFrame("Frame", nil, parent);
     frame.text = FrameUtil.CreateText(frame, text, nil, fontName);
-    frame.text:SetPoint("LEFT");
+    PixelPerfect.SetPoint(frame.text, "LEFT");
     return frame;
 end
 local function CreateSection(parent, section, depth)
@@ -65,30 +66,30 @@ local function CreateSection(parent, section, depth)
     local seperator;
     if (depth <= 1) then    --this is the section heading
         seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightHuge");
-        seperator.text:SetPoint("TOPLEFT", seperator, 0, -4);
+        PixelPerfect.SetPoint(seperator.text, "TOPLEFT", seperator, 0, -4);
         seperator.texSeperatorBar = seperator:CreateTexture();
         seperator.texSeperatorBar:SetAtlas("Options_HorizontalDivider", true);
-        seperator.texSeperatorBar:SetPoint("LEFT");
-        seperator.texSeperatorBar:SetPoint("RIGHT");
-        seperator.texSeperatorBar:SetPoint("BOTTOM", seperator, "BOTTOM", 0, 4);
-        seperator:SetHeight(select(2, seperator.text:GetFont()) + 14);
+        PixelPerfect.SetPoint(seperator.texSeperatorBar, "LEFT");
+        PixelPerfect.SetPoint(seperator.texSeperatorBar, "RIGHT");
+        PixelPerfect.SetPoint(seperator.texSeperatorBar, "BOTTOM", seperator, "BOTTOM", 0, 4);
+        PixelPerfect.SetHeight(seperator, select(2, seperator.text:GetFont()) + 14);
     elseif (depth > 1) then --these are subsection headings
         seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightLarge");
-        seperator.text:SetPoint("LEFT", seperator, "LEFT", 0, -6);
-        seperator:SetHeight(select(2, seperator.text:GetFont()) + 16);
+        PixelPerfect.SetPoint(seperator.text, "LEFT", seperator, "LEFT", 0, -6);
+        PixelPerfect.SetHeight(seperator, select(2, seperator.text:GetFont()) + 16);
     end
     s.seperator = seperator;
-    seperator:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0);
-    seperator:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
+    PixelPerfect.SetPoint(seperator, "TOPLEFT", s, "TOPLEFT", 0, 0);
+    PixelPerfect.SetPoint(seperator, "TOPRIGHT", s, "TOPRIGHT", 0, 0);
     if (section.Options and #section.Options > 0) then
         s.optionsContainer = CreateFrame("Frame", nil, s);
         s.optionsContainer:ClearAllPoints();
         if (seperator) then
-            s.optionsContainer:SetPoint("TOPLEFT", seperator, "BOTTOMLEFT", 0, 0);
-            s.optionsContainer:SetPoint("TOPRIGHT", seperator, "BOTTOMRIGHT", 0, 0);
+            PixelPerfect.SetPoint(s.optionsContainer, "TOPLEFT", seperator, "BOTTOMLEFT", 0, 0);
+            PixelPerfect.SetPoint(s.optionsContainer, "TOPRIGHT", seperator, "BOTTOMRIGHT", 0, 0);
         else
-            s.optionsContainer:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0);
-            s.optionsContainer:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
+            PixelPerfect.SetPoint(s.optionsContainer, "TOPLEFT", s, "TOPLEFT", 0, 0);
+            PixelPerfect.SetPoint(s.optionsContainer, "TOPRIGHT", s, "TOPRIGHT", 0, 0);
         end
         s.optionsContainer.optionEditorRows = {};
         s.optionsContainer.optionEditors = {};
@@ -98,17 +99,17 @@ local function CreateSection(parent, section, depth)
             local rowFrame = CreateFrame("Frame", nil, s.optionsContainer);
             rowFrame.option = option;
             rowFrame.text = FrameUtil.CreateText(rowFrame, option.Name);
-            rowFrame.text:SetPoint("CENTER");
-            rowFrame.text:SetPoint("LEFT", rowFrame, "LEFT", _subSectionRowInset, 0);
+            PixelPerfect.SetPoint(rowFrame.text, "CENTER");
+            PixelPerfect.SetPoint(rowFrame.text, "LEFT", rowFrame, "LEFT", _subSectionRowInset, 0);
 
             local editor = BaseEditorFrame.Create(rowFrame, option);
-            editor:SetSize(editor:GetMeasuredSize());
-            editor:SetPoint("CENTER");
-            editor:SetPoint("LEFT", rowFrame, "LEFT", _optionTextColumnWidth, 0);
+            PixelPerfect.SetSize(editor, editor:GetMeasuredSize());
+            PixelPerfect.SetPoint(editor, "CENTER");
+            PixelPerfect.SetPoint(editor, "LEFT", rowFrame, "LEFT", _optionTextColumnWidth, 0);
 
             local textHeight = select(2, rowFrame.text:GetFont());
             local editorHeight = editor:GetHeight();
-            rowFrame:SetHeight(max(textHeight, editorHeight));
+            PixelPerfect.SetHeight(rowFrame, max(textHeight, editorHeight));
 
             if (option.Description ~= nil) then
                 FrameUtil.CreateTextTooltip(rowFrame, option.Description, rowFrame, "ANCHOR_TOPLEFT", _optionTextColumnWidth + 20, 0, 1, 1, 1, 1);
@@ -129,15 +130,15 @@ local function CreateSection(parent, section, depth)
             sFrame:ClearAllPoints();
             if (lastSection == nil) then
                 if (s.optionsContainer) then
-                    sFrame:SetPoint("TOPLEFT", s.optionsContainer, "BOTTOMLEFT", 0, 0);
-                    sFrame:SetPoint("TOPRIGHT", s.optionsContainer, "BOTTOMRIGHT", 0, 0);
+                    PixelPerfect.SetPoint(sFrame, "TOPLEFT", s.optionsContainer, "BOTTOMLEFT", 0, 0);
+                    PixelPerfect.SetPoint(sFrame, "TOPRIGHT", s.optionsContainer, "BOTTOMRIGHT", 0, 0);
                 else
-                    sFrame:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0);
-                    sFrame:SetPoint("TOPRIGHT", s, "TOPRIGHT", 0, 0);
+                    PixelPerfect.SetPoint(sFrame, "TOPLEFT", s, "TOPLEFT", 0, 0);
+                    PixelPerfect.SetPoint(sFrame, "TOPRIGHT", s, "TOPRIGHT", 0, 0);
                 end
             else
-                sFrame:SetPoint("TOPLEFT", lastSection, "BOTTOMLEFT", 0, 0);
-                sFrame:SetPoint("TOPRIGHT", lastSection, "BOTTOMRIGHT", 0, 0);
+                PixelPerfect.SetPoint(sFrame, "TOPLEFT", lastSection, "BOTTOMLEFT", 0, 0);
+                PixelPerfect.SetPoint(sFrame, "TOPRIGHT", lastSection, "BOTTOMRIGHT", 0, 0);
             end
             lastSection = sFrame;
             s.subSections[i] = sFrame;
@@ -241,7 +242,7 @@ do
         button.Texture:Hide();
 
         button.Label = FrameUtil.CreateText(button, text);
-        button.Label:SetPoint("CENTER", button, "CENTER");
+        PixelPerfect.SetPoint(button.Label, "CENTER", button, "CENTER");
         button.Label:Show();
 
         button.SetSelected = Button_SetSelected;
@@ -272,13 +273,13 @@ local function SetupSectionList(sectionList)
     for i=1, #sectionList.Buttons do
         local button = sectionList.Buttons[i];
         if (lastButton == nil) then
-            button:SetPoint("TOPLEFT", sectionList, "TOPLEFT", 0, -6);
-            button:SetPoint("TOPRIGHT", sectionList, "TOPRIGHT", 0, -6);
+            PixelPerfect.SetPoint(button, "TOPLEFT", sectionList, "TOPLEFT", 0, -6);
+            PixelPerfect.SetPoint(button, "TOPRIGHT", sectionList, "TOPRIGHT", 0, -6);
         else
-            button:SetPoint("TOPLEFT", lastButton, "BOTTOMLEFT", 0, -2);
-            button:SetPoint("TOPRIGHT", lastButton, "BOTTOMRIGHT", 0, -2);
+            PixelPerfect.SetPoint(button, "TOPLEFT", lastButton, "BOTTOMLEFT", 0, -2);
+            PixelPerfect.SetPoint(button, "TOPRIGHT", lastButton, "BOTTOMRIGHT", 0, -2);
         end
-        button:SetHeight(20);
+        PixelPerfect.SetHeight(button, 20);
         button:SetScript("OnClick", function(self)
             if (self:IsSelected()) then
                 return;
@@ -307,22 +308,22 @@ function GenericOptionsSettingsPage.Create(parent, category)
 
     _tabPanelCount = _tabPanelCount + 1;
     frame.sectionList = CreateFrame("Frame", frame:GetName() .. "SectionList" .. _tabPanelCount, frame);
-    frame.sectionList:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0);
-    frame.sectionList:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
-    frame.sectionList:SetWidth(160);
+    PixelPerfect.SetPoint(frame.sectionList, "TOPLEFT", frame, "TOPLEFT", 0, 0);
+    PixelPerfect.SetPoint(frame.sectionList, "BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0);
+    PixelPerfect.SetWidth(frame.sectionList, 160);
     frame.sectionList.Buttons = {};
 
     frame.seperator = FrameUtil.CreateSolidTexture(frame, 0.6, 0.6, 0.6, 0.35);
-    frame.seperator:SetPoint("TOPLEFT", frame.sectionList, "TOPRIGHT");
-    frame.seperator:SetPoint("BOTTOMRIGHT", frame.sectionList, "BOTTOMRIGHT", 2, 0);
+    PixelPerfect.SetPoint(frame.seperator, "TOPLEFT", frame.sectionList, "TOPRIGHT");
+    PixelPerfect.SetPoint(frame.seperator, "BOTTOMRIGHT", frame.sectionList, "BOTTOMRIGHT", 2, 0);
 
     frame.contentContainer = CreateFrame("Frame", frame:GetName() .. "ContentContainer", frame);
-    frame.contentContainer:SetPoint("TOPLEFT", frame.seperator, "TOPRIGHT", 0, 0);
-    frame.contentContainer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
+    PixelPerfect.SetPoint(frame.contentContainer, "TOPLEFT", frame.seperator, "TOPRIGHT", 0, 0);
+    PixelPerfect.SetPoint(frame.contentContainer, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
 
     frame.contentHost = CreateFrame("Frame", frame:GetName() .. "ContentHost", frame.contentContainer);
-    frame.contentHost:SetPoint("TOPLEFT", frame.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
-    frame.contentHost:SetPoint("BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
+    PixelPerfect.SetPoint(frame.contentHost, "TOPLEFT", frame.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
+    PixelPerfect.SetPoint(frame.contentHost, "BOTTOMRIGHT", frame.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
 
     frame.optionSections = {};
 
@@ -338,8 +339,8 @@ function GenericOptionsSettingsPage.Create(parent, category)
         uiSection.content = CreateSection(nil, section, 1);
         uiSection.scrollFrame = FrameUtil.CreateVerticalScrollFrame(frame.contentHost, uiSection.content);
         uiSection.scrollFrame:ClearAllPoints();
-        uiSection.scrollFrame:SetPoint("TOPLEFT", frame.contentHost, "TOPLEFT");
-        uiSection.scrollFrame:SetPoint("BOTTOMRIGHT", frame.contentHost, "BOTTOMRIGHT", 0, 0);
+        PixelPerfect.SetPoint(uiSection.scrollFrame, "TOPLEFT", frame.contentHost, "TOPLEFT");
+        PixelPerfect.SetPoint(uiSection.scrollFrame, "BOTTOMRIGHT", frame.contentHost, "BOTTOMRIGHT", 0, 0);
         uiSection.content:SetScript("OnSizeChanged", function(self, width, height)
             self:Layout(width, height);
             uiSection.scrollFrame:RefreshScrollBarVisibility();

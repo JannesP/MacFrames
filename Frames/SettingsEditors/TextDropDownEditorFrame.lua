@@ -21,6 +21,7 @@ local L = _p.L;
 
 local BaseEditorFrame = _p.BaseEditorFrame;
 local OptionType = _p.Settings.OptionType;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.TextDropDownEditorFrame = {};
 local TextDropDownEditorFrame = _p.TextDropDownEditorFrame;
@@ -43,7 +44,7 @@ function TextDropDownEditorFrame.Create(parent, option)
     local dropDown = CreateFrame("EventButton", nil, frame, "MacFramesTextDropDownButtonTemplate");
     frame.dropDown = dropDown;
     dropDown.editor = frame;
-    dropDown:SetPoint("LEFT", frame);
+    PixelPerfect.SetPoint(dropDown, "LEFT", frame);
     dropDown:RegisterCallback("OnValueChanged", function(randomInt, selection)
         ChangedValue(selection.dropDown.editor, selection.displayText, selection.value);
     end);

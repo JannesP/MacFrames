@@ -21,6 +21,7 @@ local ADDON_NAME, _p = ...;
 local BaseEditorFrame = _p.BaseEditorFrame;
 local OptionType = _p.Settings.OptionType;
 local FrameUtil = _p.FrameUtil;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.SliderEditorFrame = {};
 local SliderEditorFrame = _p.SliderEditorFrame;
@@ -89,8 +90,8 @@ function SliderEditorFrame.Create(parent, option)
     local slider = CreateFrame("Frame", nil, frame, "MinimalSliderWithSteppersTemplate");
     frame.slider = slider;
     slider.Slider.editorFrame = frame;
-    slider:SetPoint("LEFT", frame);
-    slider:SetWidth(250);
+    PixelPerfect.SetPoint(slider, "LEFT", frame);
+    PixelPerfect.SetWidth(slider, 250);
     slider.Slider:SetMinMaxValues(option.Min, option.Max or option.SoftMax or error("Sliders need a maximum value (either SoftMax or Max)"));
     slider.Slider:SetValue(value);
     slider.Slider:SetValueStep(option.StepSize or 1);
@@ -103,17 +104,17 @@ function SliderEditorFrame.Create(parent, option)
     editBox:SetNumeric(true);
     editBox:SetMaxLetters(3);
     editBox:SetNumber(value);
-    editBox:SetWidth(27);
+    PixelPerfect.SetWidth(editBox, 27);
     editBox:ClearAllPoints();
 ---@diagnostic disable-next-line: param-type-mismatch
-    editBox:SetPoint("LEFT", slider, "RIGHT", 5, 0);
-    editBox:SetHeight(select(2, editBox:GetFont()));
+    PixelPerfect.SetPoint(editBox, "LEFT", slider, "RIGHT", 5, 0);
+    PixelPerfect.SetHeight(editBox, select(2, editBox:GetFont()));
     editBox:SetFrameLevel(slider:GetFrameLevel() + 1);
 
     local rangeTextContent = "(" .. option.Min .. "-" .. (option.Max or option.SoftMax) .. (option.SoftMax and "+" or "") .. ")";
     local rangeText = FrameUtil.CreateText(frame, rangeTextContent, nil, "GameFontDisable");
     frame.rangeText = rangeText;
-    rangeText:SetPoint("LEFT", editBox, "RIGHT", 4, 0);
+    PixelPerfect.SetPoint(rangeText, "LEFT", editBox, "RIGHT", 4, 0);
     
     editBox:SetScript("OnEnterPressed", EditBox_ClearFocus);
     editBox:SetScript("OnTabPressed", EditBox_ClearFocus);

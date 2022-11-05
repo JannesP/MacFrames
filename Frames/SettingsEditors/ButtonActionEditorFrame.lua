@@ -21,6 +21,7 @@ local ADDON_NAME, _p = ...;
 local FrameUtil = _p.FrameUtil;
 local BaseEditorFrame = _p.BaseEditorFrame;
 local OptionType = _p.Settings.OptionType;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.ButtonActionEditorFrame = {};
 local ButtonActionEditorFrame = _p.ButtonActionEditorFrame;
@@ -39,7 +40,7 @@ function ButtonActionEditorFrame.Create(parent, option)
     local button = FrameUtil.CreateTextButton(frame, nil, option.ButtonText, BaseEditorFrame.CreateEditorOnChange(frame, Button_OnClick));
     frame.button = button;
     button.editorFrame = frame;
-    button:SetPoint("CENTER");
+    PixelPerfect.SetPoint(button, "CENTER");
 
     if (option.Description ~= nil) then
         FrameUtil.CreateTextTooltip(button, option.Description, nil, button, 0, 0, 1, 1, 1, 1);

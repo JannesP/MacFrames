@@ -26,6 +26,7 @@ local ProfileManager = _p.ProfileManager;
 local BlizzardFrameUtil = _p.BlizzardFrameUtil;
 local StringUtil = _p.StringUtil;
 local MacEnum = _p.MacEnum;
+local PixelPerfect = _p.PixelPerfect;
 
 local String_EndsWith = StringUtil.EndsWith;
 
@@ -171,11 +172,11 @@ do
     function PartyFrame.create()
         if _frame ~= nil then error("You can only create a single PartyFrame.") end
         local frameName = Constants.PartyFrameGlobalName;
-        _frame = CreateFrame("Frame", frameName, _p.UIParent, "MacFramesPixelPerfectSecureHandlerStateTemplate");
+        _frame = CreateFrame("Frame", frameName, _p.UIParent);
         _frame:SetFrameStrata(_partySettings.FrameStrata);
         _frame:SetFrameLevel(_partySettings.FrameLevel);
 
-        _frame.petFrame = CreateFrame("Frame", frameName .. "Pets", _frame, "MacFramesPixelPerfectTemplate");
+        _frame.petFrame = CreateFrame("Frame", frameName .. "Pets", _frame);
         _frame.petFrame:SetFrameStrata(_partySettings.FrameStrata);
         _frame.petFrame:SetFrameLevel(_partySettings.FrameLevel);
 
@@ -310,7 +311,7 @@ local function LayoutVerticalPets(self, petFrames)
     if (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Compact) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = (#petFrames * petFrameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -318,31 +319,31 @@ local function LayoutVerticalPets(self, petFrames)
             local y = margin + ((i - 1) * (petFrameHeight + spacing));
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
             
-            frame:SetScaledSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Beginning) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = ((#petFrames - 1) * frameHeight) + petFrameHeight + ((#petFrames - 1) * spacing) + (2 * margin);
-        self.petFrame:SetScaledSize(self.petFrame, totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         local lastFrame;
         for i=1, #petFrames do
             local frame = petFrames[i];
             frame:ClearAllPoints();
             if (lastFrame ~= nil) then
-                frame:SetPoint("TOPLEFT", lastFrame, "BOTTOMLEFT", margin, -spacing);
+                PixelPerfect.SetPoint(frame, "TOPLEFT", lastFrame, "BOTTOMLEFT", margin, -spacing);
             else
-                frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", margin, -margin);
+                PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", margin, -margin);
             end
-            frame:SetScaledSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
             lastFrame = frame;
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Center) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = (#petFrames * frameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -350,14 +351,14 @@ local function LayoutVerticalPets(self, petFrames)
             local y = margin + ((i - 1) * (frameHeight + spacing)) + (frameHeight - petFrameHeight) / 2;
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
             
-            frame:SetSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.End) then
         local totalPetWidth = petFrameWidth + (2 * margin);
         local totalPetHeight = ((#petFrames) * frameHeight) + ((#petFrames - 1) * spacing) + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -365,9 +366,9 @@ local function LayoutVerticalPets(self, petFrames)
             local y = margin + ((i - 1) * (frameHeight + spacing)) + (frameHeight - petFrameHeight);
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
             
-            frame:SetSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     end
 end
@@ -385,7 +386,7 @@ local function LayoutHorizontalPets(self, petFrames)
     if (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Compact) then
         local totalPetWidth = (#petFrames * petFrameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -393,13 +394,13 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (petFrameWidth + spacing));
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            frame:SetSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Beginning) then
         local totalPetWidth = ((#petFrames - 1) * frameWidth) + petFrameWidth + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -407,13 +408,13 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (frameWidth + spacing));
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            frame:SetSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.Center) then
         local totalPetWidth = (#petFrames * frameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -421,13 +422,13 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (frameWidth + spacing)) + (frameWidth - petFrameWidth) / 2;
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            frame:SetSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     elseif (petSettings.AlignWithPlayer == MacEnum.Settings.PetFramePartyAlignment.End) then
         local totalPetWidth = (#petFrames * frameWidth) + ((#petFrames - 1) * spacing) + (2 * margin);
         local totalPetHeight = petFrameHeight + (2 * margin);
-        self.petFrame:SetSize(totalPetWidth, totalPetHeight);
+        PixelPerfect.SetSize(self.petFrame, totalPetWidth, totalPetHeight);
 
         for i=1, #petFrames do
             local frame = petFrames[i];
@@ -435,8 +436,8 @@ local function LayoutHorizontalPets(self, petFrames)
             local x = margin + ((i - 1) * (frameWidth + spacing)) + (frameWidth - petFrameWidth);
             
             frame:ClearAllPoints();
-            frame:SetPoint("TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
-            frame:SetSize(petFrameWidth, petFrameHeight);
+            PixelPerfect.SetPoint(frame, "TOPLEFT", self.petFrame, "TOPLEFT", x, -y);
+            PixelPerfect.SetSize(frame, petFrameWidth, petFrameHeight);
         end
     end
 end
@@ -479,7 +480,7 @@ do
         if (reanchor == true) then
             local anchorInfo = _partySettings.AnchorInfo;
             self:ClearAllPoints();
-            self:SetPoint(anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
+            PixelPerfect.SetPoint(self, anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
         end
 
         local unitFrames, petFrames;
@@ -510,7 +511,7 @@ do
 
             local totalWidth = frameWidth + (2 * margin);
             local totalHeight = (#unitFrames * frameHeight) + ((#unitFrames - 1) * spacing) + (2 * margin);
-            self:SetSize(totalWidth, totalHeight);
+            PixelPerfect.SetSize(self, totalWidth, totalHeight);
 
             for i=1, #unitFrames do
                 local frame = unitFrames[i];
@@ -518,8 +519,8 @@ do
                 local y = margin + ((i - 1) * (frameHeight + spacing));
                 
                 frame:ClearAllPoints();
-                frame:SetPoint("TOPLEFT", self, "TOPLEFT", x, -y);
-                frame:SetSize(frameWidth, frameHeight);
+                PixelPerfect.SetPoint(frame, "TOPLEFT", self, "TOPLEFT", x, -y);
+                PixelPerfect.SetSize(frame, frameWidth, frameHeight);
             end
 
             self.petFrame:ClearAllPoints();
@@ -530,13 +531,13 @@ do
                 local positions = MacEnum.Settings.PetFramePosition;
                 local position = petSettings.PositionTo;
                 if (position == positions.Right) then
-                    self.petFrame:SetPoint("TOPLEFT", self, "TOPRIGHT");
+                    PixelPerfect.SetPoint(self.petFrame, "TOPLEFT", self, "TOPRIGHT");
                 elseif (position == positions.Left) then
-                    self.petFrame:SetPoint("TOPRIGHT", self, "TOPLEFT");
+                    PixelPerfect.SetPoint(self.petFrame, "TOPRIGHT", self, "TOPLEFT");
                 elseif (position == positions.Top) then
-                    self.petFrame:SetPoint("BOTTOM", self, "TOP");
+                    PixelPerfect.SetPoint(self.petFrame, "BOTTOM", self, "TOP");
                 elseif (position == positions.Bottom) then
-                    self.petFrame:SetPoint("TOP", self, "BOTTOM");
+                    PixelPerfect.SetPoint(self.petFrame, "TOP", self, "BOTTOM");
                 end
                 self.petFrame:Show();
             end
@@ -546,17 +547,17 @@ do
             local totalWidth = (#unitFrames * frameWidth) + ((#unitFrames - 1) * spacing) + (2 * margin);
             local totalHeight = frameHeight + (2 * margin);
             
-            self:SetSize(self, totalWidth, totalHeight);
+            PixelPerfect.SetSize(self, totalWidth, totalHeight);
             
             local lastFrame;
             for i=1, #unitFrames do
                 local frame = unitFrames[i];
                 frame:ClearAllPoints();
-                frame:SetScaledSize(frameWidth, frameHeight);
+                PixelPerfect.SetSize(frame, frameWidth, frameHeight);
                 if (lastFrame ~= nil) then
-                    frame:SetPoint("TOPLEFT", lastFrame, "TOPLEFT", margin, -spacing);
+                    PixelPerfect.SetPoint(frame, "TOPLEFT", lastFrame, "TOPLEFT", margin, -spacing);
                 else
-                    frame:SetPoint("TOPLEFT", self, "TOPLEFT", margin, -margin);
+                    PixelPerfect.SetPoint(frame, "TOPLEFT", self, "TOPLEFT", margin, -margin);
                 end
                 lastFrame = frame;
             end
@@ -569,13 +570,13 @@ do
                 local positions = MacEnum.Settings.PetFramePosition;
                 local position = petSettings.PositionTo;
                 if (position == positions.Right) then
-                    self.petFrame:SetPoint("LEFT", self, "RIGHT");
+                    PixelPerfect.SetPoint(self.petFrame, "LEFT", self, "RIGHT");
                 elseif (position == positions.Left) then
-                    self.petFrame:SetPoint("RIGHT", self, "LEFT");
+                    PixelPerfect.SetPoint(self.petFrame, "RIGHT", self, "LEFT");
                 elseif (position == positions.Top) then
-                    self.petFrame:SetPoint("BOTTOMLEFT", self, "TOPLEFT");
+                    PixelPerfect.SetPoint(self.petFrame, "BOTTOMLEFT", self, "TOPLEFT");
                 elseif (position == positions.Bottom) then
-                    self.petFrame:SetPoint("TOPLEFT", self, "BOTTOMLEFT");
+                    PixelPerfect.SetPoint(self.petFrame, "TOPLEFT", self, "BOTTOMLEFT");
                 end
                 self.petFrame:Show();
             end

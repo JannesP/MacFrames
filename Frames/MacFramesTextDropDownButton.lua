@@ -18,6 +18,7 @@
 
 local ADDON_NAME, _p = ...;
 local L = _p.L;
+local PixelPerfect = _p.PixelPerfect;
 
 MacFramesTextDropDownButtonMixin = CreateFromMixins(SelectionPopoutButtonMixin);
 
@@ -41,7 +42,7 @@ function MacFramesTextSelectionPopoutEntryDetailsMixin:GetTooltipText()
     return self.selectionData.tooltip;
 end
 function MacFramesTextSelectionPopoutEntryDetailsMixin:AdjustWidth(multipleColumns, width)
-    self:SetWidth(width);
+    PixelPerfect.SetWidth(self, width);
 end
 function MacFramesTextSelectionPopoutEntryDetailsMixin:SetupDetails(selectionData, index, isSelected, hasIneligibleChoice, hasLockedChoice)
     if (selectionData == nil) then

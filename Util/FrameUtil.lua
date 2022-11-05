@@ -21,6 +21,7 @@ local L = _p.L;
 
 _p.FrameUtil = {};
 local FrameUtil = _p.FrameUtil;
+local PixelPerfect = _p.PixelPerfect;
 
 
 function FrameUtil.CreateText(frame, text, strata, font)
@@ -34,7 +35,7 @@ function FrameUtil.CreateFrameWithText(parent, name, text)
     local frame = CreateFrame("Frame", name, parent);
     frame.text = FrameUtil.CreateText(frame, text);
     frame.text:ClearAllPoints();
-    frame.text:SetPoint("CENTER", frame, "CENTER");
+    PixelPerfect.SetPoint(frame.text, "CENTER", frame, "CENTER");
     return frame;
 end
 
@@ -85,10 +86,10 @@ do
     local FramePixelBorderMixin = {};
     function FramePixelBorderMixin:Resize(width)
         self.width = width;
-        self.left:SetWidth(width);
-        self.right:SetWidth(width);
-        self.top:SetHeight(width);
-        self.bottom:SetHeight(width);
+        PixelPerfect.SetWidth(self.left, width);
+        PixelPerfect.SetWidth(self.right, width);
+        PixelPerfect.SetHeight(self.top, width);
+        PixelPerfect.SetHeight(self.bottom, width);
     end
     function FramePixelBorderMixin:SetColor(...)
         self.left:SetColorTexture(...);
@@ -108,17 +109,17 @@ do
         borderFrames:Resize(width);
         borderFrames:SetColor(...);
 
-        borderFrames.left:SetPoint("TOPLEFT", frame, "TOPLEFT");
-        borderFrames.left:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT");
+        PixelPerfect.SetPoint(borderFrames.left, "TOPLEFT", frame, "TOPLEFT");
+        PixelPerfect.SetPoint(borderFrames.left, "BOTTOMLEFT", frame, "BOTTOMLEFT");
 
-        borderFrames.top:SetPoint("TOPLEFT", frame, "TOPLEFT");
-        borderFrames.top:SetPoint("TOPRIGHT", frame, "TOPRIGHT");
+        PixelPerfect.SetPoint(borderFrames.top, "TOPLEFT", frame, "TOPLEFT");
+        PixelPerfect.SetPoint(borderFrames.top, "TOPRIGHT", frame, "TOPRIGHT");
 
-        borderFrames.right:SetPoint("TOPRIGHT", frame, "TOPRIGHT");
-        borderFrames.right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT");
+        PixelPerfect.SetPoint(borderFrames.right, "TOPRIGHT", frame, "TOPRIGHT");
+        PixelPerfect.SetPoint(borderFrames.right, "BOTTOMRIGHT", frame, "BOTTOMRIGHT");
 
-        borderFrames.bottom:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT");
-        borderFrames.bottom:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT");
+        PixelPerfect.SetPoint(borderFrames.bottom, "BOTTOMLEFT", frame, "BOTTOMLEFT");
+        PixelPerfect.SetPoint(borderFrames.bottom, "BOTTOMRIGHT", frame, "BOTTOMRIGHT");
         return borderFrames;
     end
 end
@@ -171,43 +172,43 @@ do
 
         local bUp = FrameUtil.CreateArrowButton(dragDropHost, "up");
         bUp:ClearAllPoints();
-        bUp:SetPoint("BOTTOM", dragDropHost.text, "TOP", 0, 0);
-        bUp:SetSize(24, 24);
+        PixelPerfect.SetPoint(bUp, "BOTTOM", dragDropHost.text, "TOP", 0, 0);
+        PixelPerfect.SetSize(bUp, 24);
         bUp:SetScript("OnClick", Frame_MoveUp);
 
         local bLeft = FrameUtil.CreateArrowButton(dragDropHost, "left");
         bLeft:ClearAllPoints();
-        bLeft:SetPoint("RIGHT", dragDropHost.text, "LEFT", 0, 0);
-        bLeft:SetSize(24, 24);
+        PixelPerfect.SetPoint(bLeft, "RIGHT", dragDropHost.text, "LEFT", 0, 0);
+        PixelPerfect.SetSize(bLeft, 24);
         bLeft:SetScript("OnClick", Frame_MoveLeft);
 
         local bRight = FrameUtil.CreateArrowButton(dragDropHost, "right");
         bRight:ClearAllPoints();
-        bRight:SetPoint("LEFT", dragDropHost.text, "RIGHT", 0, 0);
-        bRight:SetSize(24, 24);
+        PixelPerfect.SetPoint(bRight, "LEFT", dragDropHost.text, "RIGHT", 0, 0);
+        PixelPerfect.SetSize(bRight, 24);
         bRight:SetScript("OnClick", Frame_MoveRight);
 
         local bDown = FrameUtil.CreateArrowButton(dragDropHost, "down");
         bDown:ClearAllPoints();
-        bDown:SetPoint("TOP", dragDropHost.text, "BOTTOM", 0, 0);
-        bDown:SetSize(24, 24);
+        PixelPerfect.SetPoint(bDown, "TOP", dragDropHost.text, "BOTTOM", 0, 0);
+        PixelPerfect.SetSize(bDown, 24);
         bDown:SetScript("OnClick", Frame_MoveDown);
 
         local cbClampToScreenFrame = CreateFrame("Frame", nil, dragDropHost);
         local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, "SettingsCheckBoxTemplate");
         cbClampToScreen.dragDropHost = dragDropHost;
         cbClampToScreen:SetScript("OnClick", CbClampToScreen_Click);
-        cbClampToScreen:SetPoint("LEFT");
+        PixelPerfect.SetPoint(cbClampToScreen, "LEFT");
         cbClampToScreen:SetChecked(clampToScreen);
 
         cbClampToScreenFrame.text = FrameUtil.CreateText(cbClampToScreenFrame, L["Clamp"]);
         cbClampToScreenFrame.text:ClearAllPoints();
-        cbClampToScreenFrame.text:SetPoint("RIGHT");
+        PixelPerfect.SetPoint(cbClampToScreenFrame.text, "RIGHT");
 
         cbClampToScreenFrame:ClearAllPoints();
-        cbClampToScreenFrame:SetHeight(math.max(cbClampToScreen:GetHeight(), cbClampToScreenFrame:GetHeight()));
-        cbClampToScreenFrame:SetWidth(cbClampToScreen:GetWidth() + 4 + cbClampToScreenFrame.text:GetWidth());
-        cbClampToScreenFrame:SetPoint("BOTTOM", bUp, "TOP", 0, -8);
+        PixelPerfect.SetHeight(cbClampToScreenFrame, math.max(cbClampToScreen:GetHeight(), cbClampToScreenFrame:GetHeight()));
+        PixelPerfect.SetWidth(cbClampToScreenFrame, cbClampToScreen:GetWidth() + 4 + cbClampToScreenFrame.text:GetWidth());
+        PixelPerfect.SetPoint(cbClampToScreenFrame, "BOTTOM", bUp, "TOP", 0, -8);
         return dragDropHost;
     end
 end
@@ -217,7 +218,7 @@ function FrameUtil.MoveFrame(frame, x, y)
         error("This function only works with a single Anchor from SetPoint!");
     end
     local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint(1);
-    frame:SetPoint(point, relativeTo, relativePoint, xOfs + x, yOfs + y);
+    PixelPerfect.SetPoint(frame, point, relativeTo, relativePoint, xOfs + x, yOfs + y);
 end
 
 function FrameUtil.CreateArrowButton(parent, direction)
@@ -245,7 +246,7 @@ function FrameUtil.RotateButtonTextures(button, radians)
 end
 
 function FrameUtil.WidthByText(frame, text)
-    frame:SetWidth(text:GetWidth() + 20);
+    PixelPerfect.SetWidth(frame, text:GetWidth() + 20);
 end
 
 do
@@ -308,13 +309,13 @@ do
     end
     function FrameUtil.AddResizer(frameToAttach, frameToResize, OnStartResize, OnFinishResize)
         local resizer = CreateFrame("Button", nil, frameToAttach);
-        frameToAttach.resizer = resizer
-        resizer:SetSize(15, 15);
+        frameToAttach.resizer = resizer;
+        PixelPerfect.SetSize(resizer, 15);
         resizer:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up");
         resizer:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down");
         resizer:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight");
         resizer:ClearAllPoints();
-        resizer:SetPoint("BOTTOMRIGHT", frameToAttach, "BOTTOMRIGHT", -5, 5);
+        PixelPerfect.SetPoint(resizer, "BOTTOMRIGHT", frameToAttach, "BOTTOMRIGHT", -5, 5);
         resizer:SetIgnoreParentAlpha(true);
         resizer:SetAlpha(1);
         resizer.frameToResize = frameToResize;
@@ -412,13 +413,13 @@ do
                 local child = row[i];
                 local xOffset = padding + usedRowWidth + (i * spacing);
                 local yOffset = rowYOffset + (rowHeight  / 2) - (child:GetHeight() / 2);
-                child:SetPoint("TOPLEFT", frame, "TOPLEFT", xOffset, -yOffset);
+                PixelPerfect.SetPoint(child, "TOPLEFT", frame, "TOPLEFT", xOffset, -yOffset);
                 usedRowWidth = usedRowWidth + child:GetWidth();
             end
             rowYOffset = rowYOffset + rowHeight;
         end
-        frame:SetWidth(fWidth);
-        frame:SetHeight(rowYOffset + padding);
+        PixelPerfect.SetWidth(frame, fWidth);
+        PixelPerfect.SetHeight(frame, rowYOffset + padding);
     end
 end
 
@@ -428,15 +429,15 @@ do
         self.isChangingScrollBarVisibility = true;
         if (self.content:GetHeight() > self:GetHeight()) then
             self.ScrollBar:Show();
-            self.content:SetWidth(self:GetWidth() - self.ScrollBar:GetWidth());
+            PixelPerfect.SetWidth(self.content, self:GetWidth() - self.ScrollBar:GetWidth());
         else
-            self.content:SetWidth(self:GetWidth());
+            PixelPerfect.SetWidth(self.content, self:GetWidth());
             self.ScrollBar:Hide();
         end
         self.isChangingScrollBarVisibility = false;
     end
     local function ScrollFrameOnSizeChanged(self, width, height)
-        self.content:SetWidth(width or self:GetWidth());
+        PixelPerfect.SetWidth(self.content, width or self:GetWidth());
         self:FullUpdate(ScrollBoxConstants.UpdateImmediately);
         ScrollBarVisibility(self);
     end
@@ -451,12 +452,12 @@ do
 
         scroll.content = child;
         scroll.content:SetParent(scroll);
-        scroll.content:SetWidth(scroll:GetWidth() - sbWidth);
-        scroll.content:SetPoint("TOPLEFT");
-        scroll.content:SetPoint("TOPRIGHT");
+        PixelPerfect.SetWidth(scroll.content, scroll:GetWidth() - sbWidth);
+        PixelPerfect.SetPoint(scroll.content, "TOPLEFT");
+        PixelPerfect.SetPoint(scroll.content, "TOPRIGHT");
 
-        scroll.ScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", -sbWidth, -sbWidth);
-        scroll.ScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", -sbWidth, sbWidth);
+        PixelPerfect.SetPoint(scroll.ScrollBar, "TOPLEFT", scroll, "TOPRIGHT", -sbWidth, -sbWidth);
+        PixelPerfect.SetPoint(scroll.ScrollBar, "BOTTOMLEFT", scroll, "BOTTOMRIGHT", -sbWidth, sbWidth);
         scroll.RefreshScrollBarVisibility = ScrollBarVisibility;
 
         ScrollUtil.InitScrollBoxWithScrollBar(scroll, scroll.ScrollBar, CreateScrollBoxLinearView());
@@ -536,10 +537,10 @@ function FrameUtil.GridLayoutFromObjects(gridParent, gridDescriptor)
             else
                 heading.text:SetText(descriptor.heading);
             end
-            heading:SetWidth(columnWidth);
-            heading:SetHeight(select(2, heading.text:GetFont()));
+            PixelPerfect.SetWidth(heading, columnWidth);
+            PixelPerfect.SetHeight(heading, select(2, heading.text:GetFont()));
             heading:ClearAllPoints();
-            heading:SetPoint("TOPLEFT", gridFrame, "TOPLEFT", currentX, -currentY);
+            PixelPerfect.SetPoint(heading, "TOPLEFT", gridFrame, "TOPLEFT", currentX, -currentY);
             currentY = currentY + heading:GetHeight() + rowSpacing;
             
             for i=1, #rowItems do
@@ -549,15 +550,14 @@ function FrameUtil.GridLayoutFromObjects(gridParent, gridDescriptor)
                 local rowItem = rowItems[i];
                 local cell = rowItem[descriptor.cellFramePropertyName];
                 cell:ClearAllPoints();
-                cell:SetWidth(columnWidth);
-                cell:SetHeight(rowHeight);
-                cell:SetPoint("TOPLEFT", gridFrame, "TOPLEFT", currentX, -currentY);
+                PixelPerfect.SetSize(cell, columnWidth, rowHeight);
+                PixelPerfect.SetPoint(cell, "TOPLEFT", gridFrame, "TOPLEFT", currentX, -currentY);
                 currentY = currentY + rowHeight;
             end
             currentX = currentX + columnWidth;
         end
     end
-    gridFrame:SetHeight(currentY);
+    PixelPerfect.SetHeight(gridFrame, currentY);
     if (gridFrame:GetWidth() ~= currentX) then
         _p.Log("Unexpected! Actual width: ", gridFrame:GetWidth(), " (filled width ", currentX, ")");
     end
@@ -570,19 +570,19 @@ function FrameUtil.CreateHorizontalSeperatorWithText(parent, text)
     frame.text = FrameUtil.CreateText(frame, text, nil, "GameFontNormal");
 
     frame.leftLine:SetColorTexture(.4, .4, .4, 1);
-    PixelUtil.SetHeight(frame.leftLine, 2);
+    PixelPerfect.SetHeight(frame.leftLine, 2);
 
     frame.rightLine:SetColorTexture(.4, .4, .4, 1);
-    PixelUtil.SetHeight(frame.rightLine, 2);
+    PixelPerfect.SetHeight(frame.rightLine, 2);
 
-    frame.text:SetPoint("CENTER", frame, "CENTER");
+    PixelPerfect.SetPoint(frame.text, "CENTER", frame, "CENTER");
     frame.text:SetJustifyH("CENTER");
-    frame:SetHeight(select(2, frame.text:GetFont()));
+    PixelPerfect.SetHeight(frame, select(2, frame.text:GetFont()));
     local p = 5;
-    frame.leftLine:SetPoint("LEFT", frame, "LEFT", p, 0);
-    frame.leftLine:SetPoint("RIGHT", frame.text, "LEFT", -p, 0);
-    frame.rightLine:SetPoint("LEFT", frame.text, "RIGHT", p, 0);
-    frame.rightLine:SetPoint("RIGHT", frame, "RIGHT", -p, 0);
+    PixelPerfect.SetPoint(frame.leftLine, "LEFT", frame, "LEFT", p, 0);
+    PixelPerfect.SetPoint(frame.leftLine, "RIGHT", frame.text, "LEFT", -p, 0);
+    PixelPerfect.SetPoint(frame.rightLine, "LEFT", frame.text, "RIGHT", p, 0);
+    PixelPerfect.SetPoint(frame.rightLine, "RIGHT", frame, "RIGHT", -p, 0);
     return frame;
 end
 
@@ -590,7 +590,7 @@ function FrameUtil.StackVertical(container, children, spacing)
     spacing = spacing or 0;
     local usedHeight = 0;
     for i, child in ipairs(children) do
-        child:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -usedHeight);
+        PixelPerfect.SetPoint(child, "TOPLEFT", container, "TOPLEFT", 0, -usedHeight);
         usedHeight = usedHeight + child:GetHeight() + spacing;
     end
     return usedHeight - spacing;
@@ -600,7 +600,7 @@ function FrameUtil.StackHorizontal(container, children, spacing)
     spacing = spacing or 0;
     local usedWidth = 0;
     for i, child in ipairs(children) do
-        child:SetPoint("TOPLEFT", container, "TOPLEFT", usedWidth, 0);
+        PixelPerfect.SetPoint(child, "TOPLEFT", container, "TOPLEFT", usedWidth, 0);
         usedWidth = usedWidth + child:GetWidth();
     end
     return usedWidth;

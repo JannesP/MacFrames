@@ -26,6 +26,7 @@ local ProfileEditorSettingsPage = _p.ProfileEditorSettingsPage;
 local MouseActionsSettingsPage = _p.MouseActionsSettingsPage;
 local AuraBlacklistSettingsPage = _p.AuraBlacklistSettingsPage;
 local GenericOptionsSettingsPage = _p.GenericOptionsSettingsPage;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.SettingsPageFactory = {};
 local SettingsPageFactory = _p.SettingsPageFactory;
@@ -68,9 +69,9 @@ local function SetupContentScrollContainer(parent, content)
 
     parent.contentHost = CreateFrame("Frame", parent:GetName() .. "ContentHost", parent.contentContainer);
 ---@diagnostic disable-next-line: param-type-mismatch
-    parent.contentHost:SetPoint("TOPLEFT", parent.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
+    PixelPerfect.SetPoint(parent.contentHost, "TOPLEFT", parent.contentContainer, "TOPLEFT", _borderPadding, -_borderPadding);
 ---@diagnostic disable-next-line: param-type-mismatch
-    parent.contentHost:SetPoint("BOTTOMRIGHT", parent.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
+    PixelPerfect.SetPoint(parent.contentHost, "BOTTOMRIGHT", parent.contentContainer, "BOTTOMRIGHT", -_borderPadding, _borderPadding);
 
     parent.scrollFrame = FrameUtil.CreateVerticalScrollFrame(parent.contentHost, content);
     parent.scrollFrame:SetAllPoints();

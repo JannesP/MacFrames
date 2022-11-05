@@ -114,10 +114,9 @@ _p.ParseLink = function(link)
     return string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?");
 end
 
-_p.UIParent = _G.UIParent; --= CrevateFrame("Frame", "MacFramesUIParent", UIParent);
---_p.UIParent:SetPoint("BOTTOM");
---_p.UIParent:SetIgnoreParentScale(true);
---_p.UIParent:SetScale(PixelUtil.GetPixelToUIUnitFactor());
---_p.UIParent:SetSize(GetPhysicalScreenSize());
+_p.UIParent = CreateFrame("Frame", "MacFramesUIParent", UIParent);
+_p.UIParent:SetPoint("BOTTOM");
+_p.UIParent:SetSize(GetScreenWidth(), GetScreenHeight());
+
 
 _p.Log("Finished init.");

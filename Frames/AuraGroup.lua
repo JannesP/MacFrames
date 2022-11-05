@@ -22,6 +22,7 @@ local MyAuraUtil = _p.MyAuraUtil;
 local AuraManager = _p.AuraManager;
 local AuraBlacklist = _p.AuraBlacklist;
 local TablePool = _p.TablePool;
+local PixelPerfect = _p.PixelPerfect;
 local FrameUtil = _p.FrameUtil;
 
 local math_min, table_sort = math.min, table.sort;
@@ -56,8 +57,7 @@ local function LayoutFrames(self)
     if (frameCount > 0) then
         iconWidth, iconHeight = auraFrames[1]:GetSize();
     end
-    self:SetWidth((iconWidth * frameCount) + (spacing * (frameCount - 1)));
-    self:SetHeight(iconHeight);
+    PixelPerfect.SetSize(self, (iconWidth * frameCount) + (spacing * (frameCount - 1)), iconHeight);
 
     local lastFrame = nil;
     if (self.reverse == true) then
@@ -65,9 +65,9 @@ local function LayoutFrames(self)
             local auraFrame = auraFrames[i];
             auraFrame:ClearAllPoints();
             if (lastFrame == nil) then
-                auraFrame:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0);
+                PixelPerfect.SetPoint(auraFrame, "TOPRIGHT", self, "TOPRIGHT", 0, 0);
             else
-                auraFrame:SetPoint("TOPRIGHT", lastFrame, "TOPLEFT", -spacing, 0);
+                PixelPerfect.SetPoint(auraFrame, "TOPRIGHT", lastFrame, "TOPLEFT", -spacing, 0);
             end
             lastFrame = auraFrame;
         end
@@ -76,9 +76,9 @@ local function LayoutFrames(self)
             local auraFrame = auraFrames[i];
             auraFrame:ClearAllPoints();
             if (lastFrame == nil) then
-                auraFrame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
+                PixelPerfect.SetPoint(auraFrame, "TOPLEFT", self, "TOPLEFT", 0, 0);
             else
-                auraFrame:SetPoint("TOPLEFT", lastFrame, "TOPRIGHT", spacing, 0);
+                PixelPerfect.SetPoint(auraFrame, "TOPLEFT", lastFrame, "TOPRIGHT", spacing, 0);
             end
             lastFrame = auraFrame;
         end
@@ -88,7 +88,7 @@ end
 function AuraGroup.new(parent, unit, auraGroupType, count, iconWidth, iconHeight, spacing, iconZoom)
     local frame = _framePool:Take();
     if frame == nil then
-        frame = CreateFrame("Frame", nil, parent, "MacFramesPixelPerfectTemplate");
+        frame = CreateFrame("Frame", nil, parent);
         frame.customColor = {};
     else
         frame:SetParent(parent);

@@ -26,6 +26,7 @@ local FrameUtil = _p.FrameUtil;
 local ProfileManager = _p.ProfileManager;
 local BlizzardFrameUtil = _p.BlizzardFrameUtil;
 local MacEnum = _p.MacEnum;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.RaidFrame = {};
 local RaidFrame = _p.RaidFrame;
@@ -117,7 +118,7 @@ do
     function RaidFrame.create()
         if _frame ~= nil then error("You can only create a single RaidFrame.") end
         local frameName = Constants.RaidFrameGlobalName;
-        _frame = CreateFrame("Frame", frameName, _p.UIParent, "MacFramesPixelPerfectSecureHandlerStateTemplate");
+        _frame = CreateFrame("Frame", frameName, _p.UIParent, "SecureHandlerStateTemplate");
         _frame:SetFrameStrata(_raidSettings.FrameStrata);
         _frame:SetFrameLevel(_raidSettings.FrameLevel);
 
@@ -326,8 +327,8 @@ function RaidFrame.UpdateRect(self)
     self:SetResizeBounds(minWidth, minHeight);
 
     self:ClearAllPoints();
-    self:SetPoint(anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
-    self:SetSize(totalWidth, totalHeight);
+    PixelPerfect.SetPoint(self, anchorInfo.AnchorPoint, _p.UIParent, anchorInfo.AnchorPoint, anchorInfo.OffsetX, anchorInfo.OffsetY);
+    PixelPerfect.SetSize(self, totalWidth, totalHeight);
 end
 
 do
@@ -428,12 +429,12 @@ do
             groupFrame:ClearAllPoints();
             if (vertical) then
                 local x = margin + ((groupIndex - 1) * (frameWidth + spacing));
-                groupFrame:SetPoint("TOPLEFT", self, "TOPLEFT", x, -margin);
-                groupFrame:SetSize(totalHeight - (2 * margin), frameWidth);
+                PixelPerfect.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", x, -margin);
+                PixelPerfect.SetSize(groupFrame, totalHeight - (2 * margin), frameWidth);
             else
                 local y = margin + ((groupIndex - 1) * (frameHeight + spacing));
-                groupFrame:SetPoint("TOPLEFT", self, "TOPLEFT", margin, -y);
-                groupFrame:SetSize(totalWidth - (2 * margin), frameHeight);
+                PixelPerfect.SetPoint(groupFrame, "TOPLEFT", self, "TOPLEFT", margin, -y);
+                PixelPerfect.SetSize(groupFrame, totalWidth - (2 * margin), frameHeight);
             end
             local attachedFrames;
             if (roleSortingOrder == MacEnum.Settings.RoleSortingOrder.Disabled) then
@@ -447,12 +448,12 @@ do
                 frame:SetParent(groupFrame);
                 if (vertical) then
                     local y = (i - 1) * (frameHeight + spacing);
-                    frame:SetPoint("TOPLEFT", groupFrame, "TOPLEFT", 0, -y);
-                    frame:SetSize(frameWidth, frameHeight);
+                    PixelPerfect.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", 0, -y);
+                    PixelPerfect.SetSize(frame, frameWidth, frameHeight);
                 else
                     local x = (i - 1) * (frameWidth + spacing);
-                    frame:SetPoint("TOPLEFT", groupFrame, "TOPLEFT", x, 0);
-                    frame:SetSize(frameWidth, frameHeight);
+                    PixelPerfect.SetPoint(frame, "TOPLEFT", groupFrame, "TOPLEFT", x, 0);
+                    PixelPerfect.SetSize(frame, frameWidth, frameHeight);
                 end
                 
             end

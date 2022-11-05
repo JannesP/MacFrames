@@ -21,10 +21,12 @@ local ADDON_NAME, _p = ...;
 local FrameUtil = _p.FrameUtil;
 local BaseEditorFrame = _p.BaseEditorFrame;
 local OptionType = _p.Settings.OptionType;
+local PixelPerfect = _p.PixelPerfect;
 
 local LSM = LibStub("LibSharedMedia-3.0");
 local _loadedAceGui = false;
 local AceGUI, AceLSMWidgets;
+local _width = 240;
 
 _p.BarTextureEditorFrame = {};
 local BarTextureEditorFrame = _p.BarTextureEditorFrame;
@@ -101,7 +103,7 @@ function BarTextureEditorFrame.Create(parent, option)
 
     _barSelectorCount = _barSelectorCount + 1;
     
-    local dropDownWidth = 180 - 6;
+    local dropDownWidth = _width - 6;
 
     local dropDown;
     local aceWidget = CreateAceGUIBarWidget();
@@ -111,16 +113,16 @@ function BarTextureEditorFrame.Create(parent, option)
         aceWidget:SetList();
         aceWidget:SetValue(value);
         aceWidget:SetCallback("OnValueChanged", AceWidgetOnValueChanged);
-        aceWidget:SetWidth(dropDownWidth);
+        PixelPerfect.SetWidth(aceWidget, dropDownWidth);
         aceWidget.frame:SetParent(frame);
-        aceWidget.frame:SetPoint("CENTER", frame, "CENTER", 0, 10);
+        PixelPerfect.SetPoint(aceWidget.frame, "CENTER", frame, "CENTER", 0, 10);
         aceWidget.frame:Show();
     else
         local dropDown = CreateFrame("Frame", "MacFramesDropdownBarTextureSelector" .. _barSelectorCount, frame, "UIDropDownMenuTemplate");
         frame.dropDown = dropDown;
         UIDropDownMenu_SetWidth(dropDown, dropDownWidth - 12);
         UIDropDownMenu_Initialize(dropDown, DropDownSelectBarInit);
-        dropDown:SetPoint("CENTER", frame, "CENTER", 0, -2);
+        PixelPerfect.SetPoint(dropDown, "CENTER", frame, "CENTER", 0, -2);
     end
 
     if (option.Description ~= nil) then
@@ -139,7 +141,7 @@ function BarTextureEditorFrame.Create(parent, option)
 end
 
 function BarTextureEditorFrame:GetMeasuredSize()
-    return 180, self:GetDefaultHeight();
+    return _width, self:GetDefaultHeight();
 end
 
 BaseEditorFrame.AddConstructor(OptionType.BarTexture, BarTextureEditorFrame.Create);

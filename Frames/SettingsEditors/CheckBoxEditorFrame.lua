@@ -21,6 +21,7 @@ local ADDON_NAME, _p = ...;
 local FrameUtil = _p.FrameUtil;
 local BaseEditorFrame = _p.BaseEditorFrame;
 local OptionType = _p.Settings.OptionType;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.CheckBoxEditorFrame = {};
 local CheckBoxEditorFrame = _p.CheckBoxEditorFrame;
@@ -47,7 +48,7 @@ function CheckBoxEditorFrame.Create(parent, option)
     
     frame.checkBox = checkBox;
     checkBox.editorFrame = frame;
-    checkBox:SetPoint("CENTER");
+    PixelPerfect.SetPoint(checkBox, "CENTER");
 
     checkBox:SetScript("OnClick", BaseEditorFrame.CreateEditorOnChange(frame, CheckBox_OnChange));
     if (option.Description ~= nil) then

@@ -48,7 +48,6 @@ Settings\AuraBlacklist.lua
 Settings\Defensives.lua
 
 Util\PixelPerfect.lua
-Util\PixelPerfect.xml
 Util\StringUtil.lua
 Util\StringUtil.lua
 Util\BlizzardFrameUtil.lua

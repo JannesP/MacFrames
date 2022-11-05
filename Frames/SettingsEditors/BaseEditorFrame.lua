@@ -21,6 +21,7 @@ local ADDON_NAME, _p = ...;
 local Constants = _p.Constants;
 local FrameUtil = _p.FrameUtil;
 local OptionType = _p.Settings.OptionType;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.BaseEditorFrame = {};
 local BaseEditorFrame = _p.BaseEditorFrame;
@@ -42,7 +43,7 @@ end
 function BaseEditorFrame.CreateNotYetImplemented(parent, option)
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
     local text = FrameUtil.CreateText(frame, "Not yet implemented :(");
-    text:SetPoint("CENTER");
+    PixelPerfect.SetPoint(text, "CENTER");
     frame.RefreshFromProfile = _p.Noop;
     frame.GetMeasuredSize = function(self)
         return text:GetSize();

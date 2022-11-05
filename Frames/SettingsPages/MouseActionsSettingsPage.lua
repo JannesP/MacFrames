@@ -24,6 +24,7 @@ local PlayerInfo = _p.PlayerInfo;
 local FrameUtil = _p.FrameUtil;
 local FramePool = _p.FramePool;
 local SettingsUtil = _p.SettingsUtil;
+local PixelPerfect = _p.PixelPerfect;
 
 local SettingsUtil_ProcessMouseAction = SettingsUtil.ProcessMouseAction;
 local ParseLink = _p.ParseLink;
@@ -92,7 +93,7 @@ local function MouseActionEditor_Layout(self)
     totalHeight = totalHeight + self.editorContainer:GetHeight();
     totalHeight = totalHeight + self.buttonAddBinding:GetHeight() + 5;
 
-    self:SetHeight(totalHeight);
+    PixelPerfect.SetHeight(self, totalHeight);
 end
 
 local MouseActionEditor_CreateMouseActionEditor, MouseActionEditor_UpdateForCurrentSpecSelection;
@@ -216,14 +217,12 @@ do
 
         local isValid, errorMsg = MouseActionEditor_CheckValidData(self);
         if (isValid == false) then
-            --self.errorText:SetText(L["Invalid Binding: {msg}"]:gsub("{msg}", errorMsg));
-            --self.errorText:SetHeight(select(2, self.errorText:GetFont()));
             --can't hide/set to 0 because anchors wouldn't work
             FrameUtil.CreateTextTooltip(self.errorIcon, errorMsg, self.errorIcon, nil, 0, 0, 1, 1, 0, 1);
-            self.errorIcon:SetWidth(self.errorIcon:GetHeight());
+            PixelPerfect.SetWidth(self.errorIcon, self.errorIcon:GetHeight());
             self.errorIcon:Show();
         else
-            self.errorIcon:SetWidth(1);
+            PixelPerfect.SetWidth(self.errorIcon, 1);
             self.errorIcon:Hide();
         end
     end
@@ -433,8 +432,8 @@ do
         frame.cellErrorIcon = CreateFrame("Frame", nil, frame);
         local errorIcon = CreateFrame("Frame", nil, frame);
         frame.errorIcon = errorIcon;
-        errorIcon:SetSize(20, 20);
-        errorIcon:SetPoint("CENTER", frame.cellErrorIcon, "CENTER");
+        PixelPerfect.SetSize(errorIcon, 20);
+        PixelPerfect.SetPoint(errorIcon, "CENTER", frame.cellErrorIcon, "CENTER");
         errorIcon.icon = frame.errorIcon:CreateTexture();
         errorIcon.icon:SetAllPoints();
         errorIcon.icon:SetTexture("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew");
@@ -448,23 +447,23 @@ do
         frame.dropDownBindingType = dropDownBindingType;
         UIDropDownMenu_SetWidth(dropDownBindingType, 100);
         UIDropDownMenu_Initialize(dropDownBindingType, MouseActionEditor_DropDownSelectBindingTypeInit);
-        dropDownBindingType:SetPoint("CENTER", frame.cellDropDownBindingType, "CENTER", 0, -2);
+        PixelPerfect.SetPoint(dropDownBindingType, "CENTER", frame.cellDropDownBindingType, "CENTER", 0, -2);
         totalWidth = totalWidth + dropDownBindingType:GetWidth();
         totalHeight = math.max(totalHeight, dropDownBindingType:GetHeight());
 
         local editBoxContainer = CreateFrame("Frame", nil, frame);
         frame.editBoxContainer = editBoxContainer;
 ---@diagnostic disable-next-line: param-type-mismatch
-        editBoxContainer:SetPoint("LEFT", dropDownBindingType, "RIGHT");
+        PixelPerfect.SetPoint(editBoxContainer, "LEFT", dropDownBindingType, "RIGHT");
 
         local spellIconDisplay = CreateFrame("Frame", nil, frame);
         frame.spellIconDisplay = spellIconDisplay;
-        spellIconDisplay:SetSize(20, 20);
+        PixelPerfect.SetSize(spellIconDisplay, 20);
         spellIconDisplay.texture = spellIconDisplay:CreateTexture();
         spellIconDisplay.texture:SetAllPoints();
         spellIconDisplay.texture:SetTexCoord(FrameUtil.GetStandardIconZoomTransform());
         FrameUtil.CreateSolidBorder(spellIconDisplay, 1, .5, .5, .5, 1);
-        spellIconDisplay:SetPoint("LEFT", editBoxContainer, "LEFT");
+        PixelPerfect.SetPoint(spellIconDisplay, "LEFT", editBoxContainer, "LEFT");
         spellIconDisplay:EnableMouse(true);
         spellIconDisplay:SetScript("OnEnter", SpellIconDisplay_OnEnter);
         spellIconDisplay:SetScript("OnLeave", SpellIconDisplay_OnLeave);
@@ -472,11 +471,11 @@ do
         local editBoxSpellSelect = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
         frame.editBoxSpellSelect = editBoxSpellSelect;
         editBoxSpellSelect:SetAutoFocus(false);
-        editBoxSpellSelect:SetWidth(130);
+        PixelPerfect.SetWidth(editBoxSpellSelect, 130);
         editBoxSpellSelect:ClearAllPoints();
-        editBoxSpellSelect:SetHeight(20);
-        editBoxSpellSelect:SetPoint("LEFT", spellIconDisplay, "RIGHT", 8, 0);
-        editBoxSpellSelect:SetPoint("RIGHT", editBoxContainer, "RIGHT", 0, 0);
+        PixelPerfect.SetHeight(editBoxSpellSelect, 20);
+        PixelPerfect.SetPoint(editBoxSpellSelect, "LEFT", spellIconDisplay, "RIGHT", 8, 0);
+        PixelPerfect.SetPoint(editBoxSpellSelect, "RIGHT", editBoxContainer, "RIGHT", 0, 0);
         
         editBoxSpellSelect:SetScript("OnEnterPressed", EditBox_ClearFocus);
         editBoxSpellSelect:SetScript("OnTabPressed", EditBox_ClearFocus);
@@ -485,8 +484,8 @@ do
         editBoxSpellSelect:SetScript("OnMouseDown", EditBoxSpellSelect_OnMouseDown);
         editBoxSpellSelect:SetScript("OnReceiveDrag", EditBoxSpellSelect_OnReceiveDrag);
         
-        editBoxContainer:SetHeight(math.max(editBoxSpellSelect:GetHeight(), spellIconDisplay:GetHeight()));
-        editBoxContainer:SetWidth(spellIconDisplay:GetWidth() + editBoxSpellSelect:GetWidth() + 8);
+        PixelPerfect.SetHeight(editBoxContainer, math.max(editBoxSpellSelect:GetHeight(), spellIconDisplay:GetHeight()));
+        PixelPerfect.SetWidth(editBoxContainer, spellIconDisplay:GetWidth() + editBoxSpellSelect:GetWidth() + 8);
 
         totalWidth = totalWidth + editBoxContainer:GetWidth();
         totalHeight = math.max(totalHeight, editBoxContainer:GetHeight());
@@ -503,22 +502,22 @@ do
         frame.buttonSetKeybind = buttonSetKeybind;
         buttonSetKeybind:RegisterForClicks("AnyDown");
         buttonSetKeybind:SetScript("OnMouseDown", MouseActionEditor_ButtonSetKeybind_OnMouseDown);
-        buttonSetKeybind:SetPoint("CENTER", frame.cellButtonSetKeybind, "CENTER");
+        PixelPerfect.SetPoint(buttonSetKeybind, "CENTER", frame.cellButtonSetKeybind, "CENTER");
         totalWidth = totalWidth + buttonSetKeybind:GetWidth();
         totalHeight = math.max(totalHeight, buttonSetKeybind:GetHeight());
 
         frame.cellRemoveButton = CreateFrame("Frame", nil, frame);
         local removeButton = CreateFrame("Button", nil, frame);
         frame.removeButton = removeButton;
-        removeButton:SetSize(25, 25);
+        PixelPerfect.SetSize(removeButton, 25);
         removeButton:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up");
         removeButton:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down");
         removeButton:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight");
         removeButton:RegisterForClicks("LeftButtonUp");
-        removeButton:SetPoint("CENTER", frame.cellRemoveButton, "CENTER");
+        PixelPerfect.SetPoint(removeButton, "CENTER", frame.cellRemoveButton, "CENTER");
         removeButton:SetScript("OnClick", MouseActionEditor_OnRemoveClick);
 
-        frame:SetSize(totalWidth, totalHeight);
+        PixelPerfect.SetSize(frame, totalWidth, totalHeight);
         return frame;
     end
 
@@ -638,25 +637,25 @@ function MouseActionsSettingsPage.Create(parent, category)
     frame.category = category;
 
     frame.dropDownHeader = CreateFrame("Frame", nil, frame);
-    frame.dropDownHeader:SetPoint("TOP", frame, "TOP");
+    PixelPerfect.SetPoint(frame.dropDownHeader, "TOP", frame, "TOP");
     frame.dropDownHeader.text = FrameUtil.CreateText(frame.dropDownHeader, L["Configure for:"]);
-    frame.dropDownHeader.text:SetPoint("LEFT", frame.dropDownHeader, "LEFT", 0, 2);
+    PixelPerfect.SetPoint(frame.dropDownHeader.text, "LEFT", frame.dropDownHeader, "LEFT", 0, 2);
     frame.dropDownSelectClass = CreateFrame("Frame", "MacFramesDropdownMouseActionSelectClass", frame, "UIDropDownMenuTemplate");
-    frame.dropDownSelectClass:SetPoint("RIGHT", frame.dropDownHeader, "RIGHT", 16, 0);
+    PixelPerfect.SetPoint(frame.dropDownSelectClass, "RIGHT", frame.dropDownHeader, "RIGHT", 16, 0);
     UIDropDownMenu_SetWidth(frame.dropDownSelectClass, 200);
     UIDropDownMenu_Initialize(frame.dropDownSelectClass, DropDownSelectClassInit);
 
-    frame.dropDownHeader:SetHeight(math.max(frame.dropDownHeader:GetHeight(), frame.dropDownSelectClass:GetHeight()));
-    frame.dropDownHeader:SetWidth(frame.dropDownHeader.text:GetWidth() + 5 + frame.dropDownSelectClass:GetWidth());
+    PixelPerfect.SetHeight(frame.dropDownHeader, math.max(frame.dropDownHeader:GetHeight(), frame.dropDownSelectClass:GetHeight()));
+    PixelPerfect.SetWidth(frame.dropDownHeader, frame.dropDownHeader.text:GetWidth() + 5 + frame.dropDownSelectClass:GetWidth());
 
     frame.editorContainer = CreateFrame("Frame", "test123", frame);
-    frame.editorContainer:SetPoint("TOP", frame.dropDownHeader, "BOTTOM");
-    frame.editorContainer:SetPoint("LEFT", frame, "LEFT");
-    frame.editorContainer:SetPoint("RIGHT", frame, "RIGHT");
+    PixelPerfect.SetPoint(frame.editorContainer, "TOP", frame.dropDownHeader, "BOTTOM");
+    PixelPerfect.SetPoint(frame.editorContainer, "LEFT", frame, "LEFT");
+    PixelPerfect.SetPoint(frame.editorContainer, "RIGHT", frame, "RIGHT");
 
     frame.buttonAddBinding = FrameUtil.CreateTextButton(frame, nil, L["Add Binding"], function() AddNewBinding(frame) end);
-    frame.buttonAddBinding:SetPoint("TOP", frame.editorContainer, "BOTTOM", 0, -5);
-    frame.buttonAddBinding:SetPoint("LEFT", frame, "LEFT");
+    PixelPerfect.SetPoint(frame.buttonAddBinding, "TOP", frame.editorContainer, "BOTTOM", 0, -5);
+    PixelPerfect.SetPoint(frame.buttonAddBinding, "LEFT", frame, "LEFT");
 
     frame.editors = {};
     SelectSpec(frame, PlayerInfo.classId, PlayerInfo.specId);

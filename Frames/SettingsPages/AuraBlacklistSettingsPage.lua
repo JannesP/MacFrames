@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 
 _p.AuraBlacklistSettingsPage = {};
 local AuraBlacklistSettingsPage = _p.AuraBlacklistSettingsPage;
+local PixelPerfect = _p.PixelPerfect;
 
 local L = _p.L;
 local FrameUtil = _p.FrameUtil;
@@ -27,8 +28,8 @@ local FrameUtil = _p.FrameUtil;
 function AuraBlacklistSettingsPage.Create(parent)
     local frame = CreateFrame("Frame", nil, parent);
     frame.text = FrameUtil.CreateText(frame, L["AuraBlacklistEditor not yet implemented :("]);
-    frame.text:SetPoint("CENTER", frame, "CENTER");
-    frame:SetHeight(100);
+    PixelPerfect.SetPoint(frame.text, "CENTER", frame, "CENTER");
+    PixelPerfect.SetHeight(frame, 100);
     
     frame.RefreshFromProfile = _p.Noop;
     frame.Layout = _p.Noop;

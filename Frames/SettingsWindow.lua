@@ -23,6 +23,7 @@ local PlayerInfo = _p.PlayerInfo;
 local PopupDisplays = _p.PopupDisplays;
 local SettingsPageFactory = _p.SettingsPageFactory;
 local Settings = _p.Settings;
+local PixelPerfect = _p.PixelPerfect;
 
 _p.SettingsWindow = {};
 local SettingsWindow = _p.SettingsWindow;
@@ -63,13 +64,13 @@ local function CreateTabPanel(parent)
         tabButton.index = i;
         PanelTemplates_TabResize(tabButton, 2);
     end
-    frame.Tabs[1]:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, 3);
+    PixelPerfect.SetPoint(frame.Tabs[1], "TOPLEFT", frame, "TOPLEFT", 5, 3);
     PanelTemplates_SetNumTabs(frame, #categories);
     TabPanel_Reflow(frame);
     PanelTemplates_SetTab(frame, 1);
     SettingsWindow.SetActiveTab(parent, frame.Tabs[1]);
     
-    frame:SetHeight(34);
+    PixelPerfect.SetHeight(frame, 34);
     frame:SetScript("OnSizeChanged", TabPanel_Reflow);
     frame:SetScript("OnShow", TabPanel_Reflow);
     return frame;
@@ -102,35 +103,35 @@ function SettingsWindow.Open()
             _window:SetScript("OnHide", function () PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE); end);
 
             _window.background = CreateFrame("Frame", nil, _window, "FlatPanelBackgroundTemplate");
-            _window.background:SetPoint("TOPLEFT", _window, "TOPLEFT", 7, -18);
-            _window.background:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT", -2, 3);
+            PixelPerfect.SetPoint(_window.background, "TOPLEFT", _window, "TOPLEFT", 7, -18);
+            PixelPerfect.SetPoint(_window.background, "BOTTOMRIGHT", _window, "BOTTOMRIGHT", -2, 3);
 
             _window.closeButton = CreateFrame("Button", nil, _window, "UIPanelCloseButtonDefaultAnchors");
             _window.closeButton:SetScript("OnClick", SettingsWindow.Close);
 
             _window.dragDropHost = CreateFrame("Frame", nil, _window.TitleContainer);
-            _window.dragDropHost:SetPoint("TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
-            _window.dragDropHost:SetPoint("BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
+            PixelPerfect.SetPoint(_window.dragDropHost, "TOPLEFT", _window.TitleContainer, "TOPLEFT", 7, -2);
+            PixelPerfect.SetPoint(_window.dragDropHost, "BOTTOMRIGHT", _window.closeButton, "BOTTOMLEFT", 0, 3);
 
             FrameUtil.ConfigureDragDropHost(_window.dragDropHost, _window, nil, true);
 
             local padding = 5;
 
             _window.contentHost = CreateFrame("Frame", _window:GetName() .. "TabHost", _window);
-            _window.contentHost:SetPoint("TOPLEFT", _window, "TOPLEFT", padding, -14 - padding);
-            _window.contentHost:SetPoint("BOTTOMRIGHT", _window, "BOTTOMRIGHT", -padding, padding);
+            PixelPerfect.SetPoint(_window.contentHost, "TOPLEFT", _window, "TOPLEFT", padding, -14 - padding);
+            PixelPerfect.SetPoint(_window.contentHost, "BOTTOMRIGHT", _window, "BOTTOMRIGHT", -padding, padding);
 
             _window.tabPanel = CreateTabPanel(_window);
             _window.tabPanel:ClearAllPoints();
-            _window.tabPanel:SetPoint("TOPLEFT", _window, "BOTTOMLEFT", padding, 0);
-            _window.tabPanel:SetPoint("TOPRIGHT", _window, "BOTTOMRIGHT", 0, 0);
+            PixelPerfect.SetPoint(_window.tabPanel, "TOPLEFT", _window, "BOTTOMLEFT", padding, 0);
+            PixelPerfect.SetPoint(_window.tabPanel, "TOPRIGHT", _window, "BOTTOMRIGHT", 0, 0);
             
             FrameUtil.AddResizer(_window, _window);
             _window:SetResizeBounds(600, 400, 1280, 800);
             _window:EnableMouse(true);
 
-            _window:SetSize(800, 500);
-            _window:SetPoint("CENTER", _p.UIParent, "CENTER", 0, 0);            
+            PixelPerfect.SetSize(_window, 800, 500);
+            PixelPerfect.SetPoint(_window, "CENTER", _p.UIParent, "CENTER", 0, 0);            
         end
         _window:Show();
     else

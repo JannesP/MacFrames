@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 
 _p.ProfileEditorSettingsPage = {};
 local ProfileEditorSettingsPage = _p.ProfileEditorSettingsPage;
+local PixelPerfect = _p.PixelPerfect;
 
 local math_max = math.max;
 
@@ -116,34 +117,34 @@ local function CreateProfileSelectForSpec(parent, spec)
     
     frame.iconSpec = frame:CreateTexture();
     frame.iconSpec:SetTexture(spec.Icon);
-    frame.iconSpec:SetSize(textHeight, textHeight);
+    PixelPerfect.SetSize(frame.iconSpec, textHeight);
     frame.iconSpec:ClearAllPoints();
-    frame.iconSpec:SetPoint("LEFT", frame, "LEFT", 0, 0);
-    frame.textSpecName:SetPoint("LEFT", frame.iconSpec, "RIGHT", textHeight, 0);
+    PixelPerfect.SetPoint(frame.iconSpec, "LEFT", frame, "LEFT", 0, 0);
+    PixelPerfect.SetPoint(frame.textSpecName, "LEFT", frame.iconSpec, "RIGHT", textHeight, 0);
 
     frame.dropDownSelectProfile = CreateFrame("Frame", "MacFramesDropdownSelectProfile" .. spec.SpecId, frame, "UIDropDownMenuTemplate");
     --dropdowns are wider than they actually draw, so the offset of 16 pixels lets it appear in the middle
-    frame.dropDownSelectProfile:SetPoint("RIGHT", frame, "RIGHT", 16, 0);
+    PixelPerfect.SetPoint(frame.dropDownSelectProfile, "RIGHT", frame, "RIGHT", 16, 0);
     UIDropDownMenu_SetWidth(frame.dropDownSelectProfile, 150);
     UIDropDownMenu_Initialize(frame.dropDownSelectProfile, GetInitDropDownSelectProfile(frame.dropDownSelectProfile, spec));
     UIDropDownMenu_SetText(frame.dropDownSelectProfile, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
 
     local width = frame.iconSpec:GetWidth() + frame.textSpecName:GetWidth() + frame.dropDownSelectProfile:GetWidth();
-    frame:SetSize(width, frame.dropDownSelectProfile:GetHeight());
+    PixelPerfect.SetSize(frame, width, frame.dropDownSelectProfile:GetHeight());
     return frame;
 end
 
 local function CreateProfileEditorFrame(parent, dropDownNameSuffix, leftText, dropDownText, initFunc)
     local frame = CreateFrame("Frame", nil, parent);
     frame.text = FrameUtil.CreateText(frame, leftText);
-    frame.text:SetPoint("LEFT", frame, "LEFT");
+    PixelPerfect.SetPoint(frame.text, "LEFT", frame, "LEFT");
     frame.dropDown = CreateFrame("Frame", "MacFramesDropdown" .. dropDownNameSuffix, frame, "UIDropDownMenuTemplate");
-    frame.dropDown:SetPoint("RIGHT", frame, "RIGHT", 16, 0);
+    PixelPerfect.SetPoint(frame.dropDown, "RIGHT", frame, "RIGHT", 16, 0);
     UIDropDownMenu_SetWidth(frame.dropDown, 150);
     UIDropDownMenu_Initialize(frame.dropDown, initFunc);
     UIDropDownMenu_SetText(frame.dropDown, dropDownText);
-    frame:SetWidth(frame.text:GetWidth() + frame.dropDown:GetWidth());
-    frame:SetHeight(frame.dropDown:GetHeight());
+    PixelPerfect.SetWidth(frame, frame.text:GetWidth() + frame.dropDown:GetWidth());
+    PixelPerfect.SetHeight(frame, frame.dropDown:GetHeight());
     return frame;
 end
 local _profileEditorFrame;
@@ -161,24 +162,24 @@ function ProfileEditorSettingsPage.Create(parent)
     local totalHeight = 0;
 
     local frameCreateNewProfile = CreateProfileEditorFrame(frame, "CreateProfile", L["Create new profile:"], L["select profile to copy"], InitializeDropDownCreateProfile);
-    frameCreateNewProfile:SetPoint("TOP", frame, "TOP");
+    PixelPerfect.SetPoint(frameCreateNewProfile, "TOP", frame, "TOP");
     largestWidth = math_max(largestWidth, frameCreateNewProfile:GetWidth());
     totalHeight = totalHeight + frameCreateNewProfile:GetHeight();
 
     local frameRenameProfile = CreateProfileEditorFrame(frame, "RenameProfile", L["Rename a profile:"], L["select profile to rename"], InitializeDropDownRenameProfile);
-    frameRenameProfile:SetPoint("TOP", frameCreateNewProfile, "BOTTOM");
+    PixelPerfect.SetPoint(frameRenameProfile, "TOP", frameCreateNewProfile, "BOTTOM");
     largestWidth = math_max(largestWidth, frameRenameProfile:GetWidth());
     totalHeight = totalHeight + frameRenameProfile:GetHeight();
 
     local frameDeleteProfile = CreateProfileEditorFrame(frame, "DeleteProfile", L["Delete a profile:"], L["select profile to delete"], InitializeDropDownDeleteProfile);
-    frameDeleteProfile:SetPoint("TOP", frameRenameProfile, "BOTTOM");
+    PixelPerfect.SetPoint(frameDeleteProfile, "TOP", frameRenameProfile, "BOTTOM");
     largestWidth = math_max(largestWidth, frameDeleteProfile:GetWidth());
     totalHeight = totalHeight + frameDeleteProfile:GetHeight();
 
     frame.seperatorProfileSelect = FrameUtil.CreateHorizontalSeperatorWithText(frame, L["Select Profiles"]);
-    frame.seperatorProfileSelect:SetPoint("TOP", frameDeleteProfile, "BOTTOM");
-    frame.seperatorProfileSelect:SetPoint("LEFT", frame, "LEFT");
-    frame.seperatorProfileSelect:SetPoint("RIGHT", frame, "RIGHT");
+    PixelPerfect.SetPoint(frame.seperatorProfileSelect, "TOP", frameDeleteProfile, "BOTTOM");
+    PixelPerfect.SetPoint(frame.seperatorProfileSelect, "LEFT", frame, "LEFT");
+    PixelPerfect.SetPoint(frame.seperatorProfileSelect, "RIGHT", frame, "RIGHT");
     frame.seperatorProfileSelect:Show();
     totalHeight = totalHeight + frame.seperatorProfileSelect:GetHeight();
     
@@ -189,10 +190,10 @@ function ProfileEditorSettingsPage.Create(parent)
     for i=1, #specs do
         local profileSelector = CreateProfileSelectForSpec(frame, specs[i]);
         if (lastFrame == nil) then
-            profileSelector:SetPoint("TOP", frame.seperatorProfileSelect, "BOTTOM", 0, -5);
+            PixelPerfect.SetPoint(profileSelector, "TOP", frame.seperatorProfileSelect, "BOTTOM", 0, -5);
             totalHeight = totalHeight + 5;
         else
-            profileSelector:SetPoint("TOP", lastFrame, "BOTTOM", 0, 0);
+            PixelPerfect.SetPoint(profileSelector, "TOP", lastFrame, "BOTTOM", 0, 0);
         end
         largestWidth = math_max(largestWidth, profileSelector:GetWidth());
         totalHeight = totalHeight + profileSelector:GetHeight();
@@ -200,17 +201,17 @@ function ProfileEditorSettingsPage.Create(parent)
         lastFrame = profileSelector;
     end
 
-    frameCreateNewProfile:SetWidth(largestWidth);
-    frameRenameProfile:SetWidth(largestWidth);
-    frameDeleteProfile:SetWidth(largestWidth);
+    PixelPerfect.SetWidth(frameCreateNewProfile, largestWidth);
+    PixelPerfect.SetWidth(frameRenameProfile, largestWidth);
+    PixelPerfect.SetWidth(frameDeleteProfile, largestWidth);
     for i=1, #profileSelectors do
-        profileSelectors[i]:SetWidth(largestWidth);
+        PixelPerfect.SetWidth(profileSelectors[i], largestWidth);
     end
 
     frame.RefreshFromProfile = _p.Noop;
     frame.Layout = _p.Noop;
     frame.IsChangingSettings = function () return false; end;
-    frame:SetHeight(totalHeight);
+    PixelPerfect.SetHeight(frame, totalHeight);
 
     ProfileManager.RegisterProfileListChangedListener(RefreshDropDownTexts);
     return frame;

@@ -19,28 +19,41 @@
 local ADDON_NAME, _p = ...;
 local L = _p.L;
 
-local _multi = UIParent:GetScale();
+_p.PixelPerfect = {}
+local PixelPerfect = _p.PixelPerfect;
 
 local eventFrame = CreateFrame("Frame");
 eventFrame:SetScript("OnEvent", function(_, event, cvar, _)
-    if (event == "CVAR_UPDATE" and (cvar == "uiScale" or cvar == "useUiScale")) then
-        _multi = UIParent:GetScale();
+    if (event == "UI_SCALE_CHANGED") then
     end
 end);
-eventFrame:RegisterEvent("CVAR_UPDATE");
+eventFrame:RegisterEvent("UI_SCALE_CHANGED");
 
-MacFramesPixelPerfectMixin = {};
-function MacFramesPixelPerfectMixin:SetScaledWidth(width)
-    self:SetWidth(width);
-    --PixelUtil.SetWidth(self, _multi * width);
+---Sets the size respecting the pixel grid.
+---@param region Frame | Region
+---@param width number
+---@param height number
+function PixelPerfect.SetSize(region, width, height)
+    height = height or width;
+    region:SetSize(width, height);
 end
 
-function MacFramesPixelPerfectMixin:SetScaledHeight(height)
-    self:SetHeight(height);
-    --PixelUtil.SetHeight(self, _multi * height);
+---Sets the width respecting the pixel grid.
+---@param region Frame | Region
+---@param width number
+function PixelPerfect.SetWidth(region, width)
+    region:SetWidth(width);
 end
 
-function MacFramesPixelPerfectMixin:SetScaledSize(width, height)
-    self:SetSize(width, height);
-    --PixelUtil.SetSize(self, _multi * width, _multi * height);
+---Sets the height respecting the pixel grid.
+---@param region Frame | Region
+---@param height number
+function PixelPerfect.SetHeight(region, height)
+    region:SetHeight(height);
+end
+
+---Sets the point respecting the pixel grid.
+---@param region Frame | Region
+function PixelPerfect.SetPoint(region, ...)
+    region:SetPoint(...);
 end

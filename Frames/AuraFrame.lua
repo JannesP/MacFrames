@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 local MyAuraUtil = _p.MyAuraUtil;
 local AuraManager = _p.AuraManager;
 local FrameUtil = _p.FrameUtil;
+local PixelPerfect = _p.PixelPerfect;
 
 local AuraFrame = {};
 _p.AuraFrame = AuraFrame;
@@ -43,7 +44,7 @@ function AuraFrame.new(parent, width, height, zoom)
     else
         frame:SetParent(parent);
     end
-    frame:SetScaledSize(width, height);
+    PixelPerfect.SetSize(frame, width, height);
     
     frame.pinnedAura = nil;
     frame.cooldown:SetDrawEdge(false);
@@ -66,8 +67,8 @@ function AuraFrame.new(parent, width, height, zoom)
         
     end
 
-    frame.icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1);
-    frame.icon:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
+    PixelPerfect.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1);
+    PixelPerfect.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
 
     frame.cooldown:SetAllPoints(frame.icon);
 
