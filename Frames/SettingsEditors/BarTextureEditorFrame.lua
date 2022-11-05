@@ -113,9 +113,9 @@ function BarTextureEditorFrame.Create(parent, option)
         aceWidget:SetList();
         aceWidget:SetValue(value);
         aceWidget:SetCallback("OnValueChanged", AceWidgetOnValueChanged);
-        PixelPerfect.SetWidth(aceWidget, dropDownWidth);
         aceWidget.frame:SetParent(frame);
-        PixelPerfect.SetPoint(aceWidget.frame, "CENTER", frame, "CENTER", 0, 10);
+        aceWidget.frame:SetPoint("CENTER", frame, "CENTER", 0, 10);
+        aceWidget:SetWidth(dropDownWidth);
         aceWidget.frame:Show();
     else
         local dropDown = CreateFrame("Frame", "MacFramesDropdownBarTextureSelector" .. _barSelectorCount, frame, "UIDropDownMenuTemplate");
