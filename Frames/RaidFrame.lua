@@ -166,8 +166,8 @@ end
 function RaidFrame.UpdateAnchorFromCurrentPosition(self)
     local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint(1);
     _changingSettings = true;
-    _raidSettings.AnchorInfo.OffsetX = Round(xOfs);
-    _raidSettings.AnchorInfo.OffsetY = Round(yOfs);
+    _raidSettings.AnchorInfo.OffsetX = xOfs;
+    _raidSettings.AnchorInfo.OffsetY = yOfs;
     _raidSettings.AnchorInfo.AnchorPoint = point;
     _changingSettings = false;
 end

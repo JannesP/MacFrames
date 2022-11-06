@@ -3,6 +3,7 @@
 ## v0.1.7 (2022/10/XX)
 * NEW: Sorting Raid Parties by Player Role
 * FIX: Heal Absorb and "Overshield" Display 
+* FIX: All borders should now be pixel-perfect. To snap everything to the pixel grid you might need to reposition your frames once.
 
 ## v0.1.6 (2022/10/19)
 * NEW: Sorting Party Frames by Player Role

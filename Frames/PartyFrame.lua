@@ -183,8 +183,8 @@ do
         _frame.dragDropHost = FrameUtil.CreateDragDropOverlay(_frame, function(dragDropHost, frameToMove)
             _changingSettings = true;
             local point, relativeTo, relativePoint, xOffset, yOffset = frameToMove:GetPoint(1);
-            _partySettings.AnchorInfo.OffsetX = Round(xOffset);
-            _partySettings.AnchorInfo.OffsetY = Round(yOffset);
+            _partySettings.AnchorInfo.OffsetX = xOffset;
+            _partySettings.AnchorInfo.OffsetY = yOffset;
             _partySettings.AnchorInfo.AnchorPoint = point;
             for i=1, #_unitFrames do
                 UnitFrame.SnapToPixels(_unitFrames[i]);

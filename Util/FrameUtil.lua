@@ -170,6 +170,7 @@ do
         dragDropHost:Hide();
         FrameUtil.ConfigureDragDropHost(dragDropHost, frame, OnFinishDragDrop, clampToScreen);
 
+        --[[
         local bUp = FrameUtil.CreateArrowButton(dragDropHost, "up");
         bUp:ClearAllPoints();
         PixelPerfect.SetPoint(bUp, "BOTTOM", dragDropHost.text, "TOP", 0, 0);
@@ -193,6 +194,7 @@ do
         PixelPerfect.SetPoint(bDown, "TOP", dragDropHost.text, "BOTTOM", 0, 0);
         PixelPerfect.SetSize(bDown, 24);
         bDown:SetScript("OnClick", Frame_MoveDown);
+        ]]
 
         local cbClampToScreenFrame = CreateFrame("Frame", nil, dragDropHost);
         local cbClampToScreen = CreateFrame("CheckButton", nil, cbClampToScreenFrame, "SettingsCheckBoxTemplate");
@@ -208,7 +210,8 @@ do
         cbClampToScreenFrame:ClearAllPoints();
         PixelPerfect.SetHeight(cbClampToScreenFrame, math.max(cbClampToScreen:GetHeight(), cbClampToScreenFrame:GetHeight()));
         PixelPerfect.SetWidth(cbClampToScreenFrame, cbClampToScreen:GetWidth() + 4 + cbClampToScreenFrame.text:GetWidth());
-        PixelPerfect.SetPoint(cbClampToScreenFrame, "BOTTOM", bUp, "TOP", 0, -8);
+        --PixelPerfect.SetPoint(cbClampToScreenFrame, "BOTTOM", bUp, "TOP", 0, -8);
+        PixelPerfect.SetPoint(cbClampToScreenFrame, "CENTER", dragDropHost, "CENTER", 0, -25);
         return dragDropHost;
     end
 end
