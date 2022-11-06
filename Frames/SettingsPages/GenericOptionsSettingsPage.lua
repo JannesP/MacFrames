@@ -156,6 +156,7 @@ local function OnSectionSelected(self)
             section.content:Layout();
             section.scrollFrame:Show();
             section.scrollFrame:RefreshScrollBarVisibility();
+            section.scrollFrame:FullUpdate(ScrollBoxConstants.UpdateImmediately);
         else
             section.scrollFrame:Hide();
         end
