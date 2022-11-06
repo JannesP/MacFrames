@@ -1483,9 +1483,14 @@ function UnitFrame.ProcessHealthBarExtraInfoBar(texture, amount, previousFrame, 
     local width = (amount / maxLife) * barWidth;
     PixelPerfect.SetPoint(texture, "TOPLEFT", previousFrame, "TOPRIGHT", 0, 0);
     PixelPerfect.SetPoint(texture, "BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", 0, 0);
-    PixelPerfect.SetWidth(texture, width);
-    texture:Show();
-    return remainingEmptyHealth, texture, overAmount;
+    if (width > 1) then
+        PixelPerfect.SetWidth(texture, width);
+        texture:Show();
+        return remainingEmptyHealth, texture, overAmount;
+    else
+        texture:Hide();
+        return remainingEmptyHealth, previousFrame, overAmount;
+    end
 end
 
 function UnitFrame.UpdateName(self)
