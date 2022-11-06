@@ -1,7 +1,8 @@
 # MacFrames Changelog
 
-## v0.1.7 (2022/10/XX)
+## v0.1.7 (2022/11/06)
 * NEW: Sorting Raid Parties by Player Role
+* FIX: The buttons for test mode were gone ... now they are back.
 * FIX: Heal Absorb and "Overshield" Display 
 * FIX: All borders should now be pixel-perfect. To snap everything to the pixel grid you might need to reposition your frames once.
 
