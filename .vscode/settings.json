@@ -158,7 +158,9 @@
         "Clicked",
         "ClickCastFrames",
         "Clique",
-        "OmniCD"
+        "OmniCD",
+        "CallbackRegistryMixin",
+        "ColorPickerFrame"
     ],
     "Lua.diagnostics.disable": [
         "undefined-field"

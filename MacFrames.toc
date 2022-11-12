@@ -81,6 +81,7 @@ Frames\SettingsEditors\BarTextureEditorFrame.lua
 Frames\SettingsEditors\ButtonActionEditorFrame.lua
 Frames\SettingsEditors\FontPickerEditorFrame.lua
 Frames\SettingsEditors\TextDropDownEditorFrame.lua
+Frames\SettingsEditors\ColorPickerEditorFrame.lua
 
 Frames\SettingsPages\GenericOptionsSettingsPage.lua
 Frames\SettingsPages\AuraBlacklistSettingsPage.lua

@@ -78,6 +78,10 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
     if (self == nil or self.isChangingSettings == true) then return; end
     if (String_EndsWith(path, ".NameFont")) then
         UnitFrame.UpdateNameFontFromSettings(self);
+        UnitFrame.UpdateName(self);
+        if (self.isTestMode) then
+            UnitFrame.SetTestMode(self, true, true);
+        end
     elseif (String_EndsWith(path, ".StatusTextFont")) then
         UnitFrame.UpdateStatusTextFontFromSettings(self);
     elseif (key == "HealthBarTextureName") then
@@ -116,6 +120,8 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
             UnitFrame.SetTestMode(self, true, true);
         else
             if (key == "DisplayServerNames") then
+                UnitFrame.UpdateName(self);
+            elseif (String_EndsWith(path, "NameFont.ManualColor")) then
                 UnitFrame.UpdateName(self);
             elseif (key == "BlendToDangerColors" or key == "BlendToDangerColorsRatio" or key == "BlendToDangerColorsMinimum" or key == "BlendToDangerColorsMaximum") then
                 UnitFrame.UpdateHealth(self);
@@ -552,6 +558,13 @@ function UnitFrame.UpdateTestDisplay(self)
     local classColor = data.classColor;
     UnitFrame.SetHealthColor(self, classColor.r, classColor.g, classColor.b);
     self.name:SetText(data.name);
+    local nameColor;
+    if (self.settings.Frames.NameFont.UseClassColor) then
+        nameColor = classColor;
+    else
+        nameColor = self.settings.Frames.NameFont.ManualColor;
+    end
+    self.name:SetTextColor(nameColor.r, nameColor.g, nameColor.b, 1);
     UnitFrame.SetInRange(self, data.isInRange);
     self.healthBar:SetMinMaxValues(0, data.maxHealth);
     UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
@@ -1495,6 +1508,21 @@ end
 
 function UnitFrame.UpdateName(self)
     local name = GetUnitName(self.displayUnit, self.settings.Frames.DisplayServerNames);
+    local r, g, b;
+    if (self.settings.Frames.NameFont.UseClassColor) then
+        local _, englishClass = UnitClass(self.unit);
+        local classColor = RAID_CLASS_COLORS[englishClass];
+         
+        if (classColor) then
+            r, g, b = classColor.r, classColor.g, classColor.b;
+        else
+            r, g, b = 1, 1, 1;
+        end
+    else
+        local color = self.settings.Frames.NameFont.ManualColor;
+        r, g, b = color.r, color.g, color.b;
+    end
+    self.name:SetTextColor(r, g, b, 1);
     self.name:SetText(name);
 end
 

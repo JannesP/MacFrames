@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.2.0 (2022/11/XX)
+* NEW: Choose from a variety of frame style presets or create your own.
+
 ## v0.1.7 (2022/11/06)
 * NEW: Sorting Raid Parties by Player Role
 * FIX: The buttons for test mode were gone ... now they are back.

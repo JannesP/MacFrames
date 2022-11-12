@@ -84,6 +84,8 @@ _p.DefaultProfileSettings = {
                 NameFont = {
                     Name = _defaultFont,
                     Size = _defaultFontSizeSmall,
+                    UseClassColor = false,
+                    ManualColor = { r = 1, g = 1, b = 1 },
                 },
                 StatusTextFont = {
                     Name = _defaultFont,
@@ -133,6 +135,8 @@ _p.DefaultProfileSettings = {
             NameFont = {
                 Name = _defaultFont,
                 Size = _defaultFontSizeSmall,
+                UseClassColor = false,
+                ManualColor = { r = 1, g = 1, b = 1 },
             },
             StatusTextFont = {
                 Name = _defaultFont,
@@ -242,6 +246,8 @@ _p.DefaultProfileSettings = {
             NameFont = {
                 Name = _defaultFont,
                 Size = _defaultFontSizeSmall,
+                UseClassColor = false,
+                ManualColor = { r = 1, g = 1, b = 1 },
             },
             StatusTextFont = {
                 Name = _defaultFont,
@@ -337,6 +343,8 @@ _p.DefaultProfileSettings = {
                 NameFont = {
                     Name = _defaultFont,
                     Size = _defaultFontSizeSmall,
+                    UseClassColor = false,
+                    ManualColor = { r = 1, g = 1, b = 1 },
                 },
                 StatusTextFont = {
                     Name = _defaultFont,

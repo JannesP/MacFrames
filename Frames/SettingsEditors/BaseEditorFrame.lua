@@ -72,6 +72,17 @@ end
 function BaseEditorMixin:GetDefaultHeight()
     return 30;
 end
+function BaseEditorMixin:SetDisabled(disabled)
+    if (self.option.IsActive == nil) then return false; end
+    if (self.disabled == disabled) then return false; end
+    self.disabled = disabled;
+    if (disabled) then
+        self.disabledBlocker:Show();
+    else
+        self.disabledBlocker:Hide();
+    end
+    return true;
+end
 
 function BaseEditorFrame.Create(parent, option)
     if (_constructors[option.Type] == nil) then
@@ -83,6 +94,18 @@ end
 function BaseEditorFrame.CreateBaseFrame(parent, option)
     local frame = CreateFrame("Frame", nil, parent);
     frame.option = option;
+
+    if (frame.option.IsActive) then
+        frame.disabledBlocker = CreateFrame("Frame", nil, frame);
+        frame.disabledBlocker:SetAllPoints(frame);
+        frame.disabledBlocker:SetFrameLevel(200);
+        frame.disabledBlocker:EnableMouse(true);
+        frame.disabledBlocker:Hide();
+        if (option.Description ~= nil) then
+            FrameUtil.CreateTextTooltip(frame.disabledBlocker, option.Description, frame.disabledBlocker, "ANCHOR_LEFT", 0, 0, 1, 1, 1, 1);
+        end
+    end
+    
 
     Mixin(frame, BaseEditorMixin);
     frame.isChangingSettings = false;

@@ -20,6 +20,7 @@ local ADDON_NAME, _p = ...;
 
 local Constants = _p.Constants;
 local FrameUtil = _p.FrameUtil;
+local ProfileManager = _p.ProfileManager;
 local BaseEditorFrame = _p.BaseEditorFrame;
 local PixelPerfect = _p.PixelPerfect;
 
@@ -32,6 +33,40 @@ local _optionTextColumnWidth = 220;
 local _tabPanelCount = 0;
 
 local _borderPadding = Constants.TooltipBorderClearance;
+
+local _allRows = {};
+
+local function CheckDependantEditors(rows)
+    for i=1, #rows do
+        local row = rows[i];
+        if (row.editor.option.IsActive and not row.editor.option.IsActive()) then
+            if (row.editor:SetDisabled(true)) then
+                row:SetAlpha(0.5);
+            end
+        else
+            if (row.editor:SetDisabled(false)) then
+                row:SetAlpha(1);
+            end
+        end
+    end
+end
+local function Section_CheckDependantEditors(self)
+    CheckDependantEditors(self.optionsContainer.optionEditorRows);
+    if (self.subSections == nil) then return; end 
+    for i=1, #self.subSections do
+        Section_CheckDependantEditors(self.subSections[i]);
+    end
+end
+local function OnOptionChanged()
+    CheckDependantEditors(_allRows);
+end
+ProfileManager.RegisterProfileChangedListener(function (newProfile, oldProfile)
+    if (oldProfile ~= nil) then
+        oldProfile:UnregisterAllPropertyChanged(OnOptionChanged);
+    end
+    newProfile:RegisterAllPropertyChanged(OnOptionChanged);
+end);
+
 local function Section_Layout(self, width)
     local height = 0;
     if (self.seperator) then
@@ -61,10 +96,42 @@ local function CreateSectionHeader(parent, text, fontName)
     PixelPerfect.SetPoint(frame.text, "LEFT");
     return frame;
 end
+local function CreateOptionEditorRows(options, parent, rowList, depth)
+    depth = depth or 1;
+    for i=1, #options do
+        local option = options[i];
+        local rowFrame = CreateFrame("Frame", nil, parent);
+        rowFrame.option = option;
+        rowFrame.text = FrameUtil.CreateText(rowFrame, option.Name);
+        PixelPerfect.SetPoint(rowFrame.text, "CENTER");
+        PixelPerfect.SetPoint(rowFrame.text, "LEFT", rowFrame, "LEFT", _subSectionRowInset * depth, 0);
+
+        local editor = BaseEditorFrame.Create(rowFrame, option);
+        PixelPerfect.SetSize(editor, editor:GetMeasuredSize());
+        PixelPerfect.SetPoint(editor, "CENTER");
+        PixelPerfect.SetPoint(editor, "LEFT", rowFrame, "LEFT", _optionTextColumnWidth, 0);
+
+        local textHeight = select(2, rowFrame.text:GetFont());
+        local editorHeight = editor:GetHeight();
+        PixelPerfect.SetHeight(rowFrame, max(textHeight, editorHeight));
+
+        if (option.Description ~= nil) then
+            FrameUtil.CreateTextTooltip(rowFrame, option.Description, rowFrame, "ANCHOR_TOPLEFT", _optionTextColumnWidth + 20, 0, 1, 1, 1, 1);
+            --FrameUtil.CreateTextTooltip(rowFrame.text, option.Description, rowFrame, nil, 0, 0, 1, 1, 1, 1);
+        end
+        rowFrame.editor = editor;
+        tinsert(rowList, rowFrame);
+        tinsert(_allRows, rowFrame);
+        if (option.Options and #option.Options > 0) then
+            CreateOptionEditorRows(option.Options, parent, rowList, depth + 1);
+        end
+        
+    end
+end
 local function CreateSection(parent, section, depth)
     local s = CreateFrame("Frame", nil, parent);
     local seperator;
-    if (depth <= 1) then    --this is the section heading
+    if (depth <= 1) then        --this is the section heading
         seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightHuge");
         PixelPerfect.SetPoint(seperator.text, "TOPLEFT", seperator, 0, -4);
         seperator.texSeperatorBar = seperator:CreateTexture();
@@ -73,14 +140,18 @@ local function CreateSection(parent, section, depth)
         PixelPerfect.SetPoint(seperator.texSeperatorBar, "RIGHT");
         PixelPerfect.SetPoint(seperator.texSeperatorBar, "BOTTOM", seperator, "BOTTOM", 0, 4);
         PixelPerfect.SetHeight(seperator, select(2, seperator.text:GetFont()) + 14);
-    elseif (depth > 1) then --these are subsection headings
+    elseif (depth == 2) then --these are subsection headings
         seperator = CreateSectionHeader(s, section.Name, "GameFontHighlightLarge");
         PixelPerfect.SetPoint(seperator.text, "LEFT", seperator, "LEFT", 0, -6);
         PixelPerfect.SetHeight(seperator, select(2, seperator.text:GetFont()) + 16);
+    elseif (depth > 2) then  --these are conditionally shown options
+        --these don't have a header
     end
     s.seperator = seperator;
-    PixelPerfect.SetPoint(seperator, "TOPLEFT", s, "TOPLEFT", 0, 0);
-    PixelPerfect.SetPoint(seperator, "TOPRIGHT", s, "TOPRIGHT", 0, 0);
+    if (s.seperator) then
+        PixelPerfect.SetPoint(seperator, "TOPLEFT", s, "TOPLEFT", 0, 0);
+        PixelPerfect.SetPoint(seperator, "TOPRIGHT", s, "TOPRIGHT", 0, 0);
+    end
     if (section.Options and #section.Options > 0) then
         s.optionsContainer = CreateFrame("Frame", nil, s);
         s.optionsContainer:ClearAllPoints();
@@ -92,33 +163,7 @@ local function CreateSection(parent, section, depth)
             PixelPerfect.SetPoint(s.optionsContainer, "TOPRIGHT", s, "TOPRIGHT", 0, 0);
         end
         s.optionsContainer.optionEditorRows = {};
-        s.optionsContainer.optionEditors = {};
-        local options = section.Options;
-        for i=1, #options do
-            local option = options[i];
-            local rowFrame = CreateFrame("Frame", nil, s.optionsContainer);
-            rowFrame.option = option;
-            rowFrame.text = FrameUtil.CreateText(rowFrame, option.Name);
-            PixelPerfect.SetPoint(rowFrame.text, "CENTER");
-            PixelPerfect.SetPoint(rowFrame.text, "LEFT", rowFrame, "LEFT", _subSectionRowInset, 0);
-
-            local editor = BaseEditorFrame.Create(rowFrame, option);
-            PixelPerfect.SetSize(editor, editor:GetMeasuredSize());
-            PixelPerfect.SetPoint(editor, "CENTER");
-            PixelPerfect.SetPoint(editor, "LEFT", rowFrame, "LEFT", _optionTextColumnWidth, 0);
-
-            local textHeight = select(2, rowFrame.text:GetFont());
-            local editorHeight = editor:GetHeight();
-            PixelPerfect.SetHeight(rowFrame, max(textHeight, editorHeight));
-
-            if (option.Description ~= nil) then
-                FrameUtil.CreateTextTooltip(rowFrame, option.Description, rowFrame, "ANCHOR_TOPLEFT", _optionTextColumnWidth + 20, 0, 1, 1, 1, 1);
-                --FrameUtil.CreateTextTooltip(rowFrame.text, option.Description, rowFrame, nil, 0, 0, 1, 1, 1, 1);
-            end
-
-            s.optionsContainer.optionEditorRows[i] = rowFrame;
-            s.optionsContainer.optionEditors[i] = editor;
-        end
+        CreateOptionEditorRows(section.Options, s.optionsContainer, s.optionsContainer.optionEditorRows);
     end
     local subSections = section.SubSections;
     if (subSections and #subSections > 0) then
@@ -145,6 +190,7 @@ local function CreateSection(parent, section, depth)
         end
     end
     s.Layout = Section_Layout;
+    s.CheckDependantEditors = Section_CheckDependantEditors;
     return s;
 end
 
@@ -157,6 +203,7 @@ local function OnSectionSelected(self)
             section.scrollFrame:Show();
             section.scrollFrame:RefreshScrollBarVisibility();
             section.scrollFrame:FullUpdate(ScrollBoxConstants.UpdateImmediately);
+            section.content:CheckDependantEditors();
         else
             section.scrollFrame:Hide();
         end
@@ -166,10 +213,10 @@ end
 local ForEachEditor;
 do
     local function Do(section, action)
-        local editors = section.optionsContainer and section.optionsContainer.optionEditors;
-        if (editors) then
-            for i=1, #editors do
-                action(editors[i]);
+        local editorRows = section.optionsContainer and section.optionsContainer.optionEditorRows;
+        if (editorRows) then
+            for i=1, #editorRows do
+                action(editorRows[i].editor);
             end
         end
         local subSections = section.subSections;

@@ -58,6 +58,7 @@ Settings.OptionType = {
     ButtonAction = "ButtonAction",
     FontPicker = "FontPicker",
     TextDropDown = "TextDropDown",
+    ColorPicker = "ColorPicker",
     NotYetImplemented = "NotYetImplemented",
 }
 local OptionType = Settings.OptionType;
@@ -85,6 +86,7 @@ local function CreateSection(name)
         Name = name,
         Options = {},
         SubSections = {},
+        ShouldShow = nil,
     }
 end
 
@@ -504,6 +506,8 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         end,
     });
 
+    
+
     local nameFontSection = CreateSection(L["Name Font"]);
     tinsert(lookAndFeelOptions.SubSections, nameFontSection);
     tinsert(nameFontSection.Options, {
@@ -529,6 +533,34 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         Get = function()
             return PS().Frames.NameFont.Size;
         end,
+    });
+    tinsert(nameFontSection.Options, {
+        Name = L["Use Class Color"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.NameFont.UseClassColor = value;
+        end,
+        Get = function()
+            return PS().Frames.NameFont.UseClassColor;
+        end,
+        Options = {
+            [1] = {
+                Name = L["Color"],
+                Description = L["Pick your color of choice!"],
+                Type = OptionType.ColorPicker,
+                Set = function(r, g, b)
+                    local color = PS().Frames.NameFont.ManualColor;
+                    color.r, color.g, color.b = r, g, b;
+                end,
+                Get = function()
+                    local color = PS().Frames.NameFont.ManualColor;
+                    return color.r, color.g, color.b;
+                end,
+                IsActive = function()
+                    return PS().Frames.NameFont.UseClassColor == false;
+                end,
+            },
+        }
     });
 
     local statusTextFontSection = CreateSection(L["Status Text Font"]);
