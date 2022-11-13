@@ -92,14 +92,19 @@ _p.Defensives = {   --priority is the number to the right (higher is a higher pr
     [235313] = 100,     --Blazing Barrier
     [235450] = 100,     --Prismatic Barrier
 
+    [374348] = 101,     --Renewing Blaze
+    [363916] = 100,     --Obsidian Scales
+
+
     --######### AOE ##########
     [81782] = 3,        --PW: Barrier
     [98007] = 3,        --Spirit Link
-    [201633] = 2,       --Earthen Wall Totem
+    --[201633] = 2,       --Earthen Wall Totem
     [207498] = 1,       --Ancestral Protection Totem
     [255234] = 1,       --APT Procc (while dead)
     [51052] = 1,        --Anti-Magic Zone
     [196718] = 1,       --Darkness
+    --[374227] = 1,       --Zephyr
     
     --####### Racials ########
     [65116] = 1,        --Stone Form(Racial)

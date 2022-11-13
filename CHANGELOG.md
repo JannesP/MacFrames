@@ -2,6 +2,8 @@
 
 ## v0.2.0 (2022/11/XX)
 * NEW: Customize the frame colors freely or choose one of the provided presets (Default, Dark, Light).
+* NEW: All classes should now have properly setup class displays.
+* NEW: Added Evoker defensives.
 
 ## v0.1.7 (2022/11/06)
 * NEW: Sorting Raid Parties by Player Role
