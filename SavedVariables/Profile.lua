@@ -62,7 +62,11 @@ do
     local function Wrapper_Metatable__index(self, key)
         local result = self._settings[key];
         if (result == nil) then
-            local default = self._defaults[key];
+            --prevent recursion if no default is found
+            if (key == "_defaults") then return nil; end
+            --if there are no defaults, whole object trees might be nil,
+            --so we just return nil for everything if there is no _defaults table
+            local default = (self._defaults and self._defaults[key]) or nil;
             if (default ~= nil) then
                 local fullPath = self._pathToMe .. "." .. key;
                 Log("Loading default ", fullPath, "): ", tostring(default));
@@ -181,7 +185,8 @@ CreateWrapper = function(setting, defaults, path)
             wrapper = NewWrapper(defaults, path);
             for key, value in pairs(setting) do
                 if (string.find(key, "_.*") == nil) then    --skip all members with '_' at the beginning
-                    wrapper._settings[key] = CreateWrapper(value, defaults[key], path .. "." .. key);
+                    local defaultsValue = (defaults and defaults[key]) or nil;
+                    wrapper._settings[key] = CreateWrapper(value, defaultsValue, path .. "." .. key);
                 end
             end
         elseif (stype == ProfileSettingsTypes.Array) then
