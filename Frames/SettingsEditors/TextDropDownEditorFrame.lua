@@ -28,16 +28,32 @@ local TextDropDownEditorFrame = _p.TextDropDownEditorFrame;
 
 local _elementCount = 0;
 
+local TextDropDownEditorFrameMixin = {};
+function TextDropDownEditorFrameMixin:GetMeasuredSize()
+    return self.dropDown:GetWidth(), self:GetDefaultHeight();
+end
+
+function TextDropDownEditorFrameMixin:SetDisabled(disabled)
+    local changed = BaseEditorFrame.Mixin.SetDisabled(self, disabled);
+    if (changed) then
+        self.dropDown:SetEnabled(not disabled);
+    end
+    return changed;
+end
+
 local function ChangedValue(self, text, newValue)
     self.option.Set(newValue);
 end
 
 local function RefreshFromProfile(self)
+    local selectedValue = self.option.Get();
+    self.dropDown:SetSelectedValue(selectedValue);
 end
 
 function TextDropDownEditorFrame.Create(parent, option)
     local optionValue = option.Get();
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
+    Mixin(frame, TextDropDownEditorFrameMixin);
 
     _elementCount = _elementCount + 1;
 
@@ -53,16 +69,7 @@ function TextDropDownEditorFrame.Create(parent, option)
     dropDown:SetupFromMacFramesTextDropDownCollection(option.DropDownCollection, optionValue);
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(RefreshFromProfile);
-    frame.GetMeasuredSize = TextDropDownEditorFrame.GetMeasuredSize;
     return frame;
-end
-
-function TextDropDownEditorFrame:GetMeasuredSize()
-    return self.dropDown:GetWidth(), self:GetDefaultHeight();
-end
-
-function TextDropDownEditorFrame.CreateEntryCollection()
-    return CreateFromMixins(MacFramesTextDropDownCollectionMixin);
 end
 
 BaseEditorFrame.AddConstructor(OptionType.TextDropDown, TextDropDownEditorFrame.Create);

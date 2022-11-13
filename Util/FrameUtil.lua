@@ -467,6 +467,12 @@ do
         scroll:FullUpdate(ScrollBoxConstants.UpdateImmediately);
 
         scroll:SetScript("OnSizeChanged", ScrollFrameOnSizeChanged);
+        scroll:SetScript("OnShow", function(self)
+            ScrollBarVisibility(self);
+        end);
+        scroll:SetScript("OnHide", function(self)
+            self.ScrollBar:Hide();
+        end);
         counter = counter + 1;
         return scroll;
     end
@@ -561,9 +567,6 @@ function FrameUtil.GridLayoutFromObjects(gridParent, gridDescriptor)
         end
     end
     PixelPerfect.SetHeight(gridFrame, currentY);
-    if (gridFrame:GetWidth() ~= currentX) then
-        _p.Log("Unexpected! Actual width: ", gridFrame:GetWidth(), " (filled width ", currentX, ")");
-    end
 end
 
 function FrameUtil.CreateHorizontalSeperatorWithText(parent, text)

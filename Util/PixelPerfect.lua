@@ -90,6 +90,7 @@ function PixelPerfect.SetPoint(region, arg1, arg2, arg3, arg4, arg5, ...)
 	if type(arg4)=='number' then arg4 = NearestPixelSize(arg4) end
 	if type(arg5)=='number' then arg5 = NearestPixelSize(arg5) end
 
+    ---@diagnostic disable-next-line: redundant-parameter
     region:SetPoint(arg1, arg2, arg3, arg4, arg5, ...);
 end
 

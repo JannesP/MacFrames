@@ -17,7 +17,6 @@
 --]]
 
 local ADDON_NAME, _p = ...;
-_p.Log(ADDON_NAME .. " loaded.");
 local L = _p.L;
 local UnitFrame = _p.UnitFrame;
 local PlayerInfo = _p.PlayerInfo;
@@ -140,7 +139,6 @@ function Addon.UpdatePlayerInfo()
         changedInfo = true;
     end
 
-    _p.Log("Logged on with class: " .. englishClass .. " (" .. ((currentSpec and currentSpec.Name) or "no specialization") .. ")");
     if (changedInfo) then
         ProfileManager.PlayerInfoChanged();
         UnitFrame.PlayerInfoChanged();
@@ -268,7 +266,6 @@ do
                 PopupDisplays.ShowGenericMessage("MacFrames currently doesn't support characters without a specialization.\nI kinda forgot about fresh characters. Please consider using the default frames until you are able to select a specialization.\nSorry :(");
                 return;
             end
-            _p.Log({ UnitName("player"), GetRealmName(), { UnitClassBase("player") }, GetSpecialization() });
             local success, err = ProfileManager.AddonLoaded();
             if (not success) then
                 ProfileManager.TriggerErrorState();
@@ -310,7 +307,6 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 Addon.SetupMinimapIcon();
             end
         end
-        --_p.Log("PLAYER_ENTERING_WORLD", ProcessArenaPartyLayout());
         if (PlayerInfo.specId ~= nil) then
             ProcessArenaPartyLayout();
         end

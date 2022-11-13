@@ -32,6 +32,10 @@ _p.ProfileSettingsTypes = {
 }
 local ProfileSettingsTypes = _p.ProfileSettingsTypes;
 
+local _healthBarMissingHealthColor = { r = 0.1, g = 0.1, b = 0.1 };
+local _healthBarManualColor = { r = 0.2, g = 0.2, b = 0.2 };
+local _healthBarDisconnectedColor = { r = 0.5, g = 0.5, b = 0.5 };
+
 _p.DefaultProfileSettings = {
     Version = 0,
     DisableCompactUnitFrameManager = false,
@@ -70,6 +74,10 @@ _p.DefaultProfileSettings = {
                 PowerBarEnabled = false,
                 PowerBarHeight = 5,
                 RoleIconSize = 10,
+                HealthBarMissingHealthColor = _healthBarMissingHealthColor,
+                HealthBarUseClassColor = true,
+                HealthBarManualColor = _healthBarManualColor,
+                HealthBarDisconnectedColor = _healthBarDisconnectedColor,
                 RaidTargetIconEnabled = true,
                 RaidTargetIconSize = 20,
                 RaidTargetIconAlpha = 0.6,
@@ -125,6 +133,10 @@ _p.DefaultProfileSettings = {
             RaidTargetIconSize = 20,
             RaidTargetIconAlpha = 0.6,
             StatusIconSize = 14,
+            HealthBarMissingHealthColor = _healthBarMissingHealthColor,
+            HealthBarUseClassColor = true,
+            HealthBarManualColor = _healthBarManualColor,
+            HealthBarDisconnectedColor = _healthBarDisconnectedColor,
             BlendToDangerColors = false,
             BlendToDangerColorsRatio = 0.5,     --where the blending switches from alpha to yellow-red [0, 1]
             BlendToDangerColorsMinimum = 0.15,  --the minimum point for blending, below this everything is red  
@@ -232,6 +244,10 @@ _p.DefaultProfileSettings = {
             PowerBarEnabled = false,
             PowerBarHeight = 5,
             RoleIconSize = 10,
+            HealthBarMissingHealthColor = _healthBarMissingHealthColor,
+            HealthBarUseClassColor = true,
+            HealthBarManualColor = _healthBarManualColor,
+            HealthBarDisconnectedColor = _healthBarDisconnectedColor,
             RaidTargetIconEnabled = true,
             RaidTargetIconSize = 20,
             RaidTargetIconAlpha = 0.6,
@@ -329,6 +345,10 @@ _p.DefaultProfileSettings = {
                 PowerBarEnabled = false,
                 PowerBarHeight = 5,
                 RoleIconSize = 10,
+                HealthBarMissingHealthColor = _healthBarMissingHealthColor,
+                HealthBarUseClassColor = true,
+                HealthBarManualColor = _healthBarManualColor,
+                HealthBarDisconnectedColor = _healthBarDisconnectedColor,
                 RaidTargetIconEnabled = true,
                 RaidTargetIconSize = 20,
                 RaidTargetIconAlpha = 0.6,

@@ -72,6 +72,7 @@ PopupDisplays.lua
 
 MacFrames.lua
 
+Settings\FrameStylePresets.lua
 Settings\Settings.lua
 
 Frames\SettingsEditors\BaseEditorFrame.lua

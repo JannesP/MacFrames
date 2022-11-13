@@ -146,7 +146,6 @@ end
 
 function ProfileManager.AddonLoaded()
     if (MacFramesSavedVariables == nil) then
-        _p.Log("first time load!");
         _characterProfileMapping = {};
         _profiles = {};
         _minimapSettings = {};

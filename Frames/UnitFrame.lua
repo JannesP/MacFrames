@@ -38,8 +38,10 @@ local PixelPerfect = _p.PixelPerfect;
 
 local String_EndsWith = StringUtil.EndsWith;
 
+local _classNamesByIndex = {};
 local _classColorsByIndex = {};
 for key, value in pairs(RAID_CLASS_COLORS) do
+    tinsert(_classNamesByIndex, key);
     tinsert(_classColorsByIndex, value);
 end
 
@@ -86,6 +88,8 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
         UnitFrame.UpdateStatusTextFontFromSettings(self);
     elseif (key == "HealthBarTextureName") then
         UnitFrame.UpdateHealthBarTextureFromSettings(self);
+    elseif (String_EndsWith(path, "HealthBarMissingHealthColor")) then
+        UnitFrame.UpdateHealthBarMissingHealthColorFromSettings(self);
     elseif (key == "PowerBarTextureName") then
         UnitFrame.UpdatePowerBarTextureFromSettings(self);
     elseif (key == "PowerBarEnabled" or key == "PowerBarHeight") then
@@ -121,6 +125,8 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
         else
             if (key == "DisplayServerNames") then
                 UnitFrame.UpdateName(self);
+            elseif (key == "HealthBarUseClassColor" or String_EndsWith(path, "HealthBarManualColor") or key == String_EndsWith(path, "HealthBarDisconnectedColor")) then
+                UnitFrame.UpdateHealthColor(self);
             elseif (String_EndsWith(path, "NameFont.ManualColor")) then
                 UnitFrame.UpdateName(self);
             elseif (key == "BlendToDangerColors" or key == "BlendToDangerColorsRatio" or key == "BlendToDangerColorsMinimum" or key == "BlendToDangerColorsMaximum") then
@@ -256,9 +262,7 @@ function UnitFrame.SnapToPixels(self)
 end
 
 function UnitFrame.Setup(self)
-    self:SetAlpha(1);
-    self.background:SetTexture(Resources.SB_HEALTH_BACKGROUND);
-    
+    self:SetAlpha(1);    
     self.targetBorder:Hide();
     self.aggroBorder:Hide();
 
@@ -391,16 +395,29 @@ function UnitFrame.UpdateRaidTargetIconAlphaFromSettings(self)
     self.raidTargetIcon.texture:SetAlpha(self.settings.Frames.RaidTargetIconAlpha);
 end
 
+function UnitFrame.UpdateHealthBarMissingHealthColorFromSettings(self)
+    local color = self.settings.Frames.HealthBarMissingHealthColor;
+    self.healthBar.missingHealth:SetVertexColor(color.r, color.g, color.b);
+end
+
 function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     self.isChangingSettings = true;
     local healthBarTexturePath, usedLsmName = UnitFrame.GetTextureFromSettings(
         "statusbar", self.settings.Frames.HealthBarTextureName, Constants.HealthBarDefaultTextureName);
     self.settings.Frames.HealthBarTextureName = usedLsmName;
     self.isChangingSettings = false;
+
+    self.background:SetColorTexture(0, 0, 0, 0.5);
+
     self.healthBar:SetStatusBarTexture(healthBarTexturePath, "BORDER");
     local healthBarTexture = self.healthBar:GetStatusBarTexture();
     self.healthBar.texture = healthBarTexture;
     self.healthBar.texture:SetDrawLayer("BORDER", 0);
+
+    self.healthBar.missingHealth:SetTexture(healthBarTexturePath);
+    self.healthBar.missingHealth:ClearAllPoints();
+    PixelPerfect.SetPoint(self.healthBar.missingHealth, "TOPLEFT", healthBarTexture, "TOPRIGHT", 0, 0);
+    PixelPerfect.SetPoint(self.healthBar.missingHealth, "BOTTOMRIGHT", self.healthBar, "BOTTOMRIGHT");
 
     self.healthBar.overlay:ClearAllPoints();
     PixelPerfect.SetPoint(self.healthBar.overlay, "TOPLEFT", healthBarTexture, "TOPLEFT", 0, 0);
@@ -487,6 +504,7 @@ end
 
 function UnitFrame.UpdateAllSettings(self)
     UnitFrame.UpdateHealthBarTextureFromSettings(self);
+    UnitFrame.UpdateHealthBarMissingHealthColorFromSettings(self);
     UnitFrame.UpdatePowerBarTextureFromSettings(self);
     UnitFrame.LayoutHealthAndPowerBar(self);
 
@@ -519,14 +537,24 @@ do
                 self.testModeData = {};
             end
             if (not preserveTestModeData) then
+                self.testModeData.isConnected = math.random(1, 10) ~= 1;
+                if (not self.testModeData.isConnected) then
+                    self.testModeData.health = 1000;
+                    self.testModeData.maxHealth = 1000;
+                    self.testModeData.incomingHeal = 0;
+                    self.testModeData.absorb = 0;
+                    self.testModeData.healAbsorb = 0;
+                else
+                    self.testModeData.health = math.random(1, 1000);
+                    self.testModeData.maxHealth = 1000;
+                    self.testModeData.incomingHeal = math.random(0, 200);
+                    self.testModeData.absorb = math.random(0, 300);
+                    self.testModeData.healAbsorb = math.random(0, 100);
+                end
                 self.testModeData.power = math.random(1, 1000);
                 self.testModeData.maxPower = 1000;
-                self.testModeData.health = math.random(1, 1000);
-                self.testModeData.maxHealth = 1000;
-                self.testModeData.incomingHeal = math.random(0, 200);
-                self.testModeData.absorb = math.random(0, 300);
-                self.testModeData.healAbsorb = math.random(0, 100);
-                self.testModeData.classColor = _classColorsByIndex[math.random(1, #_classColorsByIndex)];
+                self.testModeData.englishClass = _classNamesByIndex[math.random(1, #_classNamesByIndex)];
+                self.testModeData.classColor = C_ClassColor.GetClassColor(self.testModeData.englishClass);
                 self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
                 self.testModeData.isInRange = (math.random(0, 3) > 0);
                 self.testModeData.name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
@@ -555,16 +583,11 @@ do
 end
 function UnitFrame.UpdateTestDisplay(self)
     local data = self.testModeData;
-    local classColor = data.classColor;
-    UnitFrame.SetHealthColor(self, classColor.r, classColor.g, classColor.b);
+    local healthR, healthG, healthB = UnitFrame.CalculateHealthColor(self, true, data.englishClass, data.isConnected);
+    UnitFrame.SetHealthColor(self, healthR, healthG, healthB);
     self.name:SetText(data.name);
-    local nameColor;
-    if (self.settings.Frames.NameFont.UseClassColor) then
-        nameColor = classColor;
-    else
-        nameColor = self.settings.Frames.NameFont.ManualColor;
-    end
-    self.name:SetTextColor(nameColor.r, nameColor.g, nameColor.b, 1);
+    local nameR, nameG, nameB = UnitFrame.CalculateNameColor(self, true, data.englishClass, data.isConnected);
+    self.name:SetTextColor(nameR, nameG, nameB, 1);
     UnitFrame.SetInRange(self, data.isInRange);
     self.healthBar:SetMinMaxValues(0, data.maxHealth);
     UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
@@ -1506,59 +1529,89 @@ function UnitFrame.ProcessHealthBarExtraInfoBar(texture, amount, previousFrame, 
     end
 end
 
-function UnitFrame.UpdateName(self)
-    local name = GetUnitName(self.displayUnit, self.settings.Frames.DisplayServerNames);
-    local r, g, b;
-    if (self.settings.Frames.NameFont.UseClassColor) then
-        local _, englishClass = UnitClass(self.unit);
-        local classColor = RAID_CLASS_COLORS[englishClass];
-         
-        if (classColor) then
-            r, g, b = classColor.r, classColor.g, classColor.b;
-        else
-            r, g, b = 1, 1, 1;
-        end
-    else
-        local color = self.settings.Frames.NameFont.ManualColor;
-        r, g, b = color.r, color.g, color.b;
-    end
-    self.name:SetTextColor(r, g, b, 1);
-    self.name:SetText(name);
-end
-
 function UnitFrame.IsTapDenied(self)
 	return not UnitPlayerControlled(self.unit) and UnitIsTapDenied(self.unit);
 end
 
-function UnitFrame.UpdateHealthColor(self)
-	local r, g, b;
-	if (not UnitIsConnected(self.unit) ) then
-		--Color it grey
-		r, g, b = 0.5, 0.5, 0.5;
-	else
-        --Try to color it by class.
-        local _, englishClass = UnitClass(self.unit);
-        local classColor = RAID_CLASS_COLORS[englishClass];
-        local isPlayer = UnitIsPlayer(self.unit);
-        
-        if (isPlayer and UnitIsEnemy("player", self.unit) and classColor) then
-            -- e.g. Mind Controlled
-            -- use class colors for now 
-            r, g, b = classColor.r, classColor.g, classColor.b;
-        elseif ((isPlayer or UnitTreatAsPlayerForDisplay(self.unit)) and classColor) then
-            -- Use class colors for players if class color option is turned on
-            r, g, b = classColor.r, classColor.g, classColor.b;
-        elseif (UnitFrame.IsTapDenied(self)) then
-            -- Use grey if not a player and can't get tap on unit
-            r, g, b = 0.9, 0.9, 0.9;
-        elseif (self.isPet) then
-            r, g, b = 0.0, 0.75, 0.0;
-        elseif (not isPlayer and UnitIsFriend("player", self.unit)) then
-            r, g, b = UnitSelectionColor(self.unit, true);
+local function RGBFromColor(color, r, g, b)
+    if (color) then
+        r, g, b = color.r, color.g, color.b;
+    end
+    return r, g, b;
+end
+
+function UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName)
+    local color;
+    local r, g, b;
+
+    local classColor;
+    if (isPlayer) then
+        classColor = C_ClassColor.GetClassColor(classFileName);
+    end
+    
+    if (isPlayer and UnitIsEnemy("player", self.unit) and classColor) then
+        -- e.g. Mind Controlled
+        -- use class colors for now 
+        color = classColor;
+    elseif ((isPlayer or UnitTreatAsPlayerForDisplay(self.unit)) and classColor) then
+        color = classColor;
+    elseif (UnitFrame.IsTapDenied(self)) then
+        color = self.settings.Frames.HealthBarDisconnectedColor;
+    elseif (self.isPet) then
+        r, g, b = 0.0, 0.75, 0.0;
+    elseif (not isPlayer and UnitIsFriend("player", self.unit)) then
+        r, g, b = UnitSelectionColor(self.unit, true);
+    else
+        r, g, b = 0.9, 0.0, 0.0;
+    end
+    return RGBFromColor(color, r, g, b);
+end
+
+function UnitFrame.CalculateNameColor(self, isPlayer, classFileName, isConnected)
+    local color;
+    local r, g, b;
+    if (self.settings.Frames.NameFont.UseClassColor) then
+        if (not isConnected) then
+            r, g, b = 1, 1, 1;
         else
-            r, g, b = 0.9, 0.0, 0.0;
+            r, g, b = UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName);
+        end
+    else
+        color = self.settings.Frames.NameFont.ManualColor;
+        r, g, b = color.r, color.g, color.b;
+    end
+    return RGBFromColor(color, r, g, b);
+end
+
+function UnitFrame.UpdateName(self)
+    local name = GetUnitName(self.displayUnit, self.settings.Frames.DisplayServerNames);
+    local r, g, b = UnitFrame.CalculateNameColor(self, UnitIsPlayer(self.unit), select(2, UnitClass(self.unit)), UnitIsConnected(self.unit));
+    self.name:SetTextColor(r, g, b, 1);
+    self.name:SetText(name);
+end
+
+function UnitFrame.CalculateHealthColor(self, isPlayer, classFileName, isConnected)
+    local color;
+    local r, g, b;
+    if (not isConnected) then
+        color = self.settings.Frames.HealthBarDisconnectedColor;
+	else
+        if (self.settings.Frames.HealthBarUseClassColor) then
+            --Try to color it by class.
+            r, g, b = UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName);
+        else
+            if (UnitFrame.IsTapDenied(self)) then
+                color = self.settings.Frames.HealthBarDisconnectedColor;
+            else
+                color = self.settings.Frames.HealthBarManualColor;
+            end
         end
     end
+    return RGBFromColor(color, r, g, b);
+end
+
+function UnitFrame.UpdateHealthColor(self)
+	local r, g, b = UnitFrame.CalculateHealthColor(self, UnitIsPlayer(self.unit), select(2, UnitClass(self.unit)), UnitIsConnected(self.unit));
     UnitFrame.SetHealthColor(self, r, g, b);
 end
 

@@ -58,6 +58,7 @@ function SpellCache.Load(callback)
         return true;
     end
     _loadCallbacks[#_loadCallbacks + 1] = callback;
+    ---@diagnostic disable-next-line: redundant-parameter
     _cacheLoadCoroutine = coroutine.create(function(firstYieldAt)
         local id = 0;
         local misses = 0;

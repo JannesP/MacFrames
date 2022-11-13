@@ -22,6 +22,7 @@ local ProfileManager = _p.ProfileManager;
 local Constants = _p.Constants;
 local Addon = _p.Addon;
 local MacEnum = _p.MacEnum;
+local FrameStylePresets = _p.FrameStylePresets;
 
 _p.Settings = {};
 local Settings = _p.Settings;
@@ -357,6 +358,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         Type = OptionType.CheckBox,
         Set = function(value)
             PS().Frames.BlendToDangerColors = value;
+            PS().PetFrames.Frames.BlendToDangerColors = value;
         end,
         Get = function()
             return PS().Frames.BlendToDangerColors;
@@ -371,6 +373,7 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         StepSize = 1,
         Set = function(value)
             PS().Frames.OutOfRangeAlpha = value / 100;
+            PS().PetFrames.OutOfRangeAlpha = value / 100;
         end,
         Get = function()
             return PS().Frames.OutOfRangeAlpha * 100;
@@ -486,10 +489,24 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     local lookAndFeelOptions = CreateSection(L["Look & Feel"]);
     tinsert(unitFrameOptions, lookAndFeelOptions);
     tinsert(lookAndFeelOptions.Options, {
+        Name = L["Style Presets"],
+        Type = OptionType.TextDropDown,
+        Set = function(value)
+            FrameStylePresets:ApplyPreset(value, PS().Frames);
+            FrameStylePresets:ApplyPreset(value, PS().PetFrames.Frames);
+        end,
+        Get = function()
+            return FrameStylePresets:GetSelectedPreset(PS().Frames);
+        end,
+        DropDownCollection = FrameStylePresets:CreateDropDownCollection(),
+        ShouldRefreshOnProfileChanges = true,
+    });
+    tinsert(lookAndFeelOptions.Options, {
         Name = L["Health Bar Texture"],
         Type = OptionType.BarTexture,
         Set = function(value)
             PS().Frames.HealthBarTextureName = value;
+            PS().PetFrames.Frames.HealthBarTextureName = value;
         end,
         Get = function()
             return PS().Frames.HealthBarTextureName;
@@ -504,6 +521,50 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         Get = function()
             return PS().Frames.PowerBarTextureName;
         end,
+    });
+    tinsert(lookAndFeelOptions.Options, {
+        Name = L["Missing Health Color"],
+        Type = OptionType.ColorPicker,
+        Set = function(r, g, b)
+            local color = PS().Frames.HealthBarMissingHealthColor;
+            color.r, color.g, color.b = r, g, b;
+            color = PS().PetFrames.Frames.HealthBarMissingHealthColor;
+            color.r, color.g, color.b = r, g, b;
+        end,
+        Get = function()
+            local color = PS().Frames.HealthBarMissingHealthColor;
+            return color.r, color.g, color.b;
+        end,
+    });
+    tinsert(lookAndFeelOptions.Options, {
+        Name = L["Health Use Class Color"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.HealthBarUseClassColor = value;
+            PS().PetFrames.Frames.HealthBarUseClassColor = value;
+        end,
+        Get = function()
+            return PS().Frames.HealthBarUseClassColor;
+        end,
+        Options = {
+            [1] = {
+                Name = L["Health Color"],
+                Type = OptionType.ColorPicker,
+                Set = function(r, g, b)
+                    local color = PS().Frames.HealthBarManualColor;
+                    color.r, color.g, color.b = r, g, b;
+                    color = PS().PetFrames.Frames.HealthBarManualColor;
+                    color.r, color.g, color.b = r, g, b;
+                end,
+                Get = function()
+                    local color = PS().Frames.HealthBarManualColor;
+                    return color.r, color.g, color.b;
+                end,
+                IsActive = function()
+                    return PS().Frames.HealthBarUseClassColor == false;
+                end,
+            },
+        }
     });
 
     
@@ -546,7 +607,6 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
         Options = {
             [1] = {
                 Name = L["Color"],
-                Description = L["Pick your color of choice!"],
                 Type = OptionType.ColorPicker,
                 Set = function(r, g, b)
                     local color = PS().Frames.NameFont.ManualColor;

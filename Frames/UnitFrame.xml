@@ -39,7 +39,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 			<StatusBar name="$parentHealthBar" parentKey="healthBar" useParentLevel="true">
 				<Layers>
 					<Layer level="BACKGROUND" textureSubLevel="2">
-						<Texture name="$parentBackground" parentKey="background" setAllPoints="true"/>
+						<Texture name="$parentMissingHealth" parentKey="missingHealth" setAllPoints="true"/>
 					</Layer>
 					<Layer level="BACKGROUND" textureSubLevel="5">
 						<Texture name="$parentOverlay" parentKey="overlay"/>

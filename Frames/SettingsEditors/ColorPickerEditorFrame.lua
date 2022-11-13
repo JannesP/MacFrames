@@ -38,6 +38,18 @@ function ColorPreviewMixin:SetColor(r, g, b)
     self:SetBackdropColor(r, g, b, 1);
 end
 
+local ColorPickerEditorFrameMixin = {};
+function ColorPickerEditorFrameMixin:SetDisabled(disabled)
+    local changed = BaseEditorFrame.Mixin.SetDisabled(self, disabled);
+    if (changed) then
+        self.dropDownColor:SetEnabled(not disabled);
+    end
+    return changed;
+end
+function ColorPickerEditorFrameMixin:GetMeasuredSize()
+    return 200, self:GetDefaultHeight();
+end
+
 local function ValidateRGBValues(r, g, b)
     if (type(r) ~= "number" or r < 0 or r > 1) then error("r was not a valid color value: " .. r) end
     if (type(g) ~= "number" or g < 0 or g > 1) then error("g was not a valid color value: " .. g) end
@@ -64,12 +76,6 @@ local DropDownValues = {
     [7] = { value = "VeryDarkGray", name = L["Very Dark Gray"], color = { r = 0.15, g = 0.15, b = 0.15 } },
     [8] = { value = "VeryLightGray", name = L["Very Light Gray"], color = { r = 0.85, g = 0.85, b = 0.85 } },
 };
-
-local DropDownCollection = CreateFromMixins(MacFramesTextDropDownCollectionMixin);
-for i=1, #DropDownValues do
-    local value = DropDownValues[i];
-    DropDownCollection:Add(value.value, value.name, value.color and ("R: " .. value.color.r .. ", G: " .. value.color.g .. ", B: " .. value.color.b));
-end
 
 local function GetSelectedDropDownIndexByColor(r, g, b)
     for i=1, #DropDownValues do
@@ -128,6 +134,7 @@ end
 function ColorPickerEditorFrame.Create(parent, option)
     local valueR, valueG, valueB = option.Get();
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
+    Mixin(frame, ColorPickerEditorFrameMixin);
 
     _elementCount = _elementCount + 1;
 
@@ -150,7 +157,12 @@ function ColorPickerEditorFrame.Create(parent, option)
         DropDown_ChangedValue(selection.dropDown.editor, selection.displayText, selection.value);
     end);
     frame.dropDownColor:EnableMouseWheel(false);
-    frame.dropDownColor:SetupFromMacFramesTextDropDownCollection(DropDownCollection, GetSelectedDropDownValueByColor(valueR, valueG, valueB));
+    frame.dropDownCollection = CreateFromMixins(MacFramesTextDropDownCollectionMixin);
+    for i=1, #DropDownValues do
+        local value = DropDownValues[i];
+        frame.dropDownCollection:Add(value.value, value.name, value.color and ("R: " .. value.color.r .. ", G: " .. value.color.g .. ", B: " .. value.color.b));
+    end
+    frame.dropDownColor:SetupFromMacFramesTextDropDownCollection(frame.dropDownCollection, GetSelectedDropDownValueByColor(valueR, valueG, valueB));
     PixelPerfect.SetPoint(frame.dropDownColor, "LEFT", frame.colorPreview, "RIGHT", 4, 0);
 
     if (option.Description ~= nil) then
@@ -158,12 +170,9 @@ function ColorPickerEditorFrame.Create(parent, option)
     end
 
     frame.RefreshFromProfile = BaseEditorFrame.CreateRefreshSettingsFromProfile(ColorPicker_RefreshFromProfile);
-    frame.GetMeasuredSize = ColorPickerEditorFrame.GetMeasuredSize;
     return frame;
 end
 
-function ColorPickerEditorFrame:GetMeasuredSize()
-    return 200, self:GetDefaultHeight();
-end
+
 
 BaseEditorFrame.AddConstructor(OptionType.ColorPicker, ColorPickerEditorFrame.Create);

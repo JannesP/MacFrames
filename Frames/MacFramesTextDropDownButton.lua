@@ -36,6 +36,19 @@ function MacFramesTextDropDownButtonMixin:SetupFromMacFramesTextDropDownCollecti
     self:SetupSelections(entries, selectedIndex);
 end
 
+do
+    local valueToFind;
+    local function FindByValue(selection)
+        return selection.value == valueToFind;
+    end
+    function MacFramesTextDropDownButtonMixin:SetSelectedValue(value)
+        valueToFind = value;
+        local index = self:FindIndex(FindByValue);
+        if (index == nil) then error("Couldn't find requested value in DropDown selection."); end
+        self:SetSelectedIndex(index);
+    end
+end
+
 --####### MacFramesTextSelectionPopoutEntryDetailsMixin #######--
 MacFramesTextSelectionPopoutEntryDetailsMixin = {};
 function MacFramesTextSelectionPopoutEntryDetailsMixin:GetTooltipText()

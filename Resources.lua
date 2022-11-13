@@ -22,7 +22,6 @@ local LSM = LibStub("LibSharedMedia-3.0");
 
 local Resources = {
     SB_HEALTH_FILL = "Interface\\AddOns\\MacFrames\\Media\\HealthBar-fill.tga",
-    SB_HEALTH_BACKGROUND = "Interface\\AddOns\\MacFrames\\Media\\HealthBar-background.tga",
 
     HEALTH_OVER_ABSORB = "Interface\\AddOns\\MacFrames\\Media\\Overabsorb.tga",
 }

@@ -391,11 +391,9 @@ function GenericOptionsSettingsPage.Create(parent, category)
         PixelPerfect.SetPoint(uiSection.scrollFrame, "BOTTOMRIGHT", frame.contentHost, "BOTTOMRIGHT", 0, 0);
         uiSection.content:SetScript("OnSizeChanged", function(self, width, height)
             self:Layout(width, height);
-            uiSection.scrollFrame:RefreshScrollBarVisibility();
         end);
         uiSection.content:SetScript("OnShow", function(self, width, height)
             self:Layout(width, height);
-            uiSection.scrollFrame:RefreshScrollBarVisibility();
         end);
         frame.optionSections[n] = uiSection;
     end

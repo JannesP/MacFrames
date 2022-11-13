@@ -576,8 +576,8 @@ MouseActionEditor_UpdateForCurrentSpecSelection = function(self)
 end
 
 local function SelectSpec(self, classId, specId)
-    local className, classFile, classID = GetClassInfo(classId);
-    local specId, specName, _, specIcon, _, _ = GetSpecializationInfoByID(specId);
+    local className, _, _ = GetClassInfo(classId);
+    local _, specName, _, specIcon, _, _ = GetSpecializationInfoByID(specId);
     self.selectedClassId = classId;
     self.selectedSpecId = specId;
     UIDropDownMenu_SetText(self.dropDownSelectClass, specName .. " " .. className);
@@ -597,7 +597,7 @@ do
         if (level == 1) then
             local numClasses = GetNumClasses();
             for i=1,numClasses do
-                local className, classFile, classID = GetClassInfo(i);
+                local className, _, classID = GetClassInfo(i);
                 info.text = className;
                 info.menuList = classID;
                 info.hasArrow = true;

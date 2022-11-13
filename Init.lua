@@ -105,7 +105,7 @@ _p.Log = function(...)
 end
 
 _p.PrintCurrentTocVersion = function() 
-    return _p.Log(select(4, GetBuildInfo()));
+    return print(select(4, GetBuildInfo()));
 end
 
 --from https://wow.gamepedia.com/ItemLink
@@ -117,6 +117,3 @@ end
 _p.UIParent = CreateFrame("Frame", "MacFramesUIParent", UIParent);
 _p.UIParent:SetPoint("BOTTOM");
 _p.UIParent:SetSize(GetScreenWidth(), GetScreenHeight());
-
-
-_p.Log("Finished init.");
