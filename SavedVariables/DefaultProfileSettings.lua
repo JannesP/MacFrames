@@ -394,28 +394,22 @@ _p.DefaultProfileSettings = {
     SpecialClassDisplays = {    --shown in top right in order of appearance here (top right to top left)
         ["PRIEST"] = {
             [256] = {   --discipline
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --Atonement
                     spellId = 194384,   
                     enabled = true,
                     debuff = false,
                     onlyByPlayer = true,
-                },    
-                [2] = { --Weakened Soul
-                    spellId = 6788, 
-                    enabled = true,
-                    debuff = true,
-                    onlyByPlayer = true,
                 },
-                [3] = { --PI
-                    spellId = 10060, 
+                [2] = { --PoM
+                    spellId = 41635, 
                     enabled = true,
                     debuff = false,
-                    onlyByPlayer = false,
+                    onlyByPlayer = true,
                 },
             },
             [257] = {   --holy
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --Renew
                     spellId = 139,
                     enabled = true,
@@ -428,38 +422,20 @@ _p.DefaultProfileSettings = {
                     debuff = false,
                     onlyByPlayer = true,
                 },
-                [3] = { --PI
-                    spellId = 10060, 
-                    enabled = true,
-                    debuff = false,
-                    onlyByPlayer = false,
-                },
-                [4] = { --Weakened Soul
-                    spellId = 6788, 
-                    enabled = true,
-                    debuff = true,
-                    onlyByPlayer = true,
-                },
             },
             [258] = {   --shadow
-                _settingsType = ProfileSettingsTypes.Array;
-                [1] = { --Weakened Soul
-                    spellId = 6788,
-                    enabled = true,
-                    debuff = true,
-                    onlyByPlayer = true,
-                },
-                [2] = { --PI
-                    spellId = 10060, 
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --PoM
+                    spellId = 41635,
                     enabled = true,
                     debuff = false,
-                    onlyByPlayer = false,
+                    onlyByPlayer = true,
                 },
             },
         },
         ["SHAMAN"] = {
             [262] = {   --ele
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --earth shield
                     spellId = 974,
                     enabled = true,
@@ -468,7 +444,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [263] = {   --enh
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --earth shield
                     spellId = 974,
                     enabled = true,
@@ -477,7 +453,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [264] = {   --resto
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --riptide
                     spellId = 61295,
                     enabled = true,
@@ -494,65 +470,186 @@ _p.DefaultProfileSettings = {
         },
         ["PALADIN"] = {
             [65] = {   --holy
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --glimmer
+                    spellId = 287280,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --beacon 1
+                    spellId = 53563,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [3] = { --beacon 2
+                    spellId = 156910,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [4] = { --barrier of faith
+                    spellId = 148039,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
             [66] = {   --prot
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [70] = {   --ret
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
         },
         ["MONK"] = {
             [268] = {   --brewmaster
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --soothing mist
+                    spellId = 198533,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
             [269] = {   --mistweaver
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --renewing mist
+                    spellId = 119611,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --enveloping mist
+                    spellId = 124682,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [3] = { --essence font
+                    spellId = 191840,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
             [270] = {   --windwalker
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --soothing mist
+                    spellId = 198533,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                
             },
         },
         ["DRUID"] = {
             [102] = {   --Balance
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --rejuv
+                    spellId = 774,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --regrowth
+                    spellId = 8936,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
             [103] = {   --Feral
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --rejuv
+                    spellId = 774,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --regrowth
+                    spellId = 8936,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
             [104] = {   --Guardian
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --rejuv
+                    spellId = 774,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --regrowth
+                    spellId = 8936,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
             [105] = {   --resto
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --rejuv
+                    spellId = 774,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --regrowth
+                    spellId = 8936,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [3] = { --lifebloom
+                    spellId = 33763,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [4] = { --lifebloom
+                    spellId = 102351,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [5] = { --lifebloom
+                    spellId = 155777,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
         },
         ["MAGE"] = {
             [62] = {   --arcane
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [63] = {   --fire
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [64] = {   --frost
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
         },
         ["HUNTER"] = {
             [253] = {   --bm
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [254] = {   --marksman
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [255] = {   --survival
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
         },
         ["WARLOCK"] = {
             [265] = {   --affli
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --Soulstone
                     spellId = 20707,
                     enabled = true,
@@ -561,7 +658,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [266] = {   --demo
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --Soulstone
                     spellId = 20707,
                     enabled = true,
@@ -570,7 +667,7 @@ _p.DefaultProfileSettings = {
                 },
             },
             [267] = {   --destro
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
                 [1] = { --Soulstone
                     spellId = 20707,
                     enabled = true,
@@ -581,13 +678,39 @@ _p.DefaultProfileSettings = {
         },
         ["ROGUE"] = {
             [259] = {   --assa
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [260] = {   --outlaw
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
             },
             [261] = {   --sub
-                _settingsType = ProfileSettingsTypes.Array;
+                _settingsType = ProfileSettingsTypes.Array,
+            },
+        },
+        ["EVOKER"] = {
+            [1467] = {   --devastation
+                _settingsType = ProfileSettingsTypes.Array,
+            },
+            [1468] = {   --preservation
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --Echo
+                    spellId = 364343,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --Reversion
+                    spellId = 366155,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [3] = { --Temporal Anomaly
+                    spellId = 373862,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
             },
         },
     },
@@ -595,7 +718,7 @@ _p.DefaultProfileSettings = {
 }
 local DefaultMouseActions = _p.DefaultProfileSettings.MouseActions;
 local _clickBindingDefaults = {
-    _settingsType = ProfileSettingsTypes.Array;
+    _settingsType = ProfileSettingsTypes.Array,
     [1] = {
         alt = false,
         ctrl = false,

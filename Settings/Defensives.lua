@@ -36,6 +36,7 @@ _p.Defensives = {   --priority is the number to the right (higher is a higher pr
     [1044] = 1000,      --Blessing of Freedom
     [116849] = 1000,    --Life Cocoon
     [3411] = 1000,      --Intervene
+    [357170] = 1000,    --Time Dilation
 
     --###### Personals #######
     [871] = 101,        --Shield Wall

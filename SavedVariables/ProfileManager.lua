@@ -30,7 +30,6 @@ ProfileManager.AddonDefaults = _defaultProfileMarker .. L["Addon Defaults"] .. _
 
 local _isErrorState = false;
 
-local _currentSettingsVersion = 4;
 local _profileChangedListeners = {};
 local _profileListChangedListeners = {};
 local _characterProfileMapping;
@@ -104,6 +103,7 @@ local function GetProfileForCurrentCharacter()
     end
     return resultProfileName, resultProfile;
 end
+local _currentSettingsVersion = 5;
 local UpdateSavedVarsVersion;
 do
     local function ForEachProfile(svars, func)
@@ -135,6 +135,11 @@ do
                     profile.RaidFrame.FrameLevel = 1000;
                 end);
                 svars.Version = 4;
+            elseif (svars.Version == 4) then
+                ForEachProfile(svars, function(name, profile)
+                    profile.SpecialClassDisplays = nil;
+                end);
+                svars.Version = 5;
             else
                 if (svars.Version ~= _currentSettingsVersion) then
                     error(_p.CreateError("No upgrade path from settings version " .. tostring(svars.Version) .. " to current version " .. tostring(_currentSettingsVersion) .. " could be found.", nil, true));
