@@ -156,18 +156,26 @@ function AuraFrame.SetBackgroundColor(self, debuffType)
     end
 end
 
+function AuraFrame.GetDisplayedAuraInformation(self)
+    if (self.auraSlot == nil) then return nil; end
+    local color = DebuffTypeColor[self.auraDebuffType];
+    return self.auraSlot, self.auraSpellId, color;
+end
+
 function AuraFrame.DisplayAura(self, unit, slot, ...)
     local _, icon, stacks, debuffType, duration, expirationTime = ...;
     if (icon == nil or duration == nil or expirationTime == nil) then
         self.unit = nil;
         self.auraSlot = nil;
         self.auraSpellId = nil;
+        self.auraDebuffType = nil;
         self:Hide();
     else
         AuraFrame.SetBackgroundColor(self, debuffType);
         self.unit = unit;
         self.auraSlot = slot;
         self.auraSpellId = select(10, ...);
+        self.auraDebuffType = debuffType;
         self.icon:SetTexture(icon);
         self.cooldown:SetCooldown(expirationTime - duration, duration);
         self.cooldown:Resume();
@@ -211,5 +219,6 @@ function AuraFrame.Hide(self)
     self.unit = nil;
     self.auraSlot = nil;
     self.auraSpellId = nil;
+    self.auraDebuffType = nil;
     self:Hide();
 end

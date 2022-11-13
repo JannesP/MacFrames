@@ -149,6 +149,10 @@ function AuraGroup.SetColoringMode(self, mode, r, g, b, a)
     end
 end
 
+function AuraGroup.GetFirstDisplayedAuraInformation(self)
+    return AuraFrame.GetDisplayedAuraInformation(self.auraFrames[1]);
+end
+
 function AuraGroup.Recycle(self)
     local af = self.auraFrames;
     for i=1, #af do
@@ -508,7 +512,7 @@ do
             for i=1, frameCount do
                 local auraFrame = self.auraFrames[i];
                 if auraFrame.displayingAura ~= true then
-                    auraFrame:Hide();
+                    AuraFrame.Hide(auraFrame);
                 end
             end
         end

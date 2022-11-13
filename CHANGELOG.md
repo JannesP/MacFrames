@@ -1,7 +1,8 @@
 # MacFrames Changelog
 
-## v0.2.0 (2022/11/XX)
+## v0.2.0 (2022/11/13)
 * NEW: Customize the frame colors freely or choose one of the provided presets (Default, Dark, Light).
+* NEW: New indicator option added to color unit frames by dispellable debuff color. (This is still pretty much untestet, use at your own risk.)
 * NEW: All classes should now have properly setup class displays.
 * NEW: Added Evoker defensives.
 

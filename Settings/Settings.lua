@@ -354,6 +354,17 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     });
     
     tinsert(subSectionIndicators.Options, {
+        Name = L["Color by Dispellable Debuff (BETA)"],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().Frames.ColorByDispellableDebuff = value;
+            PS().PetFrames.Frames.ColorByDispellableDebuff = value;
+        end,
+        Get = function()
+            return PS().Frames.ColorByDispellableDebuff;
+        end,
+    });
+    tinsert(subSectionIndicators.Options, {
         Name = L["Color based on Health"],
         Type = OptionType.CheckBox,
         Set = function(value)

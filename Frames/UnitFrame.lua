@@ -119,6 +119,8 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
         if self.isTestMode then
             UnitFrame.SetTestMode(self, true, true);
         end
+    elseif (key == "ColorByDispellableDebuff") then
+        UnitFrame.UpdateAuras(self);
     else    --settings that affect test mode data
         if self.isTestMode then
             UnitFrame.SetTestMode(self, true, true);
@@ -424,6 +426,13 @@ function UnitFrame.UpdateHealthBarTextureFromSettings(self)
     PixelPerfect.SetPoint(self.healthBar.overlay, "BOTTOMRIGHT", healthBarTexture, "BOTTOMRIGHT", 0, 0);
     self.healthBar.overlay:SetColorTexture(1, 1, 0, 1);
     self.healthBar.overlay:SetBlendMode("BLEND");
+
+    self.healthBar.overlayDebuffColor:ClearAllPoints();
+    self.healthBar.overlayDebuffColor:SetAllPoints(self.healthBar);
+    self.healthBar.overlayDebuffColor:SetColorTexture(1, 1, 1, 0.5);
+    self.healthBar.overlayDebuffColor:SetBlendMode("BLEND");
+    self.healthBar.overlayDebuffColor:Hide();
+    self.healthBar.overlayDebuffColor:SetDrawLayer("BORDER", 1);
 
     self.healAbsorb:ClearAllPoints();
     self.healAbsorb:SetBlendMode("BLEND");
@@ -1661,6 +1670,18 @@ function UnitFrame.UpdateAuras(self)
     if (groups.dispellable ~= nil) then AuraGroup.Update(groups.dispellable) end;
     if (groups.bossAuras ~= nil) then AuraGroup.Update(groups.bossAuras) end;
     if (groups.buffs ~= nil) then AuraGroup.Update(groups.buffs) end;
+
+    if (self.settings.Frames.ColorByDispellableDebuff and groups.dispellable) then
+        local _, _, color = AuraGroup.GetFirstDisplayedAuraInformation(groups.dispellable);
+        if (color) then
+            self.healthBar.overlayDebuffColor:SetVertexColor(color.r, color.g, color.b);
+            self.healthBar.overlayDebuffColor:Show();
+        else
+            self.healthBar.overlayDebuffColor:Hide();
+        end
+    else
+        self.healthBar.overlayDebuffColor:Hide();
+    end
 end
 
 function UnitFrame.CreateSpecialClassDisplays()
