@@ -1545,7 +1545,7 @@ function UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName)
     local r, g, b;
 
     local classColor;
-    if (isPlayer) then
+    if (isPlayer and classFileName) then
         classColor = C_ClassColor.GetClassColor(classFileName);
     end
     
@@ -1561,6 +1561,10 @@ function UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName)
         r, g, b = 0.0, 0.75, 0.0;
     elseif (not isPlayer and UnitIsFriend("player", self.unit)) then
         r, g, b = UnitSelectionColor(self.unit, true);
+    elseif (isPlayer and not classColor) then
+        --this happens when a player from the opposite 
+        --faction you haven't encountered yet appears in your party
+        color = self.settings.Frames.HealthBarDisconnectedColor;
     else
         r, g, b = 0.9, 0.0, 0.0;
     end
