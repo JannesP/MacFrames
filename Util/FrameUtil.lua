@@ -90,6 +90,22 @@ do
         PixelPerfect.SetWidth(self.right, width);
         PixelPerfect.SetHeight(self.top, width);
         PixelPerfect.SetHeight(self.bottom, width);
+
+        self.left:ClearAllPoints();
+        PixelPerfect.SetPoint(self.left, "TOPLEFT", self.parent, "TOPLEFT", 0, -self.top:GetHeight());
+        PixelPerfect.SetPoint(self.left, "BOTTOMLEFT", self.parent, "BOTTOMLEFT", 0, self.bottom:GetHeight());
+
+        self.top:ClearAllPoints();
+        PixelPerfect.SetPoint(self.top, "TOPLEFT", self.parent, "TOPLEFT");
+        PixelPerfect.SetPoint(self.top, "TOPRIGHT", self.parent, "TOPRIGHT");
+
+        self.right:ClearAllPoints();
+        PixelPerfect.SetPoint(self.right, "TOPRIGHT", self.parent, "TOPRIGHT", 0, -self.top:GetHeight());
+        PixelPerfect.SetPoint(self.right, "BOTTOMRIGHT", self.parent, "BOTTOMRIGHT", 0, self.bottom:GetHeight());
+
+        self.bottom:ClearAllPoints();
+        PixelPerfect.SetPoint(self.bottom, "BOTTOMLEFT", self.parent, "BOTTOMLEFT");
+        PixelPerfect.SetPoint(self.bottom, "BOTTOMRIGHT", self.parent, "BOTTOMRIGHT");
     end
     function FramePixelBorderMixin:SetColor(...)
         self.left:SetColorTexture(...);
@@ -108,18 +124,6 @@ do
         }, FramePixelBorderMixin);
         borderFrames:Resize(width);
         borderFrames:SetColor(...);
-
-        PixelPerfect.SetPoint(borderFrames.left, "TOPLEFT", frame, "TOPLEFT");
-        PixelPerfect.SetPoint(borderFrames.left, "BOTTOMLEFT", frame, "BOTTOMLEFT");
-
-        PixelPerfect.SetPoint(borderFrames.top, "TOPLEFT", frame, "TOPLEFT");
-        PixelPerfect.SetPoint(borderFrames.top, "TOPRIGHT", frame, "TOPRIGHT");
-
-        PixelPerfect.SetPoint(borderFrames.right, "TOPRIGHT", frame, "TOPRIGHT");
-        PixelPerfect.SetPoint(borderFrames.right, "BOTTOMRIGHT", frame, "BOTTOMRIGHT");
-
-        PixelPerfect.SetPoint(borderFrames.bottom, "BOTTOMLEFT", frame, "BOTTOMLEFT");
-        PixelPerfect.SetPoint(borderFrames.bottom, "BOTTOMRIGHT", frame, "BOTTOMRIGHT");
         return borderFrames;
     end
 end
