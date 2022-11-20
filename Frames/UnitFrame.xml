@@ -31,8 +31,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture name="$parentRankIcon" hidden="true" parentKey="rankIcon"/>
-				<Texture name="$parentRoleIcon" hidden="true" parentKey="roleIcon"/>
-				<FontString name="$parentName" inherits="GameFontHighlightSmall" parentKey="name" wordwrap="false"/>
 			</Layer>
         </Layers>
         <Frames>

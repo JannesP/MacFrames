@@ -87,6 +87,7 @@ local function DropDownSelectProfileOnSelect(self, arg1, arg2, checked)
     local profileName = arg1;
     local spec = arg2;
     ProfileManager.SelectProfileForSpec(spec.SpecId, profileName);
+    _p.Log(self.owner:GetName());
     UIDropDownMenu_SetText(self.owner, ProfileManager.GetSelectedProfileNameForSpec(spec.SpecId));
 end
 local function GetInitDropDownSelectProfile(dropdown, spec)

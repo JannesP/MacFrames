@@ -16,7 +16,9 @@
 --along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local ADDON_NAME, _p = ...; 
+local ADDON_NAME, _p = ...;
+local LSM = LibStub("LibSharedMedia-3.0");
+
 local PlayerInfo = _p.PlayerInfo;
 local ProfileManager = _p.ProfileManager;
 local L = _p.L;
@@ -40,6 +42,24 @@ function SettingsUtil.GetSpecialClassDisplays()
     end
     
     return result;
+end
+
+function SettingsUtil.UnpackRGB(table)
+    return table.r, table.g, table.b, table.a;
+end
+
+function SettingsUtil.UnpackRGBA(table)
+    return table.r, table.g, table.b, table.a;
+end
+
+function SettingsUtil.GetFontFromName(lsmName)
+    local usedName = lsmName;
+    local lsmEntry = LSM:Fetch("font", lsmName, true);
+    if (lsmEntry == nil) then
+        usedName = LSM:GetDefault("font");
+        lsmEntry = LSM:Fetch("font", usedName);
+    end
+    return lsmEntry, usedName, lsmName ~= usedName;
 end
 
 --[[

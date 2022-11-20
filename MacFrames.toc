@@ -58,11 +58,17 @@ Util\MyAuraUtil.lua
 Util\FrameUtil.lua
 Util\AuraManager.lua
 
+Frames\UnitFrameIndicators\UnitFrameIndicatorMixin.lua
+
 Frames\AuraFrame.xml
 Frames\AuraFrame.lua
 Frames\AuraGroup.lua
 Frames\UnitFrame.xml
 Frames\UnitFrame.lua
+
+Frames\UnitFrameIndicators\NameIndicator.lua
+Frames\UnitFrameIndicators\RoleIndicator.lua
+
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua
 Frames\MacFramesTextDropDownButton.lua

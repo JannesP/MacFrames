@@ -35,6 +35,7 @@ local FrameUtil = _p.FrameUtil;
 local FramePool = _p.FramePool;
 local StringUtil = _p.StringUtil;
 local PixelPerfect = _p.PixelPerfect;
+local UnitFrameIndicator = _p.UnitFrameIndicator;
 
 local String_EndsWith = StringUtil.EndsWith;
 
@@ -55,6 +56,10 @@ _p.UnitFrames = _unitFrames;
 
 local UnitFrame = {};
 _p.UnitFrame = UnitFrame;
+
+UnitFrame.Events = {
+    OnUnitChanged = "OnUnitChanged",
+}
 
 local function ProfileMouseActions_OnChange(key)
     UnitFrame.UpdateAllMouseActions();
@@ -79,8 +84,6 @@ end);
 function UnitFrame.OnSettingChanged(self, key, _, path)
     if (self == nil or self.isChangingSettings == true) then return; end
     if (String_EndsWith(path, ".NameFont")) then
-        UnitFrame.UpdateNameFontFromSettings(self);
-        UnitFrame.UpdateName(self);
         if (self.isTestMode) then
             UnitFrame.SetTestMode(self, true, true);
         end
@@ -126,11 +129,9 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
             UnitFrame.SetTestMode(self, true, true);
         else
             if (key == "DisplayServerNames") then
-                UnitFrame.UpdateName(self);
             elseif (key == "HealthBarUseClassColor" or String_EndsWith(path, "HealthBarManualColor") or key == String_EndsWith(path, "HealthBarDisconnectedColor")) then
                 UnitFrame.UpdateHealthColor(self);
             elseif (String_EndsWith(path, "NameFont.ManualColor")) then
-                UnitFrame.UpdateName(self);
             elseif (key == "BlendToDangerColors" or key == "BlendToDangerColorsRatio" or key == "BlendToDangerColorsMinimum" or key == "BlendToDangerColorsMaximum") then
                 UnitFrame.UpdateHealth(self);
             elseif (key == "OutOfRangeAlpha") then
@@ -228,6 +229,15 @@ UnitFrame.new = function(unit, parent, namePrefix, settings, frameNameOverride)
     local frame = _unitFrames[frameName];
     if (frame == nil) then
         frame = CreateFrame("Button", frameName, parent, "MacFramesUnitFrameTemplate");
+        Mixin(frame, CallbackRegistryMixin);
+        CallbackRegistryMixin.OnLoad(frame);
+        
+        local events = {};
+        for _, v in pairs(UnitFrame.Events) do
+            tinsert(events, v);
+        end 
+        frame:GenerateCallbackEvents(events);
+
         frame.statusIconsFrame = CreateFrame("Frame", nil, frame);
 
         frame.targetBorder = CreateFrame("Frame", nil, frame);
@@ -237,6 +247,8 @@ UnitFrame.new = function(unit, parent, namePrefix, settings, frameNameOverride)
         frame.aggroBorder = CreateFrame("Frame", nil, frame);
         frame.aggroBorder:SetAllPoints();
         frame.aggroBorder.children = FrameUtil.CreateSolidBorder(frame.aggroBorder, 1, 1, 0, 0, 1);
+
+        frame.indicators = {};
 
         _unitFrames[frameName] = frame;
     end
@@ -271,24 +283,12 @@ function UnitFrame.Setup(self)
     self.rankIcon:ClearAllPoints();
     PixelPerfect.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
     PixelPerfect.SetPoint(self.rankIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
-
-    self.roleIcon:ClearAllPoints();
-    PixelPerfect.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
-    PixelPerfect.SetPoint(self.roleIcon, "TOPLEFT", self.rankIcon, "TOPRIGHT", 1, 0);
-    PixelPerfect.SetPoint(self.roleIcon, "BOTTOMLEFT", self.rankIcon, "BOTTOMRIGHT", 1, 0);
-
-    local nameFontName, nameFontSize, nameFontFlags = self.name:GetFont();
-    PixelPerfect.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
-    PixelPerfect.SetPoint(self.name, "BOTTOMLEFT", self.roleIcon, "BOTTOMRIGHT", 2, 0);
-    PixelPerfect.SetPoint(self.name, "RIGHT", self, "RIGHT", -2, 0);
-    self.name:SetWordWrap(false);
-    self.name:SetJustifyH("LEFT");
     
     local sic = self.statusIconContainer;
     sic.statusText.fontHeight = select(2, sic.statusText:GetFont());
     PixelPerfect.SetHeight(sic, self.settings.Frames.StatusIconSize + sic.statusText.fontHeight);
-    PixelPerfect.SetPoint(sic, "LEFT", self, "LEFT", 0, -(nameFontSize / 2));
-    PixelPerfect.SetPoint(sic, "RIGHT", self, "RIGHT", 0, -(nameFontSize / 2));
+    PixelPerfect.SetPoint(sic, "LEFT", self, "LEFT", 0, 0);
+    PixelPerfect.SetPoint(sic, "RIGHT", self, "RIGHT", 0, 0);
     sic:Show();
     
     PixelPerfect.SetPoint(sic.statusText, "TOP", sic, "TOP", 0, 0);
@@ -365,16 +365,6 @@ function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
         end
     end
     return texturePath, usedName;
-end
-
-function UnitFrame.GetFontFromSettings(lsmName)
-    local usedName = lsmName;
-    local lsmEntry = LSM:Fetch("font", lsmName, true);
-    if (lsmEntry == nil) then
-        usedName = LSM:GetDefault("font");
-        lsmEntry = LSM:Fetch("font", usedName);
-    end
-    return lsmEntry, usedName;
 end
 
 function UnitFrame.UpdateTargetHighlightTextureFromSettings(self)
@@ -495,23 +485,16 @@ function UnitFrame.LayoutHealthAndPowerBar(self)
     end
 end
 
-function UnitFrame.UpdateNameFontFromSettings(self)
-    local fontPath, usedLsmName = UnitFrame.GetFontFromSettings(self.settings.Frames.NameFont.Name);
-    self.settings.Frames.NameFont.Name = usedLsmName;
-    self.name:SetFont(fontPath, self.settings.Frames.NameFont.Size);
-    self.name:ClearAllPoints();
-    PixelPerfect.SetPoint(self.name, "TOPLEFT", self.roleIcon, "TOPRIGHT", 2, 0);
-    PixelPerfect.SetPoint(self.name, "RIGHT", self, "RIGHT", -2, 0);
-end
-
 function UnitFrame.UpdateStatusTextFontFromSettings(self)
-    local fontPath, usedLsmName = UnitFrame.GetFontFromSettings(self.settings.Frames.StatusTextFont.Name);
+    local fontPath, usedLsmName = SettingsUtil.GetFontFromName(self.settings.Frames.StatusTextFont.Name);
     self.settings.Frames.StatusTextFont.Name = usedLsmName;
     self.statusIconContainer.statusText:SetFont(fontPath, self.settings.Frames.StatusTextFont.Size);
     UnitFrame.LayoutStatusIcons(self);
 end
 
 function UnitFrame.UpdateAllSettings(self)
+    UnitFrame.UpdateIndicators(self);
+
     UnitFrame.UpdateHealthBarTextureFromSettings(self);
     UnitFrame.UpdateHealthBarMissingHealthColorFromSettings(self);
     UnitFrame.UpdatePowerBarTextureFromSettings(self);
@@ -520,7 +503,6 @@ function UnitFrame.UpdateAllSettings(self)
     UnitFrame.UpdateTargetHighlightTextureFromSettings(self);
     UnitFrame.UpdateAggroHighlightTextureFromSettings(self);
 
-    UnitFrame.UpdateNameFontFromSettings(self);
     UnitFrame.UpdateStatusTextFontFromSettings(self);
 
     UnitFrame.CreateAuraDisplays(self);
@@ -530,6 +512,38 @@ function UnitFrame.UpdateAllSettings(self)
     UnitFrame.UpdateRaidTargetIconEnabledFromSettings(self);
     UnitFrame.UpdateRaidTargetIcon(self);
 end
+
+function UnitFrame.UpdateIndicators(self)
+    for i=1, #self.indicators do
+        self.indicators[i]:Destroy();
+    end
+    wipe(self.indicators);
+
+    tinsert(self.indicators, UnitFrameIndicator.Create("RoleIndicator", self, "TOPLEFT", {
+        iconSize = self.settings.Frames.RoleIconSize,
+        hideIfNoRole = true,
+    }));
+    PixelPerfect.SetPoint(self.indicators[1], "LEFT", self.rankIcon, "RIGHT", 2, 0);
+    local iconWidth, iconHeight = self.indicators[1]:GetRequestedSize();
+    PixelPerfect.SetSize(self.indicators[1], iconWidth, iconHeight);
+    self.indicators[1]:RegisterCallback(UnitFrameIndicator.Events.OnRequestedSizeChanged, function(self)
+        local w, h = self.indicators[1]:GetRequestedSize();
+        PixelPerfect.SetSize(self.indicators[1], w, h);
+    end, self);
+
+    tinsert(self.indicators, UnitFrameIndicator.Create("NameIndicator", self, "TOPLEFT", {
+        showServerName = self.settings.Frames.DisplayServerNames,
+        fontUseClassColor = self.settings.Frames.NameFont.UseClassColor,
+        fontManualColor = self.settings.Frames.NameFont.ManualColor,
+        fontName = self.settings.Frames.NameFont.Name,
+        fontSize = self.settings.Frames.NameFont.Size,
+    }));
+    PixelPerfect.SetPoint(self.indicators[2], "LEFT", self.indicators[1], "RIGHT", 2, 0);
+    PixelPerfect.SetPoint(self.indicators[2], "RIGHT", self, "RIGHT", -2, 0);
+    local _, nameHeight = self.indicators[2]:GetRequestedSize();
+    PixelPerfect.SetHeight(self.indicators[2], nameHeight);
+end
+
 do
     function UnitFrame.SetTestMode(self, enabled, preserveTestModeData)
         if (enabled == true) then
@@ -566,11 +580,8 @@ do
                 self.testModeData.classColor = C_ClassColor.GetClassColor(self.testModeData.englishClass);
                 self.testModeData.displayServerPlaceholder = (math.random(0, 1) == 0);
                 self.testModeData.isInRange = (math.random(0, 3) > 0);
-                self.testModeData.name = GetUnitName("player", self.settings.Frames.DisplayServerNames);
                 self.testModeData.raidTargetIconIndex = math.random(1, 8);
             end
-            
-            UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle("DAMAGER"));
             UnitFrame.UpdateTestDisplay(self);
             for _, group in pairs(self.auraGroups) do
                 AuraGroup.SetTestMode(group, enabled);
@@ -588,16 +599,16 @@ do
             self.isTestMode = false;
             UnitFrame.UpdateAll(self);
         end
+        for i=1, #self.indicators do
+            self.indicators[i]:SetPreviewModeEnabled(enabled);
+        end
     end
 end
 function UnitFrame.UpdateTestDisplay(self)
     local data = self.testModeData;
     local healthR, healthG, healthB = UnitFrame.CalculateHealthColor(self, true, data.englishClass, data.isConnected);
     UnitFrame.SetHealthColor(self, healthR, healthG, healthB);
-    self.name:SetText(data.name);
-    local nameR, nameG, nameB = UnitFrame.CalculateNameColor(self, true, data.englishClass, data.isConnected);
-    self.name:SetTextColor(nameR, nameG, nameB, 1);
-    UnitFrame.SetInRange(self, data.isInRange);
+    UnitFrame.SetInRange(self, data.isConnected and data.isInRange);
     self.healthBar:SetMinMaxValues(0, data.maxHealth);
     UnitFrame.SetHealthBarExtraInfo(self, data.health, data.maxHealth, data.incomingHeal, data.absorb, data.healAbsorb);
     UnitFrame.SetHealth(self, data.health);
@@ -852,6 +863,8 @@ function UnitFrame.SetUnit(self, unit)
     self.unit = unit;
     self.isPet = string.match(self.unit, "pet[0-9]*") ~= nil;
     self.isBoss = string.match(self.unit, "boss[0-9]*") ~= nil;
+    self:TriggerEvent(UnitFrame.Events.OnUnitChanged);
+
     UnitFrame.SetAttribute(self, "unit", unit);
     UnitFrame.RegisterUnitEvents(self);
     UnitFrame.SetupMouseActions(self);
@@ -942,7 +955,6 @@ do
         self:RegisterForClicks("AnyDown");
         self:RegisterEvent("PLAYER_ENTERING_WORLD");
         self:RegisterEvent("GROUP_ROSTER_UPDATE");
-        self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
         self:RegisterEvent("PLAYER_TARGET_CHANGED");
         self:RegisterEvent("PLAYER_FOCUS_CHANGED");
         self:RegisterEvent("READY_CHECK");
@@ -995,7 +1007,6 @@ function UnitFrame.OnEvent(self, event, ...)
             UnitFrame.UpdateHealth(self);
             UnitFrame.UpdateHealthColor(self);
             UnitFrame.UpdateHealthBarExtraInfo(self);
-            UnitFrame.UpdateName(self);
         end
         UnitFrame.UpdateTargetHighlight(self);
     elseif (event == "PLAYER_FOCUS_CHANGED") then
@@ -1004,11 +1015,8 @@ function UnitFrame.OnEvent(self, event, ...)
             UnitFrame.UpdateHealth(self);
             UnitFrame.UpdateHealthColor(self);
             UnitFrame.UpdateHealthBarExtraInfo(self);
-            UnitFrame.UpdateName(self);
             UnitFrame.UpdateAuras(self);
         end
-    elseif (event == "PLAYER_ROLES_ASSIGNED") then
-        UnitFrame.UpdateRoleIcon(self);
     elseif (event == "PARTY_LEADER_CHANGED") then
         UnitFrame.UpdateRoleIcon(self);
     elseif (event == "READY_CHECK") then
@@ -1051,7 +1059,6 @@ function UnitFrame.OnEvent(self, event, ...)
                 UnitFrame.UpdatePower(self);
                 UnitFrame.UpdatePowerColor(self);
             elseif (event == "UNIT_NAME_UPDATE") then
-                UnitFrame.UpdateName(self);
                 UnitFrame.UpdateHealthColor(self);
             elseif (event == "UNIT_CONNECTION") then
                 UnitFrame.UpdateStatusText(self);
@@ -1081,7 +1088,6 @@ function UnitFrame.OnEvent(self, event, ...)
                 UnitFrame.UpdateReadyCheckStatus(self);
             elseif (event == "UNIT_THREAT_LIST_UPDATE") then
                 UnitFrame.UpdateHealthColor(self);
-                UnitFrame.UpdateName(self);
             elseif (event == "UNIT_PET") then
                 UnitFrame.UpdateAll(self);
             end
@@ -1091,7 +1097,6 @@ end
 
 function UnitFrame.UpdateAll(self)
     if (UnitExists(self.displayUnit)) then
-        UnitFrame.UpdateName(self);
         UnitFrame.UpdateHealthColor(self);
         UnitFrame.UpdateMaxHealth(self);
         UnitFrame.UpdateHealth(self);
@@ -1282,22 +1287,9 @@ end
 
 function UnitFrame.UpdateRoleIcon(self)
     local raidID = UnitInRaid(self.unit);
-    local _, rank, _, _, _, _, _, _, _, role;
+    local _, rank;
     if (raidID) then
-        _, rank, _, _, _, _, _, _, _, role = GetRaidRosterInfo(raidID);
-    end
-    if (UnitInVehicle(self.unit) and UnitHasVehicleUI(self.unit)) then
-        UnitFrame.SetIcon(self, self.roleIcon, "Interface\\Vehicles\\UI-Vehicles-Raid-Icon", 0, 1, 0, 1);
-    elseif (raidID and role) then
-        UnitFrame.SetIcon(self, self.roleIcon, "Interface\\GroupFrame\\UI-Group-"..role.."Icon", 0, 1, 0, 1);
-	else
-		local role = UnitGroupRolesAssigned(self.unit);
-		if (role == "TANK" or role == "HEALER" or role == "DAMAGER") then
-            UnitFrame.SetIcon(self, self.roleIcon, "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
-		else
-			self.roleIcon:Hide();
-			PixelPerfect.SetSize(self.roleIcon, 1, self.settings.Frames.RoleIconSize);
-		end
+        _, rank = GetRaidRosterInfo(raidID);
     end
     if (raidID and rank > 0) then
         if (rank == 1) then
@@ -1407,7 +1399,7 @@ end
 
 do
     local function ProjectNumberRange(value, oldMin, oldMax, newMin, newMax)
-        return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin; 
+        return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin;
     end
 
     function UnitFrame.SetHealth(self, health)
@@ -1580,29 +1572,6 @@ function UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName)
     return RGBFromColor(color, r, g, b);
 end
 
-function UnitFrame.CalculateNameColor(self, isPlayer, classFileName, isConnected)
-    local color;
-    local r, g, b;
-    if (self.settings.Frames.NameFont.UseClassColor) then
-        if (not isConnected) then
-            r, g, b = 1, 1, 1;
-        else
-            r, g, b = UnitFrame.CalculateUnitClassColor(self, isPlayer, classFileName);
-        end
-    else
-        color = self.settings.Frames.NameFont.ManualColor;
-        r, g, b = color.r, color.g, color.b;
-    end
-    return RGBFromColor(color, r, g, b);
-end
-
-function UnitFrame.UpdateName(self)
-    local name = GetUnitName(self.displayUnit, self.settings.Frames.DisplayServerNames);
-    local r, g, b = UnitFrame.CalculateNameColor(self, UnitIsPlayer(self.unit), select(2, UnitClass(self.unit)), UnitIsConnected(self.unit));
-    self.name:SetTextColor(r, g, b, 1);
-    self.name:SetText(name);
-end
-
 function UnitFrame.CalculateHealthColor(self, isPlayer, classFileName, isConnected)
     local color;
     local r, g, b;
@@ -1643,11 +1612,15 @@ function UnitFrame.SetPowerColor(self, r, g, b)
 end
 
 function UnitFrame.UpdateInRange(self)
-    local inRange, checkedRange = UnitInRange(self.displayUnit);
-    if (checkedRange and not inRange) then
+    if (not UnitIsConnected(self.unit)) then
         UnitFrame.SetInRange(self, false);
     else
-        UnitFrame.SetInRange(self, true);
+        local inRange, checkedRange = UnitInRange(self.displayUnit);
+        if (checkedRange and not inRange) then
+            UnitFrame.SetInRange(self, false);
+        else
+            UnitFrame.SetInRange(self, true);
+        end
     end
 end
 
