@@ -68,6 +68,7 @@ Frames\UnitFrame.lua
 
 Frames\UnitFrameIndicators\NameIndicator.lua
 Frames\UnitFrameIndicators\RoleIndicator.lua
+Frames\UnitFrameIndicators\RankIndicator.lua
 
 Frames\PartyFrame.lua
 Frames\RaidFrame.lua

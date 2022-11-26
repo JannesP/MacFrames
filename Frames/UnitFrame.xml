@@ -29,9 +29,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 				<Texture name="$parentTotalAbsorb" parentKey="totalAbsorb"/>
 				<Texture name="$parentOverAbsorb" parentKey="overAbsorb"/>
 			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="1">
-				<Texture name="$parentRankIcon" hidden="true" parentKey="rankIcon"/>
-			</Layer>
         </Layers>
         <Frames>
 			<StatusBar name="$parentHealthBar" parentKey="healthBar" useParentLevel="true">

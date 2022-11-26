@@ -76,18 +76,23 @@ UnitFrameIndicator.Events = {
 _p.UnitFrameIndicatorMixin = CreateFromMixins(CallbackRegistryMixin);
 local UnitFrameIndicatorMixin = _p.UnitFrameIndicatorMixin;
 
-function UnitFrameIndicatorMixin:Init(unitFrame, growDirection)
+function UnitFrameIndicatorMixin:Init(unitFrame, alignTo, settings)
     if (not unitFrame) then error("unitFrame was nil") end;
     CallbackRegistryMixin.OnLoad(self);
     local events = {};
     for _, v in pairs(UnitFrameIndicator.Events) do
         tinsert(events, v);
     end 
+    self.settings = settings;
+    self.unitFrame = unitFrame;
+    self.previewModeEnabled = false;
     self:GenerateCallbackEvents(events);
     self:SetParent(unitFrame);
-    self.unitFrame = unitFrame;
-    self.growDirection = growDirection or UnitFrameIndicatorMixin.GrowDirection.Center;
-    self.previewModeEnabled = false;
+    self:SetAlignTo(alignTo);
+    self:Hide();
+
+    self:SetScript("OnShow", self.OnShow);
+    self:SetScript("OnHide", self.OnHide);
 end
 
 function UnitFrameIndicatorMixin:GetSettingsFrame()
@@ -96,6 +101,7 @@ end
 
 function UnitFrameIndicatorMixin:SetAlignTo(alignTo)
     self.alignTo = alignTo;
+    self:Layout();
 end
 
 function UnitFrameIndicatorMixin:GetAlignTo()
@@ -104,14 +110,63 @@ end
 
 function UnitFrameIndicatorMixin:SetPreviewModeEnabled(enabled)
     self.previewModeEnabled = enabled;
+    if (enabled) then
+        self:DisableEvents();
+    else
+        self:EnableEvents();
+        self:UpdateAll();
+    end
 end
 
 function UnitFrameIndicatorMixin:IsPreviewModeEnabled()
     return self.previewModeEnabled;
 end
 
-function UnitFrameIndicatorMixin:RequiresFullLength()
-    return true;
+function UnitFrameIndicatorMixin:EnableEvents()
+    self.unitFrame:RegisterCallback(_p.UnitFrame.Events.OnUnitChanged, self.OnUnitChanged, self);
+    local unit = self.unitFrame.unit;
+    if (unit == nil) then
+        return nil;
+    end
+    self:SetScript("OnEvent", self.OnEvent);
+
+    if (unit == "focus") then
+        self:RegisterEvent("PLAYER_FOCUS_CHANGED");
+    elseif (unit == "target") then
+        self:RegisterEvent("PLAYER_TARGET_CHANGED");
+    end
+    return unit;
+end
+
+function UnitFrameIndicatorMixin:DisableEvents()
+    self.unitFrame:UnregisterCallback(_p.UnitFrame.Events.OnUnitChanged, self);
+    self:UnregisterAllEvents();
+    self:SetScript("OnEvent", nil);
+end
+
+function UnitFrameIndicatorMixin:OnUnitChanged()
+    if (not self:IsShown()) then return; end
+
+    self:DisableEvents();
+    self:EnableEvents();
+    self:UpdateAll();
+end
+
+function UnitFrameIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
+    if (event == "PLAYER_FOCUS_CHANGED" or event == "PLAYER_TARGET_CHANGED") then
+        self:UpdateAll();
+        return true;
+    end
+    return false;
+end
+
+function UnitFrameIndicatorMixin:UpdateAllSettings()
+end
+
+function UnitFrameIndicatorMixin:UpdateAll()
+end
+
+function UnitFrameIndicatorMixin:Layout()
 end
 
 function UnitFrameIndicatorMixin:GetIndicatorType()
@@ -122,13 +177,22 @@ function UnitFrameIndicatorMixin:GetRequestedSize()
     error("This must be overridden!");
 end
 
+function UnitFrameIndicatorMixin:OnShow()
+    self:EnableEvents();
+    self:UpdateAllSettings();
+    self:UpdateAll();
+end
+
+function UnitFrameIndicatorMixin:OnHide()
+    self:DisableEvents();
+end
+
 function UnitFrameIndicatorMixin:Destroy()
     self.unitFrame = nil;
-    self.growDirection = nil;
     self.previewModeEnabled = nil;
     self.alignTo = nil;
     self.settings = nil;
-    self:UnregisterEvents();
+    self:DisableEvents();
     wipe(self.Event);
     UnitFrameIndicator.PutFrameIntoPool(self);
 end

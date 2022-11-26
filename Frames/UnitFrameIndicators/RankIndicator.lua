@@ -25,23 +25,23 @@ local UnitFrame = _p.UnitFrame;
 local PixelPerfect = _p.PixelPerfect;
 
 
-_p.RoleIndicator = {};
-local RoleIndicator = _p.RoleIndicator;
+_p.RankIndicator = {};
+local RankIndicator = _p.RankIndicator;
 
-local RoleIndicatorMixin = {};
+local RankIndicatorMixin = {};
 
-local _indicatorType = "RoleIndicator";
+local _indicatorType = "RankIndicator";
 
 local _settings = {
     iconSize = 5,
     hideIfNoRole = true,
 };
 
-function RoleIndicator.Create(unitFrame, alignTo, settings)
+function RankIndicator.Create(unitFrame, alignTo, settings)
     local frame = UnitFrameIndicator.TryGetFrame(_indicatorType);
     if (not frame) then
         frame = CreateFrame("Frame", nil, nil);
-        Mixin(frame, UnitFrameIndicatorMixin, RoleIndicatorMixin);
+        Mixin(frame, UnitFrameIndicatorMixin, RankIndicatorMixin);
 
         frame.children = {};
 
@@ -53,47 +53,48 @@ function RoleIndicator.Create(unitFrame, alignTo, settings)
 end
 
 -- UnitFrameIndicatorMixin overrides
-function RoleIndicatorMixin:GetIndicatorType()
+function RankIndicatorMixin:GetIndicatorType()
     return _indicatorType;
 end
 
-local _possibleRoles = { "TANK", "HEALER", "DAMAGER" };
-function RoleIndicatorMixin:SetPreviewModeEnabled(enabled)
+function RankIndicatorMixin:SetPreviewModeEnabled(enabled)
     UnitFrameIndicatorMixin.SetPreviewModeEnabled(self, enabled);
+    if (not enabled) then return; end
 
-    if (enabled) then
-        local role = _possibleRoles[math.random(3)];
-        self:SetIcon("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
+    local isLeader = math.random(2) == 1;
+    if (isLeader) then
+        self:SetIcon("Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
+    else
+        self:SetIcon(nil);
     end
 end
 
-function RoleIndicatorMixin:GetRequestedSize()
+function RankIndicatorMixin:GetRequestedSize()
     return (not self.isDisplayingIcon and self.settings.hideIfNoRole and 1) or self.settings.iconSize, self.settings.iconSize;
 end
 
-function RoleIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
-    if (UnitFrameIndicatorMixin.OnEvent(self, event, arg1, arg2, arg3, ...)) then return; end
+function RankIndicatorMixin:UpdateAll()
+    UnitFrameIndicatorMixin.UpdateAll(self);
 
-    if (event == "PLAYER_ROLES_ASSIGNED") then
-        self:UpdateRoleIcon();
-    end
+    self:UpdateRankIcon();
 end
 
-function RoleIndicatorMixin:EnableEvents()
+function RankIndicatorMixin:EnableEvents()
     local unit = UnitFrameIndicatorMixin.EnableEvents(self);
     if (unit == nil) then return; end
     
     self:RegisterEvent("PLAYER_ROLES_ASSIGNED");
+    self:RegisterEvent("PARTY_LEADER_CHANGED");
 end
 
-function RoleIndicatorMixin:UpdateAll()
-    UnitFrameIndicatorMixin.UpdateAll(self);
-
-    self:UpdateRoleIcon();
+function RankIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
+    if (UnitFrameIndicatorMixin.OnEvent(self, event, arg1, arg2, arg3, ...)) then return; end
+    if (event == "PLAYER_ROLES_ASSIGNED" or event == "PARTY_LEADER_CHANGED") then
+        self:UpdateRankIcon();
+    end
 end
 
-
-function RoleIndicatorMixin:Layout()
+function RankIndicatorMixin:Layout()
     UnitFrameIndicatorMixin.Layout(self);
 
     self.children.icon:SetAllPoints();
@@ -101,27 +102,30 @@ end
 
 -- new type members
 
-function RoleIndicatorMixin:UpdateRoleIcon()
+function RankIndicatorMixin:UpdateRankIcon()
     local raidID = UnitInRaid(self.unitFrame.unit);
-    local role;
+    local _, rank;
     if (raidID) then
-        role = select(10, GetRaidRosterInfo(raidID));
+        _, rank = GetRaidRosterInfo(raidID);
     end
-    if (UnitInVehicle(self.unitFrame.unit) and UnitHasVehicleUI(self.unitFrame.unit)) then
-        self:SetIcon("Interface\\Vehicles\\UI-Vehicles-Raid-Icon", 0, 1, 0, 1);
-    elseif (raidID and role) then
-        self:SetIcon("Interface\\GroupFrame\\UI-Group-" .. role .. "Icon", 0, 1, 0, 1);
-	else
-		local role = UnitGroupRolesAssigned(self.unitFrame.unit);
-		if (role == "TANK" or role == "HEALER" or role == "DAMAGER") then
-            self:SetIcon("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES", GetTexCoordsForRoleSmallCircle(role));
+    if (raidID and rank > 0) then
+        if (rank == 1) then
+            self:SetIcon("Interface\\GroupFrame\\UI-Group-AssistantIcon", 0, 1, 0, 1);
+        elseif (rank == 2) then
+            self:SetIcon("Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
+        else
+            error("Rank evaluated 'true' but not 1 or 2!");
+        end
+    else
+        if (UnitIsGroupLeader(self.unitFrame.unit)) then
+            self:SetIcon("Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
         else
             self:SetIcon(nil);
-		end
+        end
     end
 end
 
-function RoleIndicatorMixin:SetIcon(texture, ...)
+function RankIndicatorMixin:SetIcon(texture, ...)
     local isDisplayingIcon;
     if (not texture) then
         isDisplayingIcon = false;
@@ -141,4 +145,4 @@ function RoleIndicatorMixin:SetIcon(texture, ...)
     end
 end
 
-UnitFrameIndicator.RegisterIndicatorType(_indicatorType, L["Role"], RoleIndicator.Create);
+UnitFrameIndicator.RegisterIndicatorType(_indicatorType, L["Rank"], RankIndicator.Create);

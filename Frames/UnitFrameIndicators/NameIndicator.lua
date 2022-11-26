@@ -53,24 +53,8 @@ function NameIndicator.Create(unitFrame, alignTo, settings)
         frame.children.name:SetWordWrap(false);
         frame.children.name:SetShadowColor(0, 0, 0);
         frame.children.name:SetShadowOffset(1, -1);
-
-        frame:HookScript("OnShow", function(self)
-            self:EnableEvents();
-            self:UpdateAllSettings();
-            self:UpdateAll();
-        end);
-
-        frame:HookScript("OnHide", function(self)
-            self:DisableEvents();
-        end);
     end
-    UnitFrameIndicatorMixin.Init(frame, unitFrame, alignTo);
-    frame.settings = settings;
-
-    frame:SetAlignTo(alignTo);
-
-    frame:UpdateAllSettings();
-    frame:UpdateAll();
+    UnitFrameIndicatorMixin.Init(frame, unitFrame, alignTo, settings);
     return frame;
 end
 
@@ -79,80 +63,52 @@ function NameIndicatorMixin:GetIndicatorType()
     return _indicatorType;
 end
 
-function NameIndicatorMixin:SetAlignTo(alignTo)
-    UnitFrameIndicatorMixin.SetAlignTo(self, alignTo);
-    self:Layout();
-end
-
 function NameIndicatorMixin:SetPreviewModeEnabled(enabled)
     UnitFrameIndicatorMixin.SetPreviewModeEnabled(self, enabled);
-    if (enabled) then
-        self:DisableEvents();
-        self:SetName(GetUnitName("player", self.settings.showServerName));
-    else
-        self:EnableEvents();
-        self:UpdateAll();
-    end
-end
+    if (not enabled) then return; end
 
-function NameIndicatorMixin:Destroy()
-    self:DisableEvents();
-    UnitFrameIndicatorMixin.Destroy(self);
+    self:SetName(GetUnitName("player", self.settings.showServerName));
 end
 
 function NameIndicatorMixin:GetRequestedSize()
     return self.children.name:GetUnboundedStringWidth(), self.children.name:GetLineHeight();
 end
 
-function UnitFrameIndicatorMixin:RequiresFullLength()
-    return false;
+function NameIndicatorMixin:UpdateAllSettings()
+    UnitFrameIndicatorMixin.UpdateAllSettings(self);
+
+    self:UpdateFontFromSettings();
 end
 
--- new type members
-function NameIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
-    if (event == "PLAYER_FOCUS_CHANGED" or event == "PLAYER_TARGET_CHANGED") then
-        self:UpdateAll();
-    else
-        local eventUnit = arg1;
-        if (eventUnit ~= self.unitFrame.unit) then
-            return;
-        end
-        if (event == "UNIT_NAME_UPDATE") then
-            self:UpdateName();
-        end
-    end
+function NameIndicatorMixin:UpdateAll()
+    UnitFrameIndicatorMixin.UpdateAll(self);
+
+    self:UpdateName();
+    self:UpdateFontColor();
 end
 
 function NameIndicatorMixin:EnableEvents()
-    self.unitFrame:RegisterCallback(UnitFrame.Events.OnUnitChanged, self.OnUnitChanged, self);
+    local unit = UnitFrameIndicatorMixin.EnableEvents(self);
+    if (unit == nil) then return; end
 
-    local unit = self.unitFrame.unit;
-    if (unit == nil) then
+    self:RegisterUnitEvent("UNIT_NAME_UPDATE", unit);
+end
+
+function NameIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
+    if (UnitFrameIndicatorMixin.OnEvent(self, event, arg1, arg2, arg3, ...)) then return; end
+    
+    local eventUnit = arg1;
+    if (eventUnit ~= self.unitFrame.unit) then
         return;
     end
-    self:SetScript("OnEvent", self.OnEvent);
-    self:RegisterUnitEvent("UNIT_NAME_UPDATE", unit);
-    if (unit == "focus") then
-        self:RegisterEvent("PLAYER_FOCUS_CHANGED");
-    elseif (unit == "target") then
-        self:RegisterEvent("PLAYER_TARGET_CHANGED");
+    if (event == "UNIT_NAME_UPDATE") then
+        self:UpdateName();
     end
-end
-
-function NameIndicatorMixin:DisableEvents()
-    self.unitFrame:UnregisterCallback(UnitFrame.Events.OnUnitChanged, self);
-
-    self:UnregisterAllEvents();
-    self:SetScript("OnEvent", nil);
-end
-
-function NameIndicatorMixin:OnUnitChanged()
-    self:DisableEvents();
-    self:EnableEvents();
-    self:UpdateAll();
 end
 
 function NameIndicatorMixin:Layout()
+    UnitFrameIndicatorMixin.Layout(self);
+
     self.children.name:ClearAllPoints();
     local alignTo = self.alignTo;
     self.children.name:SetAllPoints();
@@ -173,14 +129,7 @@ function NameIndicatorMixin:Layout()
     end
 end
 
-function NameIndicatorMixin:UpdateAllSettings()
-    self:UpdateFontFromSettings();
-end
-
-function NameIndicatorMixin:UpdateAll()
-    self:UpdateName();
-    self:UpdateFontColor();
-end
+-- new type members
 
 function NameIndicatorMixin:UpdateName()
     self:SetName(GetUnitName(self.unitFrame.unit, self.settings.showServerName));

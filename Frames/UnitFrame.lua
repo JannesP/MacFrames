@@ -136,8 +136,6 @@ function UnitFrame.OnSettingChanged(self, key, _, path)
                 UnitFrame.UpdateHealth(self);
             elseif (key == "OutOfRangeAlpha") then
                 UnitFrame.UpdateInRange(self);
-            elseif (key == "RoleIconSize") then
-                UnitFrame.UpdateRoleIcon(self);
             end
         end
     end
@@ -279,10 +277,6 @@ function UnitFrame.Setup(self)
     self:SetAlpha(1);    
     self.targetBorder:Hide();
     self.aggroBorder:Hide();
-
-    self.rankIcon:ClearAllPoints();
-    PixelPerfect.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
-    PixelPerfect.SetPoint(self.rankIcon, "TOPLEFT", self, "TOPLEFT", 3, -3);
     
     local sic = self.statusIconContainer;
     sic.statusText.fontHeight = select(2, sic.statusText:GetFont());
@@ -519,18 +513,35 @@ function UnitFrame.UpdateIndicators(self)
     end
     wipe(self.indicators);
 
-    tinsert(self.indicators, UnitFrameIndicator.Create("RoleIndicator", self, "TOPLEFT", {
+    --Rank Icon
+    tinsert(self.indicators, UnitFrameIndicator.Create("RankIndicator", self, "TOPLEFT", {
         iconSize = self.settings.Frames.RoleIconSize,
         hideIfNoRole = true,
     }));
-    PixelPerfect.SetPoint(self.indicators[1], "LEFT", self.rankIcon, "RIGHT", 2, 0);
-    local iconWidth, iconHeight = self.indicators[1]:GetRequestedSize();
-    PixelPerfect.SetSize(self.indicators[1], iconWidth, iconHeight);
     self.indicators[1]:RegisterCallback(UnitFrameIndicator.Events.OnRequestedSizeChanged, function(self)
         local w, h = self.indicators[1]:GetRequestedSize();
         PixelPerfect.SetSize(self.indicators[1], w, h);
     end, self);
+    PixelPerfect.SetPoint(self.indicators[1], "TOPLEFT", self, "TOPLEFT", 3, -3);
+    local iconWidthRank, iconHeightRank = self.indicators[1]:GetRequestedSize();
+    PixelPerfect.SetSize(self.indicators[1], iconWidthRank, iconHeightRank);
+    self.indicators[1]:Show();
 
+    --Role Icon
+    tinsert(self.indicators, UnitFrameIndicator.Create("RoleIndicator", self, "TOPLEFT", {
+        iconSize = self.settings.Frames.RoleIconSize,
+        hideIfNoRole = true,
+    }));
+    self.indicators[2]:RegisterCallback(UnitFrameIndicator.Events.OnRequestedSizeChanged, function(self)
+        local w, h = self.indicators[2]:GetRequestedSize();
+        PixelPerfect.SetSize(self.indicators[2], w, h);
+    end, self);
+    PixelPerfect.SetPoint(self.indicators[2], "LEFT", self.indicators[1], "RIGHT", 2, 0);
+    local iconWidth, iconHeight = self.indicators[2]:GetRequestedSize();
+    PixelPerfect.SetSize(self.indicators[2], iconWidth, iconHeight);
+    self.indicators[2]:Show();
+
+    --Name
     tinsert(self.indicators, UnitFrameIndicator.Create("NameIndicator", self, "TOPLEFT", {
         showServerName = self.settings.Frames.DisplayServerNames,
         fontUseClassColor = self.settings.Frames.NameFont.UseClassColor,
@@ -538,10 +549,15 @@ function UnitFrame.UpdateIndicators(self)
         fontName = self.settings.Frames.NameFont.Name,
         fontSize = self.settings.Frames.NameFont.Size,
     }));
-    PixelPerfect.SetPoint(self.indicators[2], "LEFT", self.indicators[1], "RIGHT", 2, 0);
-    PixelPerfect.SetPoint(self.indicators[2], "RIGHT", self, "RIGHT", -2, 0);
-    local _, nameHeight = self.indicators[2]:GetRequestedSize();
-    PixelPerfect.SetHeight(self.indicators[2], nameHeight);
+    self.indicators[3]:RegisterCallback(UnitFrameIndicator.Events.OnRequestedSizeChanged, function(self)
+        local _, nameHeight = self.indicators[3]:GetRequestedSize();
+        PixelPerfect.SetHeight(self.indicators[3], nameHeight);
+    end, self);
+    PixelPerfect.SetPoint(self.indicators[3], "LEFT", self.indicators[2], "RIGHT", 2, 0);
+    PixelPerfect.SetPoint(self.indicators[3], "RIGHT", self, "RIGHT", -2, 0);
+    local _, nameHeight = self.indicators[3]:GetRequestedSize();
+    PixelPerfect.SetHeight(self.indicators[3], nameHeight);
+    self.indicators[3]:Show();
 end
 
 do
@@ -959,7 +975,6 @@ do
         self:RegisterEvent("PLAYER_FOCUS_CHANGED");
         self:RegisterEvent("READY_CHECK");
         self:RegisterEvent("READY_CHECK_FINISHED");
-        self:RegisterEvent("PARTY_LEADER_CHANGED");
         self:RegisterEvent("PLAYER_REGEN_DISABLED");
         self:RegisterEvent("PLAYER_REGEN_ENABLED");
         self:RegisterEvent("PARTY_MEMBER_DISABLE");
@@ -1017,8 +1032,6 @@ function UnitFrame.OnEvent(self, event, ...)
             UnitFrame.UpdateHealthBarExtraInfo(self);
             UnitFrame.UpdateAuras(self);
         end
-    elseif (event == "PARTY_LEADER_CHANGED") then
-        UnitFrame.UpdateRoleIcon(self);
     elseif (event == "READY_CHECK") then
         UnitFrame.UpdateReadyCheckStatus(self);
     elseif (event == "READY_CHECK_FINISHED") then
@@ -1105,7 +1118,6 @@ function UnitFrame.UpdateAll(self)
         UnitFrame.UpdatePowerColor(self);
         UnitFrame.UpdateHealthBarExtraInfo(self);
         UnitFrame.UpdateInRange(self);
-        UnitFrame.UpdateRoleIcon(self);
         UnitFrame.UpdateTargetHighlight(self);
         UnitFrame.UpdateAggroHighlight(self);
         UnitFrame.UpdateAuras(self);
@@ -1283,38 +1295,6 @@ function UnitFrame.UpdateTargetHighlight(self)
     else
         self.targetBorder:Hide();
     end
-end
-
-function UnitFrame.UpdateRoleIcon(self)
-    local raidID = UnitInRaid(self.unit);
-    local _, rank;
-    if (raidID) then
-        _, rank = GetRaidRosterInfo(raidID);
-    end
-    if (raidID and rank > 0) then
-        if (rank == 1) then
-            UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-AssistantIcon", 0, 1, 0, 1);
-        elseif (rank == 2) then
-            UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
-        else
-            error("Rank evaluated 'true' but not 1 or 2!");
-        end
-    else
-        if (UnitIsGroupLeader(self.unit)) then
-            UnitFrame.SetIcon(self, self.rankIcon, "Interface\\GroupFrame\\UI-Group-LeaderIcon", 0, 1, 0, 1);
-        else
-            self.rankIcon:Hide();
-            PixelPerfect.SetSize(self.rankIcon, 1, self.settings.Frames.RoleIconSize);
-        end
-    end
-end
-
-function UnitFrame.SetIcon(self, icon, texture, ...)
-    local roleIconSize = self.settings.Frames.RoleIconSize;
-    icon:SetTexture(texture);
-    icon:SetTexCoord(...);
-    icon:Show();
-    PixelPerfect.SetSize(icon, roleIconSize);
 end
 
 function UnitFrame.UpdateStatusText(self)
