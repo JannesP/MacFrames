@@ -82,7 +82,7 @@ function UnitFrameIndicatorMixin:Init(unitFrame, alignTo, settings)
     local events = {};
     for _, v in pairs(UnitFrameIndicator.Events) do
         tinsert(events, v);
-    end 
+    end
     self.settings = settings;
     self.unitFrame = unitFrame;
     self.previewModeEnabled = false;
@@ -188,11 +188,15 @@ function UnitFrameIndicatorMixin:OnHide()
 end
 
 function UnitFrameIndicatorMixin:Destroy()
+    self:DisableEvents();
+
+    self:SetScript("OnShow", nil);
+    self:SetScript("OnHide", nil);
+
     self.unitFrame = nil;
     self.previewModeEnabled = nil;
     self.alignTo = nil;
     self.settings = nil;
-    self:DisableEvents();
     wipe(self.Event);
     UnitFrameIndicator.PutFrameIntoPool(self);
 end
