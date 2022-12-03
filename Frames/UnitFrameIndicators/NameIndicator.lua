@@ -50,6 +50,7 @@ function NameIndicator.Create(unitFrame, alignTo, settings)
 
         frame.children.name = frame:CreateFontString(nil, "ARTWORK");
         frame.children.name:SetMaxLines(1);
+---@diagnostic disable-next-line: redundant-parameter
         frame.children.name:SetWordWrap(false);
         frame.children.name:SetShadowColor(0, 0, 0);
         frame.children.name:SetShadowOffset(1, -1);
