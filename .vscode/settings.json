@@ -164,5 +164,8 @@
     ],
     "Lua.diagnostics.disable": [
         "undefined-field"
+    ],
+    "Lua.workspace.ignoreDir": [
+        "Libs"
     ]
 }
