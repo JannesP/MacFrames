@@ -104,6 +104,7 @@ function NameIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
     end
     if (event == "UNIT_NAME_UPDATE") then
         self:UpdateName();
+        self:UpdateFontColor();
     end
 end
 

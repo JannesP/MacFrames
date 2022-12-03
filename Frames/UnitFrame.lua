@@ -59,6 +59,7 @@ _p.UnitFrame = UnitFrame;
 
 UnitFrame.Events = {
     OnUnitChanged = "OnUnitChanged",
+    OnGameUnitChanged = "OnGameUnitChanged",
 }
 
 local function ProfileMouseActions_OnChange(key)
@@ -354,7 +355,7 @@ function UnitFrame.GetTextureFromSettings(lsmType, lsmName, defaultLsmName)
         usedName = defaultLsmName;
         texturePath = LSM:Fetch(lsmType, defaultLsmName, true);
         if (texturePath == nil) then
-            usedName = LSM:GetDefault(lsmType);
+            usedName = LSM:GetDefault(lsmType) or "";
             texturePath = LSM:Fetch(lsmType, usedName, false);
         end
     end
@@ -1016,21 +1017,24 @@ function UnitFrame.OnEvent(self, event, ...)
     local arg1, arg2, arg3, arg4 = ...;
     if (event == "PLAYER_ENTERING_WORLD" or event == "GROUP_ROSTER_UPDATE") then
         UnitFrame.UpdateAll(self);
+        self:TriggerEvent(UnitFrame.Events.OnGameUnitChanged);
     elseif (event == "PLAYER_TARGET_CHANGED") then
-        if (UnitIsUnit("target", self.unit) or UnitIsUnit("target", self.displayUnit)) then
+        if (self.unit == "target" or self.displayUnit == "target") then
             UnitFrame.UpdateMaxHealth(self);
             UnitFrame.UpdateHealth(self);
             UnitFrame.UpdateHealthColor(self);
             UnitFrame.UpdateHealthBarExtraInfo(self);
+            self:TriggerEvent(UnitFrame.Events.OnGameUnitChanged);
         end
         UnitFrame.UpdateTargetHighlight(self);
     elseif (event == "PLAYER_FOCUS_CHANGED") then
-        if (UnitIsUnit("focus", self.unit) or UnitIsUnit("focus", self.displayUnit)) then
+        if (self.unit == "focus" or self.displayUnit == "focus") then
             UnitFrame.UpdateMaxHealth(self);
             UnitFrame.UpdateHealth(self);
             UnitFrame.UpdateHealthColor(self);
             UnitFrame.UpdateHealthBarExtraInfo(self);
             UnitFrame.UpdateAuras(self);
+            self:TriggerEvent(UnitFrame.Events.OnGameUnitChanged);
         end
     elseif (event == "READY_CHECK") then
         UnitFrame.UpdateReadyCheckStatus(self);

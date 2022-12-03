@@ -124,21 +124,17 @@ end
 
 function UnitFrameIndicatorMixin:EnableEvents()
     self.unitFrame:RegisterCallback(_p.UnitFrame.Events.OnUnitChanged, self.OnUnitChanged, self);
+    self.unitFrame:RegisterCallback(_p.UnitFrame.Events.OnGameUnitChanged, self.OnGameUnitChanged, self);
     local unit = self.unitFrame.unit;
     if (unit == nil) then
         return nil;
     end
     self:SetScript("OnEvent", self.OnEvent);
-
-    if (unit == "focus") then
-        self:RegisterEvent("PLAYER_FOCUS_CHANGED");
-    elseif (unit == "target") then
-        self:RegisterEvent("PLAYER_TARGET_CHANGED");
-    end
     return unit;
 end
 
 function UnitFrameIndicatorMixin:DisableEvents()
+    self.unitFrame:UnregisterCallback(_p.UnitFrame.Events.OnGameUnitChanged, self);
     self.unitFrame:UnregisterCallback(_p.UnitFrame.Events.OnUnitChanged, self);
     self:UnregisterAllEvents();
     self:SetScript("OnEvent", nil);
@@ -149,14 +145,14 @@ function UnitFrameIndicatorMixin:OnUnitChanged()
 
     self:DisableEvents();
     self:EnableEvents();
+    self:OnGameUnitChanged();
+end
+
+function UnitFrameIndicatorMixin:OnGameUnitChanged()
     self:UpdateAll();
 end
 
 function UnitFrameIndicatorMixin:OnEvent(event, arg1, arg2, arg3, ...)
-    if (event == "PLAYER_FOCUS_CHANGED" or event == "PLAYER_TARGET_CHANGED") then
-        self:UpdateAll();
-        return true;
-    end
     return false;
 end
 
