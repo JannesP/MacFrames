@@ -85,7 +85,7 @@ function Addon.SetupMinimapIcon()
     LdbDataObject = LibDataBroker:NewDataObject("MacFrames_Icon", {
         type = "launcher",
         text = "MacFrames",
-        icon = "Interface\\AddOns\\MacFrames\\Media\\Logo.tga",
+        icon = "Interface\\AddOns\\MacFrames\\Media\\Minimapicon.blp",
         OnClick = function(_, button)
             if (button == "LeftButton") then
                 SettingsWindow.Toggle();
