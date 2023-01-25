@@ -160,7 +160,10 @@
         "Clique",
         "OmniCD",
         "CallbackRegistryMixin",
-        "ColorPickerFrame"
+        "ColorPickerFrame",
+        "RaidFrame",
+        "Settings",
+        "FrameUtil"
     ],
     "Lua.diagnostics.disable": [
         "undefined-field"
