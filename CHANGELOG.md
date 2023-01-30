@@ -1,5 +1,8 @@
 # MacFrames Changelog
 
+## v0.2.1a (2022/01/25)
+* MISC: Update for Game Version 10.0.5.
+
 ## v0.2.1 (2022/12/27)
 * FIX: Changing the UIScale causes issues with frame placement. This mostly affected ElvUI users.
 
