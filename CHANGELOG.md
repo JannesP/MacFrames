@@ -1,6 +1,9 @@
 # MacFrames Changelog
 
-## v0.2.1a (2022/01/25)
+## v0.2.1a (2023/05/04)
+* MISC: Update for Game Version 10.1.0.
+
+## v0.2.1a (2023/01/25)
 * MISC: Update for Game Version 10.0.5.
 
 ## v0.2.1 (2022/12/27)
