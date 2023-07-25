@@ -294,7 +294,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 PixelPerfect.SetSize(_focusFrame, 100, 50);
                 PixelPerfect.SetPoint(_focusFrame, "CENTER", _p.UIParent, "BOTTOMLEFT", 500, 720);
                 _focusFrame:Show();
-                local bossCount = 8;
+                --[[local bossCount = 8;
                 for i=1,bossCount do
                     local bossFrame = UnitFrame.new("boss" .. i, _p.UIParent, nil, ProfileManager.GetCurrent().RaidFrame);
                     PixelPerfect.SetSize(bossFrame, 100, 50);
@@ -305,6 +305,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 Addon.EnableClickedSupport();
                 Addon.EnableCliqueSupport();
                 Addon.SetupMinimapIcon();
+                ]]--
             end
         end
         if (PlayerInfo.specId ~= nil) then
