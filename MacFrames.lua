@@ -301,11 +301,12 @@ Alternatively you can report this error on github, please attach your MacFrames.
                     PixelPerfect.SetPoint(bossFrame, "CENTER", _p.UIParent, "BOTTOMLEFT", 500 + (i / 4), 800 + 50 * (i - 1));
                     bossFrame:Show();
                 end
+                ]]--
                 --@end-do-not-package@
                 Addon.EnableClickedSupport();
                 Addon.EnableCliqueSupport();
                 Addon.SetupMinimapIcon();
-                ]]--
+                
             end
         end
         if (PlayerInfo.specId ~= nil) then
