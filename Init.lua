@@ -34,15 +34,15 @@ _p.PlayerInfo = {
 _p.L = setmetatable({}, {__index = function(L, key) return key; end});
 
 _p.tprint = function(tbl, indent)
+    local indentSize = 2;
     if not indent then indent = 0 end
-    local toprint = string.rep(" ", indent) .. "{\n";
-    indent = indent + 2;
+    local toprint = "{\n";
     for k, v in pairs(tbl) do
-        toprint = toprint .. string.rep(" ", indent);
+        toprint = toprint .. string.rep(" ", indent + indentSize);
         if (type(k) == "number") then
             toprint = toprint .. "[" .. k .. "]: ";
         elseif (type(k) == "string") then
-            toprint = toprint  .. k ..  ": ";  
+            toprint = toprint .. "\"" .. k ..  "\": ";
         end
         if (type(v) == "number") then
             toprint = toprint .. v .. ",\n";
@@ -51,7 +51,7 @@ _p.tprint = function(tbl, indent)
         elseif (type(v) == "string") then
             toprint = toprint .. "\"" .. v .. "\",\n";
         elseif (type(v) == "table") then
-            toprint = toprint .. _p.tprint(v, indent + 2) .. ",\n";
+            toprint = toprint .. Dev.tprint(v, indent + indentSize) .. ",\n";
         else
             toprint = toprint .. "\"" .. tostring(v) .. "\",\n";
         end
