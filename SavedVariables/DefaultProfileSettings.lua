@@ -166,6 +166,7 @@ _p.DefaultProfileSettings = {
             useBlizzardAuraFilter = false,
             enabled = false,
             EnableAuraTooltips = false,
+            tenPointTwoRestoShamanHandling = false,
         },
         DispellableDebuffs = {
             iconWidth = 14,
@@ -282,6 +283,7 @@ _p.DefaultProfileSettings = {
             useBlizzardAuraFilter = false,
             enabled = false,
             EnableAuraTooltips = false,
+            tenPointTwoRestoShamanHandling = false,
         },
         DispellableDebuffs = {
             iconWidth = 14,
