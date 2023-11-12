@@ -1,6 +1,16 @@
 # MacFrames Changelog
 
-## v0.2.1a (2022/01/25)
+## v0.2.2a (2023/08/01)
+* FIX: Fix broken addon.
+
+## v0.2.2 (2023/07/25)
+* NEW: Augmentation Evoker class displays added.
+* MISC: Update for Game Version 10.1.5.
+
+## v0.2.1a (2023/05/04)
+* MISC: Update for Game Version 10.1.0.
+
+## v0.2.1a (2023/01/25)
 * MISC: Update for Game Version 10.0.5.
 
 ## v0.2.1 (2022/12/27)

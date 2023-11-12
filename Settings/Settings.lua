@@ -740,6 +740,17 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
             return PS().SpecialClassDisplay.fixedPositions;
         end,
     });
+    tinsert(classDisplayOptions.Options, {
+        Name = L["Enable 10.2 Reso Shaman Special"],
+        Description = L["Special coloring mode for Resto Shaman 10.2 set bonus. Colors Riptides with more than 10 seconds remaining and with missing tierset buff green."],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().SpecialClassDisplay.tenPointTwoRestoShamanHandling = value;
+        end,
+        Get = function()
+            return PS().SpecialClassDisplay.tenPointTwoRestoShamanHandling;
+        end,
+    });
     tinsert(classDisplayCategoryConfigureAuras.Options, {
         Name = L["Aura Selector"],
         Type = OptionType.NotYetImplemented,

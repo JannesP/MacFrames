@@ -37,15 +37,17 @@ local _framePool = _p.FramePool.Create();
 function AuraFrame.new(parent, width, height, zoom)
     local frame = _framePool:Take();
     if (frame == nil) then
-        frame = CreateFrame("Frame", nil, parent, "MacFramesUnitFrameAuraTemplate");        
+        frame = CreateFrame("Frame", nil, parent, "MacFramesUnitFrameAuraTemplate");
         frame:SetScript("OnEnter", AuraFrame.DisplayTooltip);
         frame:SetScript("OnLeave", AuraFrame.HideTooltip);
+        frame.iconOverlay:SetBlendMode("BLEND");
+        frame.iconOverlay:SetColorTexture(.15, .95, .3, .7);
         AuraFrame.EnableTooltip(frame, false);
     else
         frame:SetParent(parent);
     end
     PixelPerfect.SetSize(frame, width, height);
-    
+
     frame.pinnedAura = nil;
     frame.cooldown:SetDrawEdge(false);
     frame.cooldown:SetHideCountdownNumbers(true);
@@ -69,7 +71,9 @@ function AuraFrame.new(parent, width, height, zoom)
 
     PixelPerfect.SetPoint(frame.icon, "TOPLEFT", frame, "TOPLEFT", 1, -1);
     PixelPerfect.SetPoint(frame.icon, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
-
+    frame.icon:SetDrawLayer("ARTWORK", 2);
+    frame.iconOverlay:SetDrawLayer("ARTWORK", 3);
+    frame.iconOverlay:SetAllPoints(frame.icon);
     frame.cooldown:SetAllPoints(frame.icon);
 
     frame:Hide();
@@ -161,35 +165,56 @@ function AuraFrame.GetDisplayedAuraInformation(self)
     local color = DebuffTypeColor[self.auraDebuffType];
     return self.auraSlot, self.auraSpellId, color;
 end
-
-function AuraFrame.DisplayAura(self, unit, slot, ...)
-    local _, icon, stacks, debuffType, duration, expirationTime = ...;
-    if (icon == nil or duration == nil or expirationTime == nil) then
-        self.unit = nil;
-        self.auraSlot = nil;
-        self.auraSpellId = nil;
-        self.auraDebuffType = nil;
-        self:Hide();
-    else
-        AuraFrame.SetBackgroundColor(self, debuffType);
-        self.unit = unit;
-        self.auraSlot = slot;
-        self.auraSpellId = select(10, ...);
-        self.auraDebuffType = debuffType;
-        self.icon:SetTexture(icon);
-        self.cooldown:SetCooldown(expirationTime - duration, duration);
-        self.cooldown:Resume();
-        self:Show();
-
-        if (GameTooltip:IsOwned(self)) then
-            AuraFrame.DisplayTooltip(self);
+do
+    local hasRShamSetBuff;
+    local function ProcessRestoShamanTiersetBuff(_, info, ...)
+        if (info.byPlayer) then
+            hasRShamSetBuff = true;
+            return true;
         end
-
-        if (stacks > 0) then
-            self.count:SetText(stacks);
-            self.count:Show();
+        return false;
+    end
+    function AuraFrame.DisplayAura(self, unit, slot, ...)
+        local _, icon, stacks, debuffType, duration, expirationTime = ...;
+        if (icon == nil or duration == nil or expirationTime == nil) then
+            self.unit = nil;
+            self.auraSlot = nil;
+            self.auraSpellId = nil;
+            self.auraDebuffType = nil;
+            self:Hide();
         else
-            self.count:Hide();
+            AuraFrame.SetBackgroundColor(self, debuffType);
+            self.unit = unit;
+            self.auraSlot = slot;
+            self.auraSpellId = select(10, ...);
+            self.auraDebuffType = debuffType;
+            self.icon:SetTexture(icon);
+            self.cooldown:SetCooldown(expirationTime - duration, duration);
+            self.cooldown:Resume();
+            self:Show();
+
+            --resto shaman 10.2 tier set handling
+            self.iconOverlay:Hide();
+            if (self.auraSpellId == 61295) then --riptide
+                if (expirationTime - GetTime() > 14) then
+                    hasRShamSetBuff = false;
+                    AuraManager.ForAllBuffsByAuraId(self.unit, 424461, ProcessRestoShamanTiersetBuff);
+                    if (not hasRShamSetBuff) then
+                        self.iconOverlay:Show();
+                    end
+                end
+            end
+
+            if (GameTooltip:IsOwned(self)) then
+                AuraFrame.DisplayTooltip(self);
+            end
+
+            if (stacks > 0) then
+                self.count:SetText(stacks);
+                self.count:Show();
+            else
+                self.count:Hide();
+            end
         end
     end
 end

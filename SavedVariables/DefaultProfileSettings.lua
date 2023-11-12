@@ -166,6 +166,7 @@ _p.DefaultProfileSettings = {
             useBlizzardAuraFilter = false,
             enabled = false,
             EnableAuraTooltips = false,
+            tenPointTwoRestoShamanHandling = false,
         },
         DispellableDebuffs = {
             iconWidth = 14,
@@ -282,6 +283,7 @@ _p.DefaultProfileSettings = {
             useBlizzardAuraFilter = false,
             enabled = false,
             EnableAuraTooltips = false,
+            tenPointTwoRestoShamanHandling = false,
         },
         DispellableDebuffs = {
             iconWidth = 14,
@@ -716,6 +718,27 @@ _p.DefaultProfileSettings = {
                     onlyByPlayer = true,
                 },
             },
+            [1473] = {
+                _settingsType = ProfileSettingsTypes.Array,
+                [1] = { --Prescience
+                    spellId = 410089,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [2] = { --Ebon Might
+                    spellId = 395296,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                },
+                [3] = { --Blistering Scales
+                    spellId = 360827,
+                    enabled = true,
+                    debuff = false,
+                    onlyByPlayer = true,
+                }
+            }
         },
     },
     MouseActions = {},         --generated below

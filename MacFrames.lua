@@ -305,6 +305,7 @@ Alternatively you can report this error on github, please attach your MacFrames.
                 Addon.EnableClickedSupport();
                 Addon.EnableCliqueSupport();
                 Addon.SetupMinimapIcon();
+                
             end
         end
         if (PlayerInfo.specId ~= nil) then
