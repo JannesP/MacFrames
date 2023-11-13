@@ -81,27 +81,56 @@ function Addon.Loaded()
     SettingsWindow = _p.SettingsWindow;
 end
 
+local function AddonButtonClicked(buttonName)
+    if (buttonName == "LeftButton") then
+        SettingsWindow.Toggle();
+    elseif (buttonName == "RightButton") then
+        Addon.ToggleAnchors();
+    end
+end
+
+local function AddonButtonShowTooltip(parentFrame)
+    GameTooltip:SetOwner(parentFrame, "ANCHOR_BOTTOMLEFT");
+    GameTooltip:SetText("MacFrames")
+    GameTooltip:AddLine("");
+    GameTooltip:AddLine("|cffeda55fClick|r to Toggle Configuration UI", 0.2, 1, 0.2);
+    GameTooltip:AddLine("|cffeda55fRight-Click|r to Toggle Anchors", 0.2, 1, 0.2);
+    GameTooltip:Show();
+end
+
+local function AddonButtonHideTooltip(parentFrame)
+    if (GameTooltip:IsOwned(parentFrame)) then
+        GameTooltip:Hide();
+    end
+end
+
 function Addon.SetupMinimapIcon()
+    ---@diagnostic disable-next-line: undefined-field, missing-fields
     LdbDataObject = LibDataBroker:NewDataObject("MacFrames_Icon", {
         type = "launcher",
         text = "MacFrames",
         icon = "Interface\\AddOns\\MacFrames\\Media\\Logo.tga",
         OnClick = function(_, button)
-            if (button == "LeftButton") then
-                SettingsWindow.Toggle();
-            elseif (button == "RightButton") then
-                Addon.ToggleAnchors();
-            end
+            AddonButtonClicked(button);
         end,
-        OnTooltipShow = function(tooltip)
-            tooltip:SetText("MacFrames")
-            tooltip:AddLine("");
-            tooltip:AddLine("|cffeda55fClick|r to Toggle Configuration UI", 0.2, 1, 0.2);
-            tooltip:AddLine("|cffeda55fRight-Click|r to Toggle Anchors", 0.2, 1, 0.2);
-            tooltip:Show()
+        OnEnter = function (displayFrame)
+            AddonButtonShowTooltip(displayFrame);
+        end,
+        OnLeave = function (displayFrame)
+            AddonButtonHideTooltip(displayFrame);
         end,
     });
     LibMinimapIcon:Register(Constants.MinimapIconRegisterName, LdbDataObject, ProfileManager.GetMinimapSettings());
+end
+
+function MacFrames_OnAddonCompartmentClick(addonName, buttonName, menuButtonFrame)
+    AddonButtonClicked(buttonName);
+end
+function MacFrames_OnAddonCompartmentEnter(addonName, menuButtonFrame)
+    AddonButtonShowTooltip(menuButtonFrame);
+end
+function MacFrames_OnAddonCompartmentLeave(addonName, menuButtonFrame)
+    AddonButtonHideTooltip(menuButtonFrame);
 end
 
 function Addon.EnteringCombat()

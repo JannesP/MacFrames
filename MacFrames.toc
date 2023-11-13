@@ -24,6 +24,10 @@
 ## Author: Donmactotem
 ## DefaultState: enabled
 ## SavedVariables: MacFramesSavedVariables
+## IconTexture: Interface\Addons\MacFrames\Media\Logo.tga
+## AddonCompartmentFunc: MacFrames_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: MacFrames_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: MacFrames_OnAddonCompartmentLeave
 ## X-Website: https://github.com/JannesP/MacFrames
 ## X-Curse-Project-ID: 412950
 ## X-WoWI-ID: 25739
