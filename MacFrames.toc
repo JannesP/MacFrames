@@ -58,6 +58,7 @@ Util\MyAuraUtil.lua
 Util\FrameUtil.lua
 Util\AuraManager.lua
 
+Frames\PrivateAuraFrame.lua
 Frames\AuraFrame.xml
 Frames\AuraFrame.lua
 Frames\AuraGroup.lua

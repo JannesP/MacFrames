@@ -110,6 +110,9 @@ _p.DefaultProfileSettings = {
             OtherDebuffs = {
                 Enabled = false,
             },
+            PrivateAuras = {
+                Enabled = false,
+            },
             BossAuras = {
                 Enabled = false,
             },
@@ -186,6 +189,13 @@ _p.DefaultProfileSettings = {
             iconSpacing = 1,
             useBlizzardAuraFilter = true,
             EnableAuraTooltips = false,
+            Enabled = true,
+        },
+        PrivateAuras = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconCount = 1,
+            iconSpacing = 1,
             Enabled = true,
         },
         BossAuras = {
@@ -305,6 +315,13 @@ _p.DefaultProfileSettings = {
             EnableAuraTooltips = false,
             Enabled = true,
         },
+        PrivateAuras = {
+            iconWidth = 14,
+            iconHeight = 14,
+            iconCount = 2,
+            iconSpacing = 1,
+            Enabled = true,
+        },
         BossAuras = {
             iconWidth = 20,
             iconHeight = 20,
@@ -384,6 +401,9 @@ _p.DefaultProfileSettings = {
                 Enabled = false,
             },
             OtherDebuffs = {
+                Enabled = false,
+            },
+            PrivateAuras = {
                 Enabled = false,
             },
             BossAuras = {

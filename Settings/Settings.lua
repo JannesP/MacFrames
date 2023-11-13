@@ -765,6 +765,62 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Undispellable Debuffs", function() return PS().OtherDebuffs; end));
     tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Dispellable Debuffs", function() return PS().DispellableDebuffs; end));
     tinsert(unitFrameOptions, CreateAuraGroupOptionsWithBlizzardFilter("Buffs", function() return PS().Buffs; end));
+    
+
+    local privateAuraOptions = CreateSection(L["Private Auras"]);
+    tinsert(unitFrameOptions, privateAuraOptions);
+    tinsert(privateAuraOptions.Options, {
+        Name = L["Width"],
+        Type = OptionType.SliderValue,
+        Rounded = true,
+        Min = 4,
+        SoftMax = 100,
+        Set = function(value)
+            PS().PrivateAuras.iconWidth = value;
+        end,
+        Get = function()
+            return PS().PrivateAuras.iconWidth;
+        end,
+    });
+    tinsert(privateAuraOptions.Options, {
+        Name = L["Height"],
+        Type = OptionType.SliderValue,
+        Rounded = true,
+        Min = 4,
+        SoftMax = 100,
+        Set = function(value)
+            PS().PrivateAuras.iconHeight = value;
+        end,
+        Get = function()
+            return PS().PrivateAuras.iconHeight;
+        end,
+    });
+    tinsert(privateAuraOptions.Options, {
+        Name = L["Count"],
+        Type = OptionType.SliderValue,
+        Rounded = true,
+        Min = 1,
+        SoftMax = 4,
+        Set = function(value)
+            PS().PrivateAuras.iconCount = value;
+        end,
+        Get = function()
+            return PS().PrivateAuras.iconCount;
+        end,
+    });
+    tinsert(privateAuraOptions.Options, {
+        Name = L["Spacing"],
+        Type = OptionType.SliderValue,
+        Rounded = true,
+        Min = 0,
+        SoftMax = 10,
+        Set = function(value)
+            PS().PrivateAuras.iconSpacing = value;
+        end,
+        Get = function()
+            return PS().PrivateAuras.iconSpacing;
+        end,
+    });
 
     for i=1, #unitFrameOptions do
         tinsert(targetSections, unitFrameOptions[i]);

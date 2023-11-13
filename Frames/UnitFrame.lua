@@ -26,8 +26,7 @@ local Constants = _p.Constants;
 local Resources = _p.Resources;
 local PlayerInfo = _p.PlayerInfo;
 local SettingsUtil = _p.SettingsUtil;
-local MyAuraUtil = _p.MyAuraUtil;
-local AuraFrame = _p.AuraFrame;
+local PrivateAuraFrame = _p.PrivateAuraFrame;
 local AuraGroup = _p.AuraGroup;
 local AuraManager = _p.AuraManager;
 local ProfileManager = _p.ProfileManager;
@@ -176,6 +175,7 @@ do
                 Frames = E(self, UnitFrame.OnSettingChanged, true),
                 DispellableDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateDispellablesFromSettings)),
                 OtherDebuffs = E(self, CreateAuraChanged(self, UnitFrame.CreateUndispellablesFromSettings)),
+                PrivateAuras = E(self, CreateAuraChanged(self, UnitFrame.CreatePrivateAuraGroupsFromSettings)),
                 BossAuras = E(self, CreateAuraChanged(self, UnitFrame.CreateBossAurasFromSettings)),
                 DefensiveBuff = E(self, CreateAuraChanged(self, UnitFrame.CreateDefensivesFromSettings)),
                 SpecialClassDisplay = E(self, CreateAuraChanged(self, CreateBuffGroupsFromSettings)),
@@ -189,6 +189,7 @@ do
             oldSettings.Frames:UnregisterAllPropertyChanged(handlers.Frames);
             oldSettings.DispellableDebuffs:UnregisterPropertyChanged(handlers.DispellableDebuffs);
             oldSettings.OtherDebuffs:UnregisterPropertyChanged(handlers.OtherDebuffs);
+            oldSettings.PrivateAuras:UnregisterPropertyChanged(handlers.PrivateAuras);
             oldSettings.BossAuras:UnregisterPropertyChanged(handlers.BossAuras);
             oldSettings.DefensiveBuff:UnregisterPropertyChanged(handlers.DefensiveBuff);
             oldSettings.SpecialClassDisplay:UnregisterPropertyChanged(handlers.SpecialClassDisplay);
@@ -200,6 +201,7 @@ do
         newSettings.Frames:RegisterAllPropertyChanged(handlers.Frames);
         newSettings.DispellableDebuffs:RegisterPropertyChanged(handlers.DispellableDebuffs);
         newSettings.OtherDebuffs:RegisterPropertyChanged(handlers.OtherDebuffs);
+        newSettings.PrivateAuras:RegisterPropertyChanged(handlers.PrivateAuras);
         newSettings.BossAuras:RegisterPropertyChanged(handlers.BossAuras);
         newSettings.DefensiveBuff:RegisterPropertyChanged(handlers.DefensiveBuff);
         newSettings.SpecialClassDisplay:RegisterPropertyChanged(handlers.SpecialClassDisplay);
@@ -656,6 +658,7 @@ function UnitFrame.CreateAuraDisplays(self)
     UnitFrame.CreateBuffsFromSettings(self);
     UnitFrame.CreateDefensivesFromSettings(self);
     UnitFrame.CreateUndispellablesFromSettings(self);
+    UnitFrame.CreatePrivateAuraGroupsFromSettings(self);
     UnitFrame.CreateDispellablesFromSettings(self);
     UnitFrame.CreateBossAurasFromSettings(self);
     for i=#_auraTooltipHostList, 1, -1 do
@@ -762,6 +765,31 @@ function UnitFrame.CreateUndispellablesFromSettings(self)
     return auraGroup;
 end
 
+function UnitFrame.CreatePrivateAuraGroupsFromSettings(self)
+    local s = self.settings.PrivateAuras;
+    local auraFrames = self.privateAuraFrames;
+
+    if (self.privateAuraFrames ~= nil) then
+        for _, frame in pairs(auraFrames) do
+            PrivateAuraFrame.Destroy(frame);
+        end
+        wipe(self.privateAuraFrames);
+    else
+        self.privateAuraFrames = {};
+    end
+    if (s.Enabled == false) then
+        return;
+    end
+    local fullWidth = (s.iconCount * s.iconWidth) + (s.iconSpacing * (s.iconCount - 1));
+    for i = 1, s.iconCount do
+        local x = (s.iconWidth * i) + (s.iconSpacing * (i - 1)) - (fullWidth / 2);
+        local frame = PrivateAuraFrame.new(self, s.iconWidth, s.iconHeight, self.unit, i);
+        tinsert(self.privateAuraFrames, frame);
+        frame:ClearAllPoints();
+        PixelPerfect.SetPoint(frame, "BOTTOM", self, "BOTTOM", x, 2);
+    end
+end
+
 function UnitFrame.CreateDispellablesFromSettings(self)
     local s = self.settings.DispellableDebuffs;
     local auraGroup = self.auraGroups.dispellable;
@@ -857,6 +885,9 @@ function UnitFrame.SetUnit(self, unit)
     UnitFrame.SetupMouseActions(self);
     for _, group in pairs(self.auraGroups) do
         AuraGroup.SetUnit(group, unit);
+    end
+    for i, frame in ipairs(self.privateAuraFrames) do
+        PrivateAuraFrame.SetUnit(frame, unit, i);
     end
     RegisterUnitWatch(self);
     UnitFrame.ResetReadyCheck(self);
