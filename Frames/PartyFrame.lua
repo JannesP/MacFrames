@@ -555,7 +555,7 @@ do
                 frame:ClearAllPoints();
                 PixelPerfect.SetSize(frame, frameWidth, frameHeight);
                 if (lastFrame ~= nil) then
-                    PixelPerfect.SetPoint(frame, "TOPLEFT", lastFrame, "TOPLEFT", margin, -spacing);
+                    PixelPerfect.SetPoint(frame, "TOPLEFT", lastFrame, "TOPRIGHT", spacing, -margin);
                 else
                     PixelPerfect.SetPoint(frame, "TOPLEFT", self, "TOPLEFT", margin, -margin);
                 end
