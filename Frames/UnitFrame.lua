@@ -1729,8 +1729,9 @@ function UnitFrame.CreateBossPollingTicker(self)
         return;
     end
     if (self.bossUpdateTickerCallback == nil) then
-        self.bossUpdateTickerCallback = function() 
+        self.bossUpdateTickerCallback = function()
             if (UnitExists(self.unit)) then
+                UnitFrame.UpdateName(self);
                 UnitFrame.UpdateMaxHealth(self);
                 UnitFrame.UpdateHealth(self);
                 UnitFrame.UpdateHealthColor(self);
