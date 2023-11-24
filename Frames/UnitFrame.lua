@@ -631,7 +631,7 @@ do
         ProcessIcon(sic.lfgIcon);
 
         if (#visibleFrames == 0) then
-            --no frames visible, we just move the status text in the middle
+            --no frames visible, we just move the status text to the middle
             sic.statusText:ClearAllPoints();
             PixelPerfect.SetPoint(sic.statusText, "CENTER", sic, "CENTER", 0, 0);
         else
@@ -1248,13 +1248,13 @@ function UnitFrame.UpdateReadyCheckStatus(self)
         local readyCheckStatus = GetReadyCheckStatus(self.unit);
         icon.readyCheckStatus = readyCheckStatus;
         if (readyCheckStatus == "ready") then
-            icon:SetTexture(READY_CHECK_READY_TEXTURE);
+            icon:SetAtlas(READY_CHECK_READY_TEXTURE);
             show = true;
         elseif (readyCheckStatus == "notready") then
-            icon:SetTexture(READY_CHECK_NOT_READY_TEXTURE);
+            icon:SetAtlas(READY_CHECK_NOT_READY_TEXTURE);
             show = true;
         elseif (readyCheckStatus == "waiting") then
-            icon:SetTexture(READY_CHECK_WAITING_TEXTURE);
+            icon:SetAtlas(READY_CHECK_WAITING_TEXTURE);
             show = true;
         end
     end
