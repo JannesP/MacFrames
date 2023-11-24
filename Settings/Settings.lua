@@ -770,6 +770,17 @@ local function AddUnitFrameOptions(targetSections, PS, addPets)
     local privateAuraOptions = CreateSection(L["Private Auras"]);
     tinsert(unitFrameOptions, privateAuraOptions);
     tinsert(privateAuraOptions.Options, {
+        Name = L["Enabled"],
+        Description = L[""],
+        Type = OptionType.CheckBox,
+        Set = function(value)
+            PS().PrivateAuras.Enabled = value;
+        end,
+        Get = function()
+            return PS().PrivateAuras.Enabled;
+        end,
+    });
+    tinsert(privateAuraOptions.Options, {
         Name = L["Width"],
         Type = OptionType.SliderValue,
         Rounded = true,
