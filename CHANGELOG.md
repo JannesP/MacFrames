@@ -1,5 +1,12 @@
 # MacFrames Changelog
 
+## v0.2.3 (2023/11/24)
+* NEW: Private Aura Support
+* NEW: Addon Compartment Support
+* FIX: Ready Check Icon
+* FIX: Horizontal Party Layout
+* MISC: Update for Game Version 10.2.0
+
 ## v0.2.2a (2023/08/01)
 * FIX: Fix broken addon.
 
