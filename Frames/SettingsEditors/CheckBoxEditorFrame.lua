@@ -45,6 +45,7 @@ function CheckBoxEditorFrame.Create(parent, option)
     local frame = BaseEditorFrame.CreateBaseFrame(parent, option);
 
     local checkBox = CreateFrame("CheckButton", nil, frame, "SettingsCheckBoxTemplate");
+    checkBox.HoverBackground = nil;
     
     frame.checkBox = checkBox;
     checkBox.editorFrame = frame;
